@@ -1,0 +1,7 @@
+{
+  "INTERNAL": "An unexpected error occurred",
+  "UNAUTHORIZED": "Unauthorized",
+  "FORBIDDEN": "Forbidden",
+  "VALIDATION": "Invalid request",
+  "NOT_FOUND": "Resource not found"
+}

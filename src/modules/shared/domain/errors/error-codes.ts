@@ -1,0 +1,9 @@
+enum ErrorCode {
+  INTERNAL = 'INTERNAL',
+  UNAUTHORIZED = 'UNAUTHORIZED',
+  FORBIDDEN = 'FORBIDDEN',
+  VALIDATION = 'VALIDATION',
+  NOT_FOUND = 'NOT_FOUND',
+}
+
+export default ErrorCode;
