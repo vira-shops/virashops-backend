@@ -1,0 +1,17 @@
+{
+  "INTERNAL": "An unexpected error occurred",
+  "UNAUTHORIZED": "Unauthorized",
+  "FORBIDDEN": "Forbidden",
+  "VALIDATION": "Invalid request",
+  "NOT_FOUND": "Resource not found",
+  "INVALID_PHONE": "Invalid mobile number",
+  "INVALID_OTP": "Invalid verification code",
+  "OTP_EXPIRED": "Verification code has expired",
+  "OTP_RATE_LIMITED": "Too many verification attempts. Try again later",
+  "PHONE_ALREADY_REGISTERED": "This mobile number is already registered",
+  "ACCOUNT_INACTIVE": "This account is not active",
+  "ACCOUNT_NOT_FOUND": "No account found for this mobile number",
+  "SELLER_ALREADY_EXISTS": "A seller profile already exists for this account",
+  "SELLER_NOT_ACTIVE": "Seller account is not active",
+  "SELLER_NOT_FOUND": "Seller not found"
+}

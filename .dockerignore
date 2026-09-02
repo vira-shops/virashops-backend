@@ -1,0 +1,15 @@
+node_modules
+dist
+coverage
+.git
+.cursor
+.env
+.env.*
+!.env.example
+uploads
+*.log
+mvp-feature-lists
+docs
+test
+*.md
+.DS_Store

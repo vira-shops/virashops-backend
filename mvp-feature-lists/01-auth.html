@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Virashops MVP — ماژول Auth | لیست فیچر</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #1c1410;
+      --muted: #6b5e55;
+      --line: #e6ddd4;
+      --paper: #fbf7f2;
+      --card: #fffdfb;
+      --accent: #b45309;
+      --accent-soft: #fff4e5;
+      --visitor: #57534e;
+      --visitor-bg: #f5f5f4;
+      --user: #0369a1;
+      --user-bg: #e0f2fe;
+      --seller: #047857;
+      --seller-bg: #d1fae5;
+      --admin: #9f1239;
+      --admin-bg: #ffe4e6;
+      --ok: #047857;
+      --wait: #b45309;
+      --ready: #1d4ed8;
+      --out: #57534e;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: "Vazirmatn", sans-serif;
+      line-height: 1.85;
+      font-size: 16px;
+    }
+    .en { font-family: "IBM Plex Sans", "Vazirmatn", sans-serif; direction: ltr; unicode-bidi: isolate; }
+
+    .wrap { max-width: 1080px; margin: 0 auto; padding: 32px 24px 80px; }
+
+    header.hero {
+      background: var(--ink);
+      color: #faf6f1;
+      padding: 48px 24px 40px;
+    }
+    header.hero .wrap { padding-top: 0; padding-bottom: 0; }
+    .kicker {
+      display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+      font-size: 12px; letter-spacing: 0.04em; color: #d6c4b4; margin-bottom: 16px;
+    }
+    .kicker span {
+      border: 1px solid #4a3c32; padding: 4px 10px; border-radius: 999px;
+    }
+    h1 { font-size: clamp(28px, 4vw, 40px); line-height: 1.35; margin: 0 0 12px; font-weight: 800; }
+    .lead { color: #e7d5c4; max-width: 720px; margin: 0; font-size: 17px; }
+    .meta { display: flex; gap: 24px; flex-wrap: wrap; margin-top: 28px; color: #cbb8a6; font-size: 13px; }
+    .meta b { color: #fff; font-weight: 600; display: block; }
+
+    nav.toc {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 20px 24px;
+      margin: 28px 0;
+    }
+    nav.toc h2 { margin: 0 0 12px; font-size: 15px; }
+    nav.toc ol { margin: 0; padding: 0 22px; columns: 2; gap: 32px; }
+    nav.toc a { color: var(--ink); text-decoration: none; }
+    nav.toc a:hover { color: var(--accent); }
+
+    h2 {
+      font-size: 26px; margin: 48px 0 8px; padding-top: 8px;
+      border-top: 1px solid var(--line);
+    }
+    h2:first-of-type { border-top: 0; }
+    h3 { font-size: 19px; margin: 28px 0 8px; }
+    p, li { color: var(--ink); }
+    .note {
+      background: var(--accent-soft);
+      border-right: 4px solid var(--accent);
+      padding: 14px 16px;
+      border-radius: 0 12px 12px 0;
+      color: #7c2d12;
+      margin: 16px 0 24px;
+    }
+
+    .actors {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin: 20px 0 28px;
+    }
+    .actor {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 16px;
+      min-height: 100%;
+    }
+    .actor .tag {
+      display: inline-block; font-size: 11px; font-weight: 700;
+      padding: 3px 8px; border-radius: 999px; margin-bottom: 8px;
+    }
+    .tag.visitor { background: var(--visitor-bg); color: var(--visitor); }
+    .tag.user { background: var(--user-bg); color: var(--user); }
+    .tag.seller { background: var(--seller-bg); color: var(--seller); }
+    .tag.admin { background: var(--admin-bg); color: var(--admin); }
+    .actor h3 { margin: 0 0 6px; font-size: 18px; }
+    .actor p { margin: 0; color: var(--muted); font-size: 13.5px; line-height: 1.7; }
+
+    table {
+      width: 100%; border-collapse: collapse; background: var(--card);
+      border: 1px solid var(--line); border-radius: 12px; overflow: hidden;
+      font-size: 13.5px;
+    }
+    th, td { border-bottom: 1px solid var(--line); padding: 10px 12px; text-align: right; vertical-align: top; }
+    th { background: #f3ece4; font-weight: 700; font-size: 12px; }
+    tr:last-child td { border-bottom: 0; }
+    .cell-yes { color: var(--ok); font-weight: 700; }
+    .cell-no { color: #a8a29e; }
+    .cell-part { color: var(--wait); font-weight: 600; }
+    .id { font-family: "IBM Plex Sans", monospace; font-size: 12px; color: var(--muted); white-space: nowrap; }
+
+    .badge {
+      display: inline-block; font-size: 11px; font-weight: 700;
+      padding: 2px 8px; border-radius: 999px; white-space: nowrap;
+    }
+    .b-srs { background: #d1fae5; color: #065f46; }
+    .b-prop { background: #ffedd5; color: #9a3412; }
+    .b-ready { background: #dbeafe; color: #1e3a8a; }
+    .b-out { background: #e7e5e4; color: #44403c; }
+    .b-biz { background: #fce7f3; color: #9d174d; }
+    .b-tech { background: #e0e7ff; color: #3730a3; }
+    .b-both { background: #ede9fe; color: #5b21b6; }
+
+    .legend { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 16px; }
+    .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
+
+    .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .card {
+      background: var(--card); border: 1px solid var(--line);
+      border-radius: 16px; padding: 18px 18px 10px;
+    }
+    .card h3 { margin-top: 0; }
+    .card ul { margin: 0 0 12px; padding-right: 18px; }
+    .card li { margin: 4px 0; }
+
+    .flow {
+      background: var(--card); border: 1px solid var(--line);
+      border-radius: 16px; padding: 16px 18px; margin: 12px 0;
+    }
+    .steps { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .step {
+      background: #f3ece4; border-radius: 10px; padding: 8px 12px;
+      font-size: 13px; font-weight: 600;
+    }
+    .arrow { color: var(--muted); }
+
+    .status-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .status {
+      border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; background: var(--card);
+    }
+    .status b { display: block; margin-bottom: 4px; }
+
+    footer {
+      margin-top: 48px; color: var(--muted); font-size: 13px;
+      border-top: 1px solid var(--line); padding-top: 16px;
+    }
+
+    .print-bar {
+      position: sticky; top: 0; z-index: 20;
+      background: rgba(251, 247, 242, 0.92);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--line);
+      padding: 8px 24px;
+      display: flex; justify-content: space-between; align-items: center;
+      gap: 12px;
+    }
+    .print-bar button {
+      font-family: inherit; background: var(--ink); color: #fff;
+      border: 0; border-radius: 10px; padding: 8px 14px; cursor: pointer; font-weight: 600;
+    }
+    .print-bar .links { display: flex; gap: 10px; flex-wrap: wrap; font-size: 12px; }
+    .print-bar .links a { color: var(--muted); text-decoration: none; }
+    .print-bar .links a:hover { color: var(--ink); }
+
+    @media (max-width: 900px) {
+      .actors, .cards, .status-grid, nav.toc ol { grid-template-columns: 1fr 1fr; columns: 1; }
+    }
+    @media (max-width: 640px) {
+      .actors, .cards, .status-grid { grid-template-columns: 1fr; }
+      table { font-size: 12px; }
+    }
+    @media print {
+      .print-bar { display: none; }
+      header.hero { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .wrap { max-width: none; }
+      h2 { break-before: page; }
+      h2#s1 { break-before: avoid; }
+      .actor, .card, .flow, table { break-inside: avoid; }
+      a { color: inherit; text-decoration: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="print-bar">
+    <span>Virashops · SRS-01 · Auth · Phone OTP</span>
+    <span class="links">
+      <a href="02-user-seller-admin-visitor.html">بازیگران</a>
+      <a href="03-product.html">محصول</a>
+      <a href="04-search.html">جستجو</a>
+      <a href="05-cart.html">سبد</a>
+      <a href="06-order.html">سفارش</a>
+    </span>
+    <button type="button" onclick="window.print()">چاپ / ذخیره PDF</button>
+  </div>
+
+  <header class="hero">
+    <div class="wrap">
+      <div class="kicker">
+        <span>MVP Feature List</span>
+        <span>Module 01 / 13</span>
+        <span>SRS-01 · User &amp; Account Management</span>
+        <span>نسخه 1.1</span>
+        <span>ورود: OTP موبایل</span>
+      </div>
+      <h1>ماژول احراز هویت و حساب کاربری</h1>
+      <p class="lead">
+        لیست شفاف فیچرهای Auth برای چهار حالت کاربری
+        <span class="en">Visitor · User · Seller · Admin</span>.
+        روش ورود قطعی است: <b>فقط شماره موبایل + OTP پیامکی</b>. ایمیل و رمز عبور برای Authentication استفاده نمی‌شوند.
+      </p>
+      <div class="meta">
+        <div><b>منبع</b>SRS-01 + تصمیم Product: Phone OTP</div>
+        <div><b>خروجی</b>فیچر غیرفنی + فیچر فنی + ماتریس نقش‌ها</div>
+        <div><b>وضعیت Implementation</b>JWT و Redis آماده؛ SMS OTP و ماژول Users هنوز ساخته نشده</div>
+      </div>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <nav class="toc">
+      <h2>فهرست</h2>
+      <ol>
+        <li><a href="#s1">چهار حالت کاربری — تعریف شفاف</a></li>
+        <li><a href="#s2">نقشه فیچرها در یک نگاه</a></li>
+        <li><a href="#s3">فیچرهای غیرفنی</a></li>
+        <li><a href="#s4">فیچرهای فنی</a></li>
+        <li><a href="#s5">جریان‌های اصلی</a></li>
+        <li><a href="#s6">وضعیت‌های UI</a></li>
+        <li><a href="#s7">قوانین کسب‌وکار</a></li>
+        <li><a href="#s8">خارج از اسکوپ MVP</a></li>
+        <li><a href="#s9">وضعیت فعلی کد</a></li>
+        <li><a href="#s10">تصمیم‌های باز</a></li>
+      </ol>
+    </nav>
+
+    <p class="note">
+      <b>نحوه خواندن وضعیت فیچر:</b>
+      <span class="badge b-srs">در اسکوپ SRS</span>
+      تأییدشده در SRS-01/02 —
+      <span class="badge b-prop">پیشنهادی MVP</span>
+      لازم برای محصول واقعی، ولی SRS جزئیات را به Product واگذار کرده —
+      <span class="badge b-ready">زیرساخت آماده</span>
+      در بک‌اند فعلی وجود دارد —
+      <span class="badge b-out">خارج از MVP</span>
+      عمداً ساخته نمی‌شود.
+    </p>
+
+    <h2 id="s1">۱. چهار حالت کاربری — تعریف شفاف</h2>
+    <p>
+      در ویراشاپس هویت یک‌بار ساخته می‌شود. نقش‌ها روی همان حساب سوار می‌شوند.
+      <b>بازدیدکننده حساب ندارد</b>؛ سه نقش دیگر همگی User احراز‌شده هستند.
+    </p>
+
+    <div class="actors">
+      <article class="actor">
+        <span class="tag visitor">VISITOR</span>
+        <h3>بازدیدکننده</h3>
+        <p>
+          وارد نشده. می‌تواند کاتالوگ، جستجو و صفحات عمومی را ببیند.
+          برای Cart پایدار، Checkout، سفارش و پنل‌ها باید با موبایل + OTP وارد شود.
+        </p>
+      </article>
+      <article class="actor">
+        <span class="tag user">USER</span>
+        <h3>کاربر / خریدار</h3>
+        <p>
+          حساب شخصی دارد. خرید B2C و (در صورت واجد شرایط بودن) B2B،
+          سبد، سفارش، پرداخت و پروفایل خودش.
+        </p>
+      </article>
+      <article class="actor">
+        <span class="tag seller">SELLER</span>
+        <h3>فروشنده</h3>
+        <p>
+          همان User است به‌علاوه پروفایل فروشنده.
+          به Seller Panel و منابع متعلق به خودش دسترسی دارد؛ به فروشنده دیگر نه.
+        </p>
+      </article>
+      <article class="actor">
+        <span class="tag admin">ADMIN</span>
+        <h3>مدیر</h3>
+        <p>
+          حساب داخلی سیستم. از UI عمومی ساخته نمی‌شود.
+          مدیریت کاربران، فروشندگان، محصولات، سفارش‌ها و تنظیمات.
+        </p>
+      </article>
+    </div>
+
+    <h3>مدل هویت (یک جمله)</h3>
+    <p>
+      شناسه ورود <b>شماره موبایل یکتا</b> است.
+      <span class="en">Visitor = no session</span>.
+      <span class="en">User / Seller / Admin = یک User + Role</span>، همه با همان OTP موبایل وارد می‌شوند.
+      فروشنده <b>سیستم ورود جدا ندارد</b>. ایمیل اگر در پروفایل باشد فقط تماس است، نه Login.
+    </p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>سؤال</th>
+          <th>Visitor</th>
+          <th>User</th>
+          <th>Seller</th>
+          <th>Admin</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>حساب در دیتابیس دارد؟</td>
+          <td class="cell-no">خیر</td>
+          <td class="cell-yes">بله</td>
+          <td class="cell-yes">بله + Seller Profile</td>
+          <td class="cell-yes">بله</td>
+        </tr>
+        <tr>
+          <td>ورود لازم است؟</td>
+          <td class="cell-no">خیر</td>
+          <td class="cell-yes">موبایل + OTP</td>
+          <td class="cell-yes">موبایل + OTP</td>
+          <td class="cell-yes">موبایل + OTP</td>
+        </tr>
+        <tr>
+          <td>ثبت‌نام از UI عمومی؟</td>
+          <td class="cell-yes">شماره → OTP → حساب جدید</td>
+          <td class="cell-yes">اگر شماره جدید باشد</td>
+          <td class="cell-part">ارتقا به فروشنده بعد از ورود</td>
+          <td class="cell-no">خیر — شماره Admin داخلی seed می‌شود</td>
+        </tr>
+        <tr>
+          <td>مقصد بعد از ورود</td>
+          <td>—</td>
+          <td>فروشگاه / حساب</td>
+          <td>Seller Panel</td>
+          <td>Admin Panel</td>
+        </tr>
+        <tr>
+          <td>مرجع کنترل دسترسی</td>
+          <td>فقط API عمومی</td>
+          <td colspan="3">Backend — نه Frontend</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2 id="s2">۲. نقشه فیچرها در یک نگاه</h2>
+    <p>این جدول همان «حالت شفاف» ماژول Auth است. جزئیات هر ردیف در بخش ۳ و ۴ آمده.</p>
+    <div class="legend">
+      <span class="legend-item"><span class="cell-yes">✓</span> دارد</span>
+      <span class="legend-item"><span class="cell-part">◐</span> محدود / شرطی</span>
+      <span class="legend-item"><span class="cell-no">—</span> ندارد</span>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>فیچر</th>
+          <th>Visitor</th>
+          <th>User</th>
+          <th>Seller</th>
+          <th>Admin</th>
+          <th>نوع</th>
+          <th>وضعیت</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="id">AUTH-01</td>
+          <td>مشاهده صفحات و APIهای عمومی بدون ورود</td>
+          <td class="cell-yes">✓</td>
+          <td class="cell-yes">✓</td>
+          <td class="cell-yes">✓</td>
+          <td class="cell-yes">✓</td>
+          <td><span class="badge b-both">هر دو</span></td>
+          <td><span class="badge b-srs">SRS</span></td>
+        </tr>
+        <tr>
+          <td class="id">AUTH-02</td>
+          <td>درخواست OTP با شماره موبایل</td>
+          <td class="cell-yes">شروع</td>
+          <td class="cell-yes">✓</td>
+          <td class="cell-yes">✓</td>
+          <td class="cell-yes">✓</td>
+          <td><span class="badge b-both">هر دو</span></td>
+          <td><span class="badge b-srs">قطعی</span></td>
+        </tr>
+        <tr>
+          <td class="id">AUTH-03</td>
+          <td>تأیید OTP — ورود یا ساخت حساب</td>
+          <td class="cell-yes">شروع</td>
+          <td class="cell-yes">✓</td>
+          <td class="cell-yes">✓</td>
+          <td class="cell-yes">✓</td>
+          <td><span class="badge b-both">هر دو</span></td>
+          <td><span class="badge b-srs">قطعی</span></td>
+        </tr>
+        <tr>
+          <td class="id">AUTH-04</td>
+          <td>خروج و ابطال Session/Token</td>
+          <td class="cell-no">—</td>
+          <td class="cell-yes">✓</td>
+          <td class="cell-yes">✓</td>
+          <td class="cell-yes">✓</td>
+          <td><span class="badge b-both">هر دو</span></td>
+          <td><span class="badge b-prop">پیشنهادی</span></td>
+        </tr>
+        <tr>
+          <td class="id">AUTH-05</td>
+          <td>مشاهده اطلاعات حساب و وضعیت حساب</td>
+          <td class="cell-no">—</td>
+          <td class="cell-yes">خودش</td>
+          <td class="cell-yes">خودش</td>
+          <td class="cell-yes">خود + دیگران</td>
+          <td><span class="badge b-biz">غیرفنی</span></td>
+          <td><span class="badge b-srs">SRS</span></td>
+        </tr>
+        <tr>
+          <td class="id">AUTH-06</td>
+          <td>مشاهده / ویرایش پروفایل مجاز</td>
+          <td class="cell-no">—</td>
+          <td class="cell-yes">خودش</td>
+          <td class="cell-yes">خودش</td>
+          <td class="cell-part">◐</td>
+          <td><span class="badge b-both">هر دو</span></td>
+          <td><span class="badge b-srs">SRS</span></td>
+        </tr>
+        <tr>
+          <td class="id">AUTH-07</td>
+          <td>جلوگیری از دسترسی بدون Authentication</td>
+          <td class="cell-yes">deny</td>
+          <td class="cell-yes">✓</td>
+          <td class="cell-yes">✓</td>
+          <td class="cell-yes">✓</td>
+          <td><span class="badge b-tech">فنی</span></td>
+          <td><span class="badge b-srs">SRS</span></td>
+        </tr>
+        <tr>
+          <td class="id">AUTH-08</td>
+          <td>Authorization بر اساس Role</td>
+          <td class="cell-no">نقش ندارد</td>
+          <td class="cell-yes">USER</td>
+          <td class="cell-yes">SELLER</td>
+          <td class="cell-yes">ADMIN</td>
+          <td><span class="badge b-tech">فنی</span></td>
+          <td><span class="badge b-srs">SRS</span></td>
+        </tr>
+        <tr>
+          <td class="id">AUTH-09</td>
+          <td>ثبت‌نام / ایجاد فروشنده و اتصال به User</td>
+          <td class="cell-part">شروع</td>
+          <td class="cell-part">ارتقا</td>
+          <td class="cell-no">—</td>
+          <td class="cell-yes">ایجاد / تأیید</td>
+          <td><span class="badge b-both">هر دو</span></td>
+          <td><span class="badge b-srs">SRS-02</span></td>
+        </tr>
+        <tr>
+          <td class="id">AUTH-10</td>
+          <td>ورود به Seller Panel فقط برای فروشنده مجاز</td>
+          <td class="cell-no">—</td>
+          <td class="cell-no">—</td>
+          <td class="cell-part">اگر Active</td>
+          <td class="cell-yes">مدیریت</td>
+          <td><span class="badge b-both">هر دو</span></td>
+          <td><span class="badge b-srs">SRS-02</span></td>
+        </tr>
+        <tr>
+          <td class="id">AUTH-11</td>
+          <td>ورود به Admin Panel</td>
+          <td class="cell-no">—</td>
+          <td class="cell-no">—</td>
+          <td class="cell-no">—</td>
+          <td class="cell-yes">✓</td>
+          <td><span class="badge b-both">هر دو</span></td>
+          <td><span class="badge b-srs">SRS</span></td>
+        </tr>
+        <tr>
+          <td class="id">AUTH-12</td>
+          <td>عدم ساخت Admin از ثبت‌نام عمومی</td>
+          <td class="cell-yes">✓</td>
+          <td class="cell-yes">✓</td>
+          <td class="cell-yes">✓</td>
+          <td class="cell-yes">فقط داخلی</td>
+          <td><span class="badge b-tech">فنی</span></td>
+          <td><span class="badge b-prop">پیشنهادی</span></td>
+        </tr>
+        <tr>
+          <td class="id">AUTH-13</td>
+          <td>Validation ورودی قبل از ذخیره</td>
+          <td class="cell-yes">✓</td>
+          <td class="cell-yes">✓</td>
+          <td class="cell-yes">✓</td>
+          <td class="cell-yes">✓</td>
+          <td><span class="badge b-tech">فنی</span></td>
+          <td><span class="badge b-srs">SRS</span></td>
+        </tr>
+        <tr>
+          <td class="id">AUTH-14</td>
+          <td>حساب یکتا بر اساس شماره موبایل</td>
+          <td class="cell-yes">✓</td>
+          <td class="cell-yes">✓</td>
+          <td class="cell-yes">✓</td>
+          <td class="cell-yes">✓</td>
+          <td><span class="badge b-tech">فنی</span></td>
+          <td><span class="badge b-srs">SRS BR-01</span></td>
+        </tr>
+        <tr>
+          <td class="id">AUTH-15</td>
+          <td>خطاهای استاندارد بدون افشای اطلاعات حساس</td>
+          <td class="cell-yes">✓</td>
+          <td class="cell-yes">✓</td>
+          <td class="cell-yes">✓</td>
+          <td class="cell-yes">✓</td>
+          <td><span class="badge b-both">هر دو</span></td>
+          <td><span class="badge b-srs">SRS</span></td>
+        </tr>
+        <tr>
+          <td class="id">AUTH-16</td>
+          <td>مدیریت کاربران (لیست، وضعیت، نقش)</td>
+          <td class="cell-no">—</td>
+          <td class="cell-no">—</td>
+          <td class="cell-no">—</td>
+          <td class="cell-yes">✓</td>
+          <td><span class="badge b-biz">غیرفنی</span></td>
+          <td><span class="badge b-srs">Admin</span></td>
+        </tr>
+        <tr>
+          <td class="id">AUTH-17</td>
+          <td>ارسال مجدد OTP با محدودیت نرخ</td>
+          <td class="cell-yes">✓</td>
+          <td class="cell-yes">✓</td>
+          <td class="cell-yes">✓</td>
+          <td class="cell-yes">✓</td>
+          <td><span class="badge b-both">هر دو</span></td>
+          <td><span class="badge b-srs">قطعی</span></td>
+        </tr>
+        <tr>
+          <td class="id">AUTH-18</td>
+          <td>انقضای OTP و رد کد نامعتبر</td>
+          <td class="cell-yes">✓</td>
+          <td class="cell-yes">✓</td>
+          <td class="cell-yes">✓</td>
+          <td class="cell-yes">✓</td>
+          <td><span class="badge b-tech">فنی</span></td>
+          <td><span class="badge b-srs">قطعی</span></td>
+        </tr>
+        <tr>
+          <td class="id">AUTH-19</td>
+          <td>ورود با ایمیل / رمز عبور</td>
+          <td class="cell-no">—</td>
+          <td class="cell-no">—</td>
+          <td class="cell-no">—</td>
+          <td class="cell-no">—</td>
+          <td><span class="badge b-tech">فنی</span></td>
+          <td><span class="badge b-out">خارج از MVP</span></td>
+        </tr>
+        <tr>
+          <td class="id">AUTH-20</td>
+          <td>بازیابی رمز / ۲FA با TOTP</td>
+          <td class="cell-no">—</td>
+          <td class="cell-no">—</td>
+          <td class="cell-no">—</td>
+          <td class="cell-no">—</td>
+          <td><span class="badge b-tech">فنی</span></td>
+          <td><span class="badge b-out">خارج از MVP</span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2 id="s3">۳. فیچرهای غیرفنی (کسب‌وکار و تجربه کاربر)</h2>
+    <p>آنچه کاربر روی صفحه می‌بیند و محصول باید انجام دهد — بدون جزئیات پیاده‌سازی.</p>
+
+    <div class="cards">
+      <article class="card">
+        <span class="tag visitor">Visitor</span>
+        <h3>بازدیدکننده</h3>
+        <ul>
+          <li>ورود به سایت بدون ساخت حساب</li>
+          <li>دیدن دکمه ورود با موبایل</li>
+          <li>وارد کردن شماره موبایل و درخواست کد</li>
+          <li>وارد کردن OTP دریافتی از پیامک</li>
+          <li>اگر شماره جدید باشد: حساب خریدار ساخته می‌شود</li>
+          <li>اگر شماره از قبل باشد: وارد همان حساب می‌شود</li>
+          <li>ارسال مجدد کد با شمارش معکوس</li>
+          <li>در Checkout: هدایت به ورود با موبایل</li>
+          <li>ندیدن پنل فروشنده و پنل ادمین</li>
+        </ul>
+      </article>
+      <article class="card">
+        <span class="tag user">User</span>
+        <h3>کاربر / خریدار</h3>
+        <ul>
+          <li>ورود و ثبت‌نام با یک جریان: موبایل + OTP</li>
+          <li>ماندن در حساب تا خروج</li>
+          <li>خروج آگاهانه</li>
+          <li>دیدن پروفایل خودش (شماره موبایل قابل مشاهده، تغییر شماره جداگانه و نیازمند OTP جدید است)</li>
+          <li>ویرایش فیلدهای مجاز پروفایل — ایمیل اگر باشد فقط تماس است، نه ورود</li>
+          <li>دیدن وضعیت حساب (فعال / غیرفعال / …)</li>
+          <li>پیام خطای قابل فهم برای شماره نامعتبر، کد غلط، یا کد منقضی — بدون افشای جزئیات داخلی</li>
+          <li>بعد از ورود، ادامه همان کاری که می‌خواست (مثلاً برگشت به سبد)</li>
+        </ul>
+      </article>
+      <article class="card">
+        <span class="tag seller">Seller</span>
+        <h3>فروشنده</h3>
+        <ul>
+          <li>درخواست / ثبت‌نام فروشنده (متصل به حساب)</li>
+          <li>ورود با همان شماره موبایل + OTP به Seller Panel</li>
+          <li>دیدن پروفایل فروشنده و اطلاعات کسب‌وکار خودش</li>
+          <li>اگر وضعیت Pending است: ورود ممکن، دسترسی عملیاتی محدود، پیام وضعیت واضح</li>
+          <li>اگر Suspended / Inactive: عدم دسترسی به پنل عملیاتی</li>
+          <li>ندیدن داده و پنل فروشنده دیگر</li>
+          <li>خروج از پنل</li>
+        </ul>
+      </article>
+      <article class="card">
+        <span class="tag admin">Admin</span>
+        <h3>مدیر</h3>
+        <ul>
+          <li>ورود به Admin Panel با موبایل + OTP — نه از مسیر ثبت‌نام فروشگاه</li>
+          <li>دیدن لیست کاربران و وضعیت حساب‌ها</li>
+          <li>فعال / غیرفعال کردن حساب در محدوده MVP</li>
+          <li>تأیید یا تغییر وضعیت فروشنده (Pending → Active / Suspended)</li>
+          <li>عدم نمایش OTP، توکن و secret در هیچ صفحه‌ای</li>
+          <li>خروج از پنل مدیریت</li>
+        </ul>
+      </article>
+    </div>
+
+    <h3>صفحات / سطح UI مورد نیاز Auth</h3>
+    <table>
+      <thead>
+        <tr><th>صفحه</th><th>مخاطب</th><th>منبع</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>ورود — شماره موبایل</td><td>Visitor → User / Seller / Admin</td><td>قطعی Product</td></tr>
+        <tr><td>ورود — وارد کردن OTP</td><td>همان</td><td>قطعی Product</td></tr>
+        <tr><td>حساب / پروفایل</td><td>User, Seller</td><td>SRS-01</td></tr>
+        <tr><td>ثبت‌نام فروشنده (بعد از ورود با OTP)</td><td>User</td><td>SRS-02</td></tr>
+        <tr><td>ورود Admin با همان OTP موبایل</td><td>Admin</td><td>پنل مدیریت</td></tr>
+      </tbody>
+    </table>
+    <p class="note">فرم ورود فقط شماره موبایل و کد OTP است. فیلدهای پروفایل بعد از ورود با Figma نهایی می‌شود. ایمیل در پروفایل اختیاری است و برای Login استفاده نمی‌شود.</p>
+
+    <h2 id="s4">۴. فیچرهای فنی</h2>
+
+    <h3>۴.۱ لایه‌ها (طبق SRS-01)</h3>
+    <div class="cards">
+      <article class="card">
+        <h3>Authentication Layer</h3>
+        <ul>
+          <li>Request OTP (ارسال پیامک)</li>
+          <li>Verify OTP → Login یا ایجاد User</li>
+          <li>Resend OTP با rate limit</li>
+          <li>Logout / invalidate token</li>
+          <li>اعتبارسنجی Authentication روی هر درخواست محافظت‌شده</li>
+          <li>اتصال User به درخواست (<span class="en">req.user</span>)</li>
+          <li>رد درخواست بدون توکن/سشن معتبر با <span class="en">401 Unauthorized</span></li>
+        </ul>
+      </article>
+      <article class="card">
+        <h3>Account Layer</h3>
+        <ul>
+          <li>Create user</li>
+          <li>Retrieve user (فقط خود / ادمین)</li>
+          <li>Update permitted profile fields</li>
+          <li>Account status handling</li>
+          <li>شناسه یکتا: شماره موبایل</li>
+        </ul>
+      </article>
+      <article class="card">
+        <h3>Authorization Layer</h3>
+        <ul>
+          <li>Role identification: USER / SELLER / ADMIN</li>
+          <li>Permission check قبل از هر عمل محافظت‌شده</li>
+          <li><span class="en">403 Forbidden</span> اگر نقش کافی نیست</li>
+          <li>Seller isolation: فقط داده خودش</li>
+          <li>منبع حقیقت Permission فقط Backend است</li>
+        </ul>
+      </article>
+      <article class="card">
+        <h3>API / Contract</h3>
+        <ul>
+          <li>tRPC برای فرانت Next.js</li>
+          <li>Validation در مرز Presentation (Zod / DTO)</li>
+          <li>Error response استاندارد و i18n</li>
+          <li>عدم برگرداندن OTP، hash، secret، توکن داخلی</li>
+          <li>Procedureهای دقیق بعد از نهایی شدن API Contract</li>
+        </ul>
+      </article>
+    </div>
+
+    <h3>۴.۲ تصمیم فنی قطعی — Phone OTP</h3>
+    <table>
+      <thead>
+        <tr><th>موضوع</th><th>MVP</th><th>توضیح</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>روش ورود</td>
+          <td>شماره موبایل + OTP پیامکی</td>
+          <td>ایمیل و رمز عبور برای Authentication استفاده نمی‌شوند. یک جریان برای ورود و ثبت‌نام.</td>
+        </tr>
+        <tr>
+          <td>شناسه حساب</td>
+          <td>شماره موبایل نرمال‌شده و یکتا</td>
+          <td>BR-01 Unique Account. فرمت ایران (مثلاً 09xxxxxxxxx) در Validation قطعی می‌شود.</td>
+        </tr>
+        <tr>
+          <td>ثبت‌نام</td>
+          <td>ضمنی: اولین OTP موفق روی شماره جدید → ساخت User با Role=USER</td>
+          <td>فرم جداگانه ایمیل/رمز وجود ندارد. تکمیل پروفایل بعد از ورود است.</td>
+        </tr>
+        <tr>
+          <td>OTP</td>
+          <td>تولید در Backend، ذخیره موقت در Redis، ارسال SMS</td>
+          <td>OTP در دیتابیس User ذخیره نمی‌شود. بعد از تأیید یا انقضا حذف می‌شود.</td>
+        </tr>
+        <tr>
+          <td>Session</td>
+          <td>JWT Access Token؛ Redis برای OTP و در صورت نیاز blacklist</td>
+          <td>TokenServiceAdapter موجود است.</td>
+        </tr>
+        <tr>
+          <td>رمز عبور</td>
+          <td>وجود ندارد</td>
+          <td>PasswordHasher برای Login استفاده نمی‌شود. bcrypt در کد فعلی ربطی به این جریان ندارد.</td>
+        </tr>
+        <tr>
+          <td>ایمیل</td>
+          <td>اختیاری در پروفایل — نه شناسه ورود</td>
+          <td>Email adapter می‌تواند برای اعلان بماند؛ Auth به آن وابسته نیست.</td>
+        </tr>
+        <tr>
+          <td>Admin seed</td>
+          <td>اولین Admin با شماره موبایل seed می‌شود — نه Register عمومی</td>
+          <td>همان OTP؛ نقش از قبل ADMIN است.</td>
+        </tr>
+        <tr>
+          <td>ماژول دامنه</td>
+          <td><span class="en">src/modules/users</span></td>
+          <td>سایر ماژول‌ها Role را از اینجا می‌گیرند.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>۴.۳ حداقل داده User</h3>
+    <p>SRS حداقل مفاهیم را گفته؛ نام فیلد نهایی با Data Model/CTO است.</p>
+    <table>
+      <thead><tr><th>مفهوم</th><th>توضیح</th></tr></thead>
+      <tbody>
+        <tr><td>ID</td><td>شناسه پایدار</td></tr>
+        <tr><td>Account information</td><td>شماره موبایل یکتا، وضعیت حساب — بدون password hash</td></tr>
+        <tr><td>Profile information</td><td>نام و فیلدهای مجاز Figma؛ ایمیل اختیاری و غیرلاگین</td></tr>
+        <tr><td>Role</td><td>USER و در صورت وجود SELLER / ADMIN</td></tr>
+        <tr><td>Status</td><td>حداقل Active / Inactive (سیاست دقیق باز است)</td></tr>
+        <tr><td>Created At / Updated At</td><td>الزام SRS</td></tr>
+      </tbody>
+    </table>
+
+    <h3>۴.۴ خطاهای فنی که باید پوشش داده شوند</h3>
+    <p>Invalid Phone · Invalid OTP · OTP Expired · OTP Rate Limited · Unauthorized · Forbidden · Resource Not Found · Server Error · SMS Delivery Failure</p>
+    <p>پیام خطا OTP صحیح را لو نمی‌دهد و بین «شماره جدید» و «شماره موجود» در مرحله ارسال کد تمایز امنیتی غیرضروری ایجاد نمی‌کند — هر دو مسیر کد می‌گیرند؛ بعد از Verify اگر User نبود ساخته می‌شود.</p>
+
+    <h3>۴.۵ تست اجباری (DoD)</h3>
+    <ul>
+      <li><b>Unit:</b> نرمال‌سازی موبایل، صدور/تأیید/انقضای OTP، ساخت User روی شماره جدید، قوانین Role</li>
+      <li><b>Integration:</b> Redis OTP، SMS adapter، ذخیره‌سازی User، جریان Authentication</li>
+      <li><b>E2E:</b> شماره جدید → OTP → حساب ساخته شد → دسترسی به Account</li>
+      <li><b>E2E:</b> شماره موجود → OTP → ورود به همان حساب</li>
+      <li><b>E2E منفی:</b> OTP غلط / منقضی → عدم ورود · درخواست بدون Token → Access Denied</li>
+    </ul>
+
+    <h2 id="s5">۵. جریان‌های اصلی</h2>
+
+    <div class="flow">
+      <h3>A. ورود / ثبت‌نام با OTP (یک جریان)</h3>
+      <div class="steps">
+        <span class="step">Visitor شماره موبایل را وارد می‌کند</span><span class="arrow">←</span>
+        <span class="step">Validation فرمت شماره</span><span class="arrow">←</span>
+        <span class="step">Rate limit بررسی می‌شود</span><span class="arrow">←</span>
+        <span class="step">Backend OTP می‌سازد و در Redis می‌گذارد</span><span class="arrow">←</span>
+        <span class="step">SMS ارسال می‌شود</span><span class="arrow">←</span>
+        <span class="step">کاربر کد را وارد می‌کند</span>
+      </div>
+    </div>
+    <div class="flow">
+      <h3>B. تأیید OTP</h3>
+      <div class="steps">
+        <span class="step">Verify کد + شماره</span><span class="arrow">←</span>
+        <span class="step">رد اگر غلط / منقضی / مصرف‌شده</span><span class="arrow">←</span>
+        <span class="step">اگر User نیست → ساخت با Role=USER</span><span class="arrow">←</span>
+        <span class="step">اگر هست → بررسی Status حساب</span><span class="arrow">←</span>
+        <span class="step">حذف OTP از Redis</span><span class="arrow">←</span>
+        <span class="step">صدور Token · مسیر بر اساس Role</span>
+      </div>
+    </div>
+    <div class="flow">
+      <h3>C. دسترسی محافظت‌شده</h3>
+      <div class="steps">
+        <span class="step">درخواست + Token</span><span class="arrow">←</span>
+        <span class="step">Authenticate در Backend</span><span class="arrow">←</span>
+        <span class="step">Authorize Role/Permission</span><span class="arrow">←</span>
+        <span class="step">اجرای Use Case</span><span class="arrow">←</span>
+        <span class="step">401 یا 403 در شکست</span>
+      </div>
+    </div>
+    <div class="flow">
+      <h3>D. فروشنده</h3>
+      <div class="steps">
+        <span class="step">User با OTP موبایل وارد می‌شود</span><span class="arrow">←</span>
+        <span class="step">ایجاد Seller Profile · Status=Pending</span><span class="arrow">←</span>
+        <span class="step">Admin وضعیت را Active می‌کند</span><span class="arrow">←</span>
+        <span class="step">دسترسی Seller Panel و محصولات/سفارش‌های خودش</span>
+      </div>
+    </div>
+
+    <h2 id="s6">۶. وضعیت‌های UI (الزام SRS)</h2>
+    <div class="status-grid">
+      <div class="status"><b>Default</b>فرم آماده استفاده</div>
+      <div class="status"><b>Loading</b>ارسال یا دریافت اطلاعات</div>
+      <div class="status"><b>Validation Error</b>ورودی نامعتبر، روی فیلد</div>
+      <div class="status"><b>OTP Sent</b>کد ارسال شد؛ شمارش معکوس ارسال مجدد</div>
+      <div class="status"><b>Invalid OTP</b>کد غلط است</div>
+      <div class="status"><b>OTP Expired</b>کد منقضی شده؛ باید دوباره درخواست شود</div>
+      <div class="status"><b>Rate Limited</b>ارسال مجدد فعلاً ممکن نیست</div>
+      <div class="status"><b>Authorization Error</b>نقش کافی نیست</div>
+      <div class="status"><b>Unauthorized</b>نیاز به ورود</div>
+      <div class="status"><b>Server Error</b>خطای زیرساخت، بدون جزئیات داخلی</div>
+      <div class="status"><b>Success</b>عملیات انجام شد</div>
+      <div class="status"><b>Disabled</b>عمل در این وضعیت حساب غیرفعال است</div>
+    </div>
+
+    <h2 id="s7">۷. قوانین کسب‌وکار</h2>
+    <table>
+      <thead><tr><th>کد</th><th>قانون</th></tr></thead>
+      <tbody>
+        <tr><td class="id">BR-01</td><td>هر حساب با شماره موبایل یکتا شناسایی می‌شود.</td></tr>
+        <tr><td class="id">BR-02</td><td>منبع محافظت‌شده بدون Authentication معتبر قابل دسترس نیست.</td></tr>
+        <tr><td class="id">BR-03</td><td>Login موفق به‌تنهایی یعنی مجاز بودن همه کارها نیست.</td></tr>
+        <tr><td class="id">BR-04</td><td>دسترسی پایه بر اساس Role است.</td></tr>
+        <tr><td class="id">BR-05</td><td>Enforce اصلی در Backend است.</td></tr>
+        <tr><td class="id">BR-06</td><td>شماره موبایل و OTP قبل از پردازش Validate می‌شوند.</td></tr>
+        <tr><td class="id">BR-07</td><td>خطاهای Auth/Validation کنترل‌شده هستند.</td></tr>
+        <tr><td class="id">BR-08</td><td>ورود فقط با OTP پیامکی است؛ ایمیل و رمز عبور برای Auth استفاده نمی‌شوند.</td></tr>
+        <tr><td class="id">BR-09</td><td>OTP یک‌بارمصرف است، منقضی می‌شود، و با rate limit ارسال می‌گردد. در Log ذخیره نمی‌شود.</td></tr>
+        <tr><td class="id">BR-10</td><td>اولین OTP موفق روی شماره جدید، User با Role=USER می‌سازد.</td></tr>
+        <tr><td class="id">BR-S1</td><td>فروشنده فقط به داده خودش دسترسی دارد. (SRS-02)</td></tr>
+        <tr><td class="id">BR-S2</td><td>تغییر وضعیت Seller فقط توسط نقش مجاز (Admin) است.</td></tr>
+      </tbody>
+    </table>
+
+    <h2 id="s8">۸. خارج از اسکوپ MVP این ماژول</h2>
+    <p>عمداً ساخته نمی‌شود تا Scope باد نکند. معماری نباید بسته شدن مسیر آینده را سخت کند.</p>
+    <ul>
+      <li>ورود با ایمیل یا رمز عبور</li>
+      <li>بازیابی رمز عبور (رمز وجود ندارد)</li>
+      <li>تأیید ایمیل به‌عنوان شرط ورود</li>
+      <li>Advanced IAM · Enterprise SSO · چند OAuth Provider</li>
+      <li>Biometric · Risk Engine · AI Identity · Trust Score · Fraud Detection پیشرفته</li>
+      <li>RBAC/ABAC پیچیده فراتر از نقش‌های پایه</li>
+      <li>Multi-tenant Enterprise Identity</li>
+      <li>۲FA اجباری با TOTP اپلیکیشن — OTP پیامکی همان روش ورود است، نه لایه دوم</li>
+    </ul>
+
+    <h2 id="s9">۹. وضعیت فعلی Implementation</h2>
+    <p>ماژول Users هنوز وجود ندارد. App فقط Health + زیرساخت مشترک را دارد.</p>
+    <table>
+      <thead><tr><th>قطعه</th><th>وضعیت</th><th>مسیر</th></tr></thead>
+      <tbody>
+        <tr><td>JWT sign/verify</td><td>آماده — برای Session بعد از OTP</td><td class="en">token.service.adapter.ts</td></tr>
+        <tr><td>Redis</td><td>آماده — محل ذخیره موقت OTP</td><td class="en">redis.module.ts</td></tr>
+        <tr><td>SMS / Phone OTP adapter</td><td>ساخته نشده — باید اضافه شود</td><td>—</td></tr>
+        <tr><td>Request OTP / Verify OTP use cases</td><td>ساخته نشده</td><td>—</td></tr>
+        <tr><td>bcrypt / PasswordHasher</td><td>در کد هست؛ برای این Auth استفاده نمی‌شود</td><td class="en">password-hasher.adapter.ts</td></tr>
+        <tr><td>TOTP (اپ authenticator)</td><td>آداپتر آماده — فیچر MVP نیست</td><td class="en">totp.service.adapter.ts</td></tr>
+        <tr><td>Email port</td><td>آداپتر آماده — برای Auth استفاده نمی‌شود</td><td class="en">email.service.adapter.ts</td></tr>
+        <tr><td>ErrorCode UNAUTHORIZED / FORBIDDEN / VALIDATION</td><td>آماده</td><td class="en">error-codes.ts</td></tr>
+        <tr><td><span class="en">Request.user</span> typing</td><td>آماده</td><td class="en">express.d.ts</td></tr>
+        <tr><td>Users domain</td><td>ساخته نشده</td><td>—</td></tr>
+        <tr><td>Guards / RBAC</td><td>ساخته نشده</td><td>—</td></tr>
+      </tbody>
+    </table>
+
+    <h2 id="s10">۱۰. تصمیم‌هایی که قبل از پیاده‌سازی باید قطعی شوند</h2>
+    <p>روش ورود قطعی است: <b>موبایل + OTP</b>. موارد زیر هنوز باید در Technical Design / Figma ثبت شوند:</p>
+    <ol>
+      <li>طول OTP، مدت اعتبار، و فاصله ارسال مجدد</li>
+      <li>سقف تلاش غلط قبل از قفل موقت</li>
+      <li>ارائه‌دهنده SMS و رفتار خطای ارسال پیامک</li>
+      <li>نرمال‌سازی شماره ایران (با/بدون +98)</li>
+      <li>مدل دقیق Session / Token (مدت اعتبار، Refresh، Logout)</li>
+      <li>فیلدهای پروفایل بعد از ورود مطابق Figma — نه فیلدهای Login</li>
+      <li>نقش‌های دقیق MVP و Permission هر نقش</li>
+      <li>سیاست Account Status (چه وضعیتی OTP را می‌پذیرد ولی پنل را می‌بندد)</li>
+      <li>آیا یک نفر هم‌زمان خریدار و فروشنده است (پیشنهاد: بله، یک User چند Role)</li>
+      <li>API Contract نهایی tRPC برای requestOtp / verifyOtp / logout / me</li>
+    </ol>
+
+    <p class="note">
+      ادامه با همین قالب:
+      <span class="en">02-user-seller-admin-visitor.html</span> ·
+      <span class="en">03-product.html</span> ·
+      <span class="en">04-search.html</span> ·
+      <span class="en">05-cart.html</span> ·
+      <span class="en">06-order.html</span>.
+      هنوز نوشته نشده: Seller جدا · B2C/B2B جدا · Payment · Admin · Notification · API · SEO · Security/QA.
+    </p>
+
+    <footer>
+      Virashops MVP Feature List · Module 01 Auth · ورود فقط با OTP موبایل · SRS-01 v1.0 + تصمیم Product v1.1 · آماده چاپ / Save as PDF.
+    </footer>
+  </div>
+</body>
+</html>

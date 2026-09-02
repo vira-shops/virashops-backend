@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Virashops MVP — ماژول Search / Discovery | لیست فیچر</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #1c1410; --muted: #6b5e55; --line: #e6ddd4; --paper: #fbf7f2; --card: #fffdfb;
+      --accent: #b45309; --accent-soft: #fff4e5;
+      --visitor: #57534e; --visitor-bg: #f5f5f4; --user: #0369a1; --user-bg: #e0f2fe;
+      --seller: #047857; --seller-bg: #d1fae5; --admin: #9f1239; --admin-bg: #ffe4e6;
+      --ok: #047857; --wait: #b45309; --ready: #1d4ed8; --out: #57534e;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { margin: 0; background: var(--paper); color: var(--ink); font-family: "Vazirmatn", sans-serif; line-height: 1.85; font-size: 16px; }
+    .en { font-family: "IBM Plex Sans", "Vazirmatn", sans-serif; direction: ltr; unicode-bidi: isolate; }
+    .wrap { max-width: 1080px; margin: 0 auto; padding: 32px 24px 80px; }
+    header.hero { background: var(--ink); color: #faf6f1; padding: 48px 24px 40px; }
+    header.hero .wrap { padding-top: 0; padding-bottom: 0; }
+    .kicker { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; font-size: 12px; letter-spacing: 0.04em; color: #d6c4b4; margin-bottom: 16px; }
+    .kicker span { border: 1px solid #4a3c32; padding: 4px 10px; border-radius: 999px; }
+    h1 { font-size: clamp(28px, 4vw, 40px); line-height: 1.35; margin: 0 0 12px; font-weight: 800; }
+    .lead { color: #e7d5c4; max-width: 760px; margin: 0; font-size: 17px; }
+    .meta { display: flex; gap: 24px; flex-wrap: wrap; margin-top: 28px; color: #cbb8a6; font-size: 13px; }
+    .meta b { color: #fff; font-weight: 600; display: block; }
+    nav.toc { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 20px 24px; margin: 28px 0; }
+    nav.toc h2 { margin: 0 0 12px; font-size: 15px; }
+    nav.toc ol { margin: 0; padding: 0 22px; columns: 2; gap: 32px; }
+    nav.toc a { color: var(--ink); text-decoration: none; }
+    nav.toc a:hover { color: var(--accent); }
+    h2 { font-size: 26px; margin: 48px 0 8px; padding-top: 8px; border-top: 1px solid var(--line); }
+    h2:first-of-type { border-top: 0; }
+    h3 { font-size: 19px; margin: 28px 0 8px; }
+    .note { background: var(--accent-soft); border-right: 4px solid var(--accent); padding: 14px 16px; border-radius: 0 12px 12px 0; color: #7c2d12; margin: 16px 0 24px; }
+    .actors { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 20px 0 28px; }
+    .actor { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 16px; }
+    .actor .tag, .tag { display: inline-block; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 999px; margin-bottom: 8px; }
+    .tag.visitor { background: var(--visitor-bg); color: var(--visitor); }
+    .tag.user { background: var(--user-bg); color: var(--user); }
+    .tag.seller { background: var(--seller-bg); color: var(--seller); }
+    .tag.admin { background: var(--admin-bg); color: var(--admin); }
+    .actor h3 { margin: 0 0 6px; font-size: 18px; }
+    .actor p { margin: 0; color: var(--muted); font-size: 13.5px; line-height: 1.7; }
+    table { width: 100%; border-collapse: collapse; background: var(--card); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; font-size: 13.5px; }
+    th, td { border-bottom: 1px solid var(--line); padding: 10px 12px; text-align: right; vertical-align: top; }
+    th { background: #f3ece4; font-weight: 700; font-size: 12px; }
+    tr:last-child td { border-bottom: 0; }
+    .cell-yes { color: var(--ok); font-weight: 700; }
+    .cell-no { color: #a8a29e; }
+    .cell-part { color: var(--wait); font-weight: 600; }
+    .id { font-family: "IBM Plex Sans", monospace; font-size: 12px; color: var(--muted); white-space: nowrap; }
+    .badge { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+    .b-srs { background: #d1fae5; color: #065f46; }
+    .b-prop { background: #ffedd5; color: #9a3412; }
+    .b-ready { background: #dbeafe; color: #1e3a8a; }
+    .b-out { background: #e7e5e4; color: #44403c; }
+    .b-biz { background: #fce7f3; color: #9d174d; }
+    .b-tech { background: #e0e7ff; color: #3730a3; }
+    .b-both { background: #ede9fe; color: #5b21b6; }
+    .legend { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 16px; }
+    .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
+    .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 18px 18px 10px; }
+    .card h3 { margin-top: 0; }
+    .card ul { margin: 0 0 12px; padding-right: 18px; }
+    .card li { margin: 4px 0; }
+    .flow { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 16px 18px; margin: 12px 0; }
+    .steps { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .step { background: #f3ece4; border-radius: 10px; padding: 8px 12px; font-size: 13px; font-weight: 600; }
+    .arrow { color: var(--muted); }
+    .status-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .status { border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; background: var(--card); }
+    .status b { display: block; margin-bottom: 4px; }
+    footer { margin-top: 48px; color: var(--muted); font-size: 13px; border-top: 1px solid var(--line); padding-top: 16px; }
+    .print-bar { position: sticky; top: 0; z-index: 20; background: rgba(251, 247, 242, 0.92); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); padding: 8px 24px; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .print-bar button { font-family: inherit; background: var(--ink); color: #fff; border: 0; border-radius: 10px; padding: 8px 14px; cursor: pointer; font-weight: 600; }
+    .print-bar .links { display: flex; gap: 10px; flex-wrap: wrap; font-size: 12px; }
+    .print-bar .links a { color: var(--muted); text-decoration: none; }
+    .print-bar .links a:hover { color: var(--ink); }
+    .table-scroll { overflow-x: auto; margin: 16px 0 24px; }
+    @media (max-width: 900px) { .actors, .cards, .status-grid, nav.toc ol { grid-template-columns: 1fr 1fr; columns: 1; } }
+    @media (max-width: 640px) { .actors, .cards, .status-grid { grid-template-columns: 1fr; } table { font-size: 12px; } .print-bar .links { display: none; } }
+    @media print {
+      .print-bar { display: none; }
+      header.hero { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .wrap { max-width: none; }
+      h2 { break-before: page; }
+      h2#s1 { break-before: avoid; }
+      .actor, .card, .flow, table { break-inside: avoid; }
+      a { color: inherit; text-decoration: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="print-bar">
+    <span>Virashops · SRS-06 · Search / Discovery</span>
+    <span class="links">
+      <a href="01-auth.html">Auth</a>
+      <a href="02-user-seller-admin-visitor.html">بازیگران</a>
+      <a href="03-product.html">محصول</a>
+      <a href="05-cart.html">سبد</a>
+      <a href="06-order.html">سفارش</a>
+    </span>
+    <button type="button" onclick="window.print()">چاپ / ذخیره PDF</button>
+  </div>
+
+  <header class="hero">
+    <div class="wrap">
+      <div class="kicker">
+        <span>MVP Feature List</span>
+        <span>Module 06 / 13</span>
+        <span>SRS-06 · Research, Search &amp; Product Discovery</span>
+        <span>نسخه 1.0</span>
+      </div>
+      <h1>ماژول جستجو و کشف محصول</h1>
+      <p class="lead">
+        جستجو، دسته، فیلتر، مرتب‌سازی و کارت محصول — عمومی، بدون اجبار به ورود.
+        Catalog منبع حقیقت است؛ Search ایندکس جدا و ناسازگار نمی‌سازد.
+        موتور MVP: <b>Postgres tsvector / trigram</b> تا وقتی ناکافی شود — Elasticsearch تعهد این نسخه نیست.
+      </p>
+      <div class="meta">
+        <div><b>منبع</b>SRS-06 + SRS-03 (کالا) + SRS-09 (جستجوی پنل ادمین)</div>
+        <div><b>خروجی</b>فیچر غیرفنی + فنی + ماتریس نقش‌ها · شناسه <span class="en">SRCH-*</span></div>
+        <div><b>وضعیت Implementation</b>ماژول Search ساخته نشده</div>
+      </div>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <nav class="toc">
+      <h2>فهرست</h2>
+      <ol>
+        <li><a href="#s1">چهار حالت کاربری</a></li>
+        <li><a href="#s2">نقشه فیچرها</a></li>
+        <li><a href="#s3">فیچرهای غیرفنی</a></li>
+        <li><a href="#s4">فیچرهای فنی</a></li>
+        <li><a href="#s5">جریان‌های اصلی</a></li>
+        <li><a href="#s6">وضعیت‌های UI</a></li>
+        <li><a href="#s7">قوانین کسب‌وکار</a></li>
+        <li><a href="#s8">خارج از اسکوپ MVP</a></li>
+        <li><a href="#s9">وضعیت فعلی کد</a></li>
+        <li><a href="#s10">تصمیم‌های باز</a></li>
+      </ol>
+    </nav>
+
+    <p class="note">
+      <b>دو سطح جستجو:</b>
+      این سند <b>جستجوی فروشگاه عمومی</b> است (کشف کالا).
+      جستجو/فیلتر/صفحه‌بندی سروری داخل پنل ادمین و لیست کالای فروشنده الزام SRS-09 / SRS-03 است، ولی موتور Discovery جدا نیست — همان Postgres با فیلتر مالکیت.
+      AI Search، Semantic Search و Recommendation تعهد MVP نیستند؛ معماری نباید آن‌ها را ببندد.
+    </p>
+
+    <h2 id="s1">۱. چهار حالت کاربری — Search</h2>
+    <div class="actors">
+      <article class="actor">
+        <span class="tag visitor">VISITOR</span>
+        <h3>بازدیدکننده</h3>
+        <p>جستجو، Browse دسته، فیلتر، مرتب، کارت، جزئیات — بدون Login. Personalized History و Saved Search ندارد.</p>
+      </article>
+      <article class="actor">
+        <span class="tag user">USER</span>
+        <h3>کاربر / خریدار</h3>
+        <p>همان کشف عمومی. از نتیجه می‌تواند به سبد برود. تاریخچه جستجو و پیشنهاد شخصی در MVP نیست مگر PO بخواهد.</p>
+      </article>
+      <article class="actor">
+        <span class="tag seller">SELLER</span>
+        <h3>فروشنده</h3>
+        <p>جستجوی ویترین مثل همه. در پنل: فیلتر/جستجوی محصولات خودش — نه کاتالوگ رقبا.</p>
+      </article>
+      <article class="actor">
+        <span class="tag admin">ADMIN</span>
+        <h3>مدیر</h3>
+        <p>جستجو / فیلتر / صفحه‌بندی سروری روی Users، Sellers، Products، Orders. این Discovery فروشگاه نیست؛ ابزار عملیاتی است.</p>
+      </article>
+    </div>
+
+    <table>
+      <thead><tr><th>سؤال</th><th>Visitor</th><th>User</th><th>Seller</th><th>Admin</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>جستجوی ویترین؟</td>
+          <td class="cell-yes">بدون ورود</td>
+          <td class="cell-yes">همان</td>
+          <td class="cell-yes">همان</td>
+          <td class="cell-yes">می‌تواند؛ پنل جداست</td>
+        </tr>
+        <tr>
+          <td>فقط Published؟</td>
+          <td class="cell-yes">بله</td>
+          <td class="cell-yes">بله</td>
+          <td class="cell-part">ویترین بله؛ پنل همهٔ خودش</td>
+          <td class="cell-no">همه وضعیت‌ها</td>
+        </tr>
+        <tr>
+          <td>Login لازم؟</td>
+          <td class="cell-no">خیر</td>
+          <td class="cell-no">برای کشف خیر</td>
+          <td class="cell-part">برای پنل بله</td>
+          <td class="cell-yes">برای پنل بله</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2 id="s2">۲. نقشه فیچرها در یک نگاه</h2>
+    <div class="legend">
+      <span class="legend-item"><span class="cell-yes">✓</span> دارد</span>
+      <span class="legend-item"><span class="cell-part">◐</span> محدود / شرطی</span>
+      <span class="legend-item"><span class="cell-no">—</span> ندارد</span>
+    </div>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr><th>ID</th><th>فیچر</th><th>Visitor</th><th>User</th><th>Seller</th><th>Admin</th><th>نوع</th><th>وضعیت</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="id">SRCH-01</td>
+            <td>Search Box و جستجوی متنی کالا</td>
+            <td class="cell-yes">✓</td><td class="cell-yes">✓</td><td class="cell-yes">✓</td><td class="cell-part">پنل جدا</td>
+            <td><span class="badge b-both">هر دو</span></td>
+            <td><span class="badge b-srs">SRS-06</span></td>
+          </tr>
+          <tr>
+            <td class="id">SRCH-02</td>
+            <td>مطابقت روی نام، برند، دسته، SKU، بخشی از توضیح، Attributes</td>
+            <td class="cell-yes">✓</td><td class="cell-yes">✓</td><td class="cell-yes">✓</td><td class="cell-part">فیلتر عملیاتی</td>
+            <td><span class="badge b-tech">فنی</span></td>
+            <td><span class="badge b-srs">SRS-06</span></td>
+          </tr>
+          <tr>
+            <td class="id">SRCH-03</td>
+            <td>صفحه نتایج: عبارت، تعداد، کارت، ورود به جزئیات</td>
+            <td class="cell-yes">✓</td><td class="cell-yes">✓</td><td class="cell-yes">✓</td><td class="cell-no">—</td>
+            <td><span class="badge b-biz">غیرفنی</span></td>
+            <td><span class="badge b-srs">SRS-06</span></td>
+          </tr>
+          <tr>
+            <td class="id">SRCH-04</td>
+            <td>Browse سلسله‌مراتبی Category</td>
+            <td class="cell-yes">✓</td><td class="cell-yes">✓</td><td class="cell-yes">✓</td><td class="cell-yes">مدیریت دسته</td>
+            <td><span class="badge b-both">هر دو</span></td>
+            <td><span class="badge b-srs">SRS-06</span></td>
+          </tr>
+          <tr>
+            <td class="id">SRCH-05</td>
+            <td>فیلتر: دسته، برند، بازه قیمت، موجودی، فروشنده، صفات</td>
+            <td class="cell-yes">✓</td><td class="cell-yes">✓</td><td class="cell-yes">✓</td><td class="cell-part">فیلتر پنل</td>
+            <td><span class="badge b-both">هر دو</span></td>
+            <td><span class="badge b-srs">SRS-06</span></td>
+          </tr>
+          <tr>
+            <td class="id">SRCH-06</td>
+            <td>مرتب: مرتبط · ارزان · گران · جدید</td>
+            <td class="cell-yes">✓</td><td class="cell-yes">✓</td><td class="cell-yes">✓</td><td class="cell-part">لیست پنل</td>
+            <td><span class="badge b-both">هر دو</span></td>
+            <td><span class="badge b-srs">SRS-06</span></td>
+          </tr>
+          <tr>
+            <td class="id">SRCH-07</td>
+            <td>Pagination نتایج (offset یا cursor — CTO)</td>
+            <td class="cell-yes">✓</td><td class="cell-yes">✓</td><td class="cell-yes">✓</td><td class="cell-yes">اجباری سروری</td>
+            <td><span class="badge b-tech">فنی</span></td>
+            <td><span class="badge b-srs">SRS-06</span></td>
+          </tr>
+          <tr>
+            <td class="id">SRCH-08</td>
+            <td>کارت محصول: تصویر، نام، برند، قیمت، تخفیف، موجودی، فروشنده در صورت نیاز</td>
+            <td class="cell-yes">✓</td><td class="cell-yes">✓</td><td class="cell-yes">✓</td><td class="cell-part">ردیف جدول</td>
+            <td><span class="badge b-biz">غیرفنی</span></td>
+            <td><span class="badge b-srs">SRS-06</span></td>
+          </tr>
+          <tr>
+            <td class="id">SRCH-09</td>
+            <td>Empty result با پیام و راهنما (املا، حذف فیلتر، دسته مرتبط)</td>
+            <td class="cell-yes">✓</td><td class="cell-yes">✓</td><td class="cell-yes">✓</td><td class="cell-yes">لیست خالی</td>
+            <td><span class="badge b-biz">غیرفنی</span></td>
+            <td><span class="badge b-srs">SRS-06</span></td>
+          </tr>
+          <tr>
+            <td class="id">SRCH-10</td>
+            <td>Suggestion هنگام تایپ (پایه)</td>
+            <td class="cell-part">◐</td><td class="cell-part">◐</td><td class="cell-part">◐</td><td class="cell-no">—</td>
+            <td><span class="badge b-both">هر دو</span></td>
+            <td><span class="badge b-prop">اگر زیرساخت باشد</span></td>
+          </tr>
+          <tr>
+            <td class="id">SRCH-11</td>
+            <td>Partial / keyword / چندکلمه‌ای</td>
+            <td class="cell-yes">✓</td><td class="cell-yes">✓</td><td class="cell-yes">✓</td><td class="cell-part">◐</td>
+            <td><span class="badge b-tech">فنی</span></td>
+            <td><span class="badge b-srs">SRS-06</span></td>
+          </tr>
+          <tr>
+            <td class="id">SRCH-12</td>
+            <td>Ranking ساده: Relevance + موجودی + دسته + keyword</td>
+            <td class="cell-yes">✓</td><td class="cell-yes">✓</td><td class="cell-yes">✓</td><td class="cell-no">—</td>
+            <td><span class="badge b-tech">فنی</span></td>
+            <td><span class="badge b-srs">SRS-06</span></td>
+          </tr>
+          <tr>
+            <td class="id">SRCH-13</td>
+            <td>همگام‌سازی با رویداد Catalog: create/update/price/stock/publish</td>
+            <td class="cell-yes">اثر ویترین</td><td class="cell-yes">اثر</td><td class="cell-yes">اثر</td><td class="cell-yes">اثر</td>
+            <td><span class="badge b-tech">فنی</span></td>
+            <td><span class="badge b-srs">SRS-06 §15</span></td>
+          </tr>
+          <tr>
+            <td class="id">SRCH-14</td>
+            <td>Analytics: Search Performed / Result Viewed / Clicked / Filter / Sort / Zero Result / Add to Cart</td>
+            <td class="cell-part">رویداد ناشناس</td><td class="cell-yes">✓</td><td class="cell-part">◐</td><td class="cell-no">—</td>
+            <td><span class="badge b-tech">فنی</span></td>
+            <td><span class="badge b-srs">SRS-06</span></td>
+          </tr>
+          <tr>
+            <td class="id">SRCH-15</td>
+            <td>Related / Popular / Recently Viewed</td>
+            <td class="cell-part">◐</td><td class="cell-part">◐</td><td class="cell-no">—</td><td class="cell-no">—</td>
+            <td><span class="badge b-biz">غیرفنی</span></td>
+            <td><span class="badge b-prop">نیاز تأیید PO برای MVP</span></td>
+          </tr>
+          <tr>
+            <td class="id">SRCH-16</td>
+            <td>جستجوی پنل: محصولات خود فروشنده / همه منابع ادمین</td>
+            <td class="cell-no">—</td><td class="cell-no">—</td>
+            <td class="cell-yes">مالک</td><td class="cell-yes">همه لیست‌ها</td>
+            <td><span class="badge b-tech">فنی</span></td>
+            <td><span class="badge b-srs">SRS-03 / 09</span></td>
+          </tr>
+          <tr>
+            <td class="id">SRCH-17</td>
+            <td>Rate limit و مقاومت در برابر query بدشکل / abuse</td>
+            <td class="cell-yes">✓</td><td class="cell-yes">✓</td><td class="cell-yes">✓</td><td class="cell-yes">✓</td>
+            <td><span class="badge b-tech">فنی</span></td>
+            <td><span class="badge b-srs">SRS-06</span></td>
+          </tr>
+          <tr>
+            <td class="id">SRCH-18</td>
+            <td>AI / Semantic / Voice / Conversational Search · ML Ranking</td>
+            <td class="cell-no">—</td><td class="cell-no">—</td><td class="cell-no">—</td><td class="cell-no">—</td>
+            <td><span class="badge b-biz">غیرفنی</span></td>
+            <td><span class="badge b-out">خارج از MVP</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2 id="s3">۳. فیچرهای غیرفنی</h2>
+    <div class="cards">
+      <article class="card">
+        <span class="tag visitor">ویترین</span>
+        <h3>آنچه روی صفحه است</h3>
+        <ul>
+          <li>نوار جستجو در موبایل و دسکتاپ</li>
+          <li>نتایج با تعداد و کارت استاندارد</li>
+          <li>فیلتر: موبایل Bottom Sheet / دسکتاپ سایدبار — مطابق Figma</li>
+          <li>مرتب‌سازی واضح</li>
+          <li>کلیک کارت → جزئیات محصول</li>
+          <li>پیام خالی به‌جای صفحه سفید</li>
+        </ul>
+      </article>
+      <article class="card">
+        <h3>صفحات UI</h3>
+        <ul>
+          <li>Search Input + Results</li>
+          <li>Filter panel / drawer</li>
+          <li>Sort control</li>
+          <li>Category navigation</li>
+          <li>Empty / Loading / Error / No Result</li>
+          <li>Suggestion dropdown اگر در اسکوپ بیاید</li>
+        </ul>
+      </article>
+    </div>
+    <p class="note">Rating روی کارت «در صورت وجود» است — سیستم نظر در MVP فرض نیست. Group Buying Indicator فقط اگر Group Buying در اسکوپ اجرایی باشد.</p>
+
+    <h2 id="s4">۴. فیچرهای فنی</h2>
+    <div class="cards">
+      <article class="card">
+        <h3>موتور MVP</h3>
+        <ul>
+          <li>PostgreSQL <span class="en">tsvector</span> / trigram</li>
+          <li>Elasticsearch فقط اگر این کافی نبود — تصمیم CTO با شواهد</li>
+          <li>Query روی Catalog Published؛ نه جدول ایندکس ناسازگار</li>
+          <li>اگر ایندکس جدا ساخته شود باید با رویداد کالا sync شود</li>
+        </ul>
+      </article>
+      <article class="card">
+        <h3>API مفهومی (نام نهایی CTO)</h3>
+        <ul>
+          <li><span class="en">GET /search</span></li>
+          <li><span class="en">GET /search/suggestions</span> — اگر SRCH-10</li>
+          <li><span class="en">GET /categories</span> و محصولات دسته</li>
+          <li>عمومی: بدون توکن؛ فقط Published</li>
+        </ul>
+      </article>
+      <article class="card">
+        <h3>عملکرد و امنیت</h3>
+        <ul>
+          <li>Pagination؛ جلوگیری از query سنگین</li>
+          <li>Cache در صورت نیاز — نه منبع حقیقت</li>
+          <li>Validation طول/کاراکتر query</li>
+          <li>Rate limit؛ بدون Injection از متن جستجو</li>
+        </ul>
+      </article>
+      <article class="card">
+        <h3>تست DoD</h3>
+        <ul>
+          <li>Unit: ranking ساده، فیلتر Published</li>
+          <li>Integration: ایندکس/tsvector با کالا</li>
+          <li>E2E: جستجو → کارت → جزئیات</li>
+          <li>منفی: Unpublished در نتیجه عمومی نیست</li>
+          <li>Empty query / zero result</li>
+        </ul>
+      </article>
+    </div>
+
+    <h2 id="s5">۵. جریان‌های اصلی</h2>
+    <div class="flow">
+      <h3>A. جستجوی متنی</h3>
+      <div class="steps">
+        <span class="step">عبارت</span><span class="arrow">←</span>
+        <span class="step">Validation + rate limit</span><span class="arrow">←</span>
+        <span class="step">Query Published</span><span class="arrow">←</span>
+        <span class="step">رتبه + فیلتر + صفحه</span><span class="arrow">←</span>
+        <span class="step">کارت‌ها یا Empty</span><span class="arrow">←</span>
+        <span class="step">رویداد Analytics</span>
+      </div>
+    </div>
+    <div class="flow">
+      <h3>B. کشف از دسته</h3>
+      <div class="steps">
+        <span class="step">درخت دسته فعال</span><span class="arrow">←</span>
+        <span class="step">لیست Published آن شاخه</span><span class="arrow">←</span>
+        <span class="step">فیلتر / مرتب همان API</span>
+      </div>
+    </div>
+    <div class="flow">
+      <h3>C. به‌روز شدن ایندکس</h3>
+      <div class="steps">
+        <span class="step">کالا ایجاد/ویرایش/قیمت/موجودی/نشر</span><span class="arrow">←</span>
+        <span class="step">رویداد دامنه Catalog</span><span class="arrow">←</span>
+        <span class="step">جستجو همان داده را می‌بیند</span>
+      </div>
+    </div>
+
+    <h2 id="s6">۶. وضعیت‌های UI</h2>
+    <div class="status-grid">
+      <div class="status"><b>Default</b>نوار آماده</div>
+      <div class="status"><b>Loading</b>نتایج / فیلتر</div>
+      <div class="status"><b>Results</b>شبکه کارت</div>
+      <div class="status"><b>Empty / No Result</b>با راهنما</div>
+      <div class="status"><b>Suggestion open</b>اگر فعال باشد</div>
+      <div class="status"><b>Filter applied</b></div>
+      <div class="status"><b>Error</b>query نامعتبر یا سرور</div>
+      <div class="status"><b>Rate limited</b></div>
+    </div>
+
+    <h2 id="s7">۷. قوانین کسب‌وکار</h2>
+    <table>
+      <thead><tr><th>کد</th><th>قانون</th></tr></thead>
+      <tbody>
+        <tr><td class="id">BR-Q1</td><td>Search کاتالوگ موازی ندارد؛ Catalog منبع حقیقت است.</td></tr>
+        <tr><td class="id">BR-Q2</td><td>نتیجه عمومی فقط Published / قابل‌فروش است.</td></tr>
+        <tr><td class="id">BR-Q3</td><td>جستجوی پایه Login نمی‌خواهد.</td></tr>
+        <tr><td class="id">BR-Q4</td><td>Filter/Sort/Ranking در Backend است؛ Frontend فقط Consumer است.</td></tr>
+        <tr><td class="id">BR-Q5</td><td>صفات فیلترپذیر باید داده ساخت‌یافته باشند نه فقط متن توضیح.</td></tr>
+        <tr><td class="id">BR-Q6</td><td>صفحه خالی بدون پیام Empty ممنوع است.</td></tr>
+        <tr><td class="id">BR-Q7</td><td>Elasticsearch تا اثبات ناکافی بودن Postgres اضافه نمی‌شود.</td></tr>
+      </tbody>
+    </table>
+
+    <h2 id="s8">۸. خارج از اسکوپ MVP</h2>
+    <ul>
+      <li>AI Search · Semantic · Conversational · Voice</li>
+      <li>AI Recommendation · Shopping Assistant · Best Match Engine</li>
+      <li>ML Dynamic Ranking · Predictive Search پیشرفته</li>
+      <li>Synonym / Typo / Fuzzy به‌عنوان تعهد — مگر PO حداقل typo را بخواهد</li>
+      <li>جستجوی تصویری · Saved Search · Personalization</li>
+      <li>نمایش Group Order در نتایج مگر Group Buying در اسکوپ اجرایی باشد</li>
+    </ul>
+
+    <h2 id="s9">۹. وضعیت فعلی Implementation</h2>
+    <table>
+      <thead><tr><th>قطعه</th><th>وضعیت</th></tr></thead>
+      <tbody>
+        <tr><td>ماژول Search / tsvector</td><td>ساخته نشده</td></tr>
+        <tr><td>Categories hierarchy</td><td>ساخته نشده</td></tr>
+        <tr><td>Analytics events</td><td>ساخته نشده</td></tr>
+        <tr><td>Elasticsearch</td><td>عمداً نیست</td></tr>
+      </tbody>
+    </table>
+
+    <h2 id="s10">۱۰. تصمیم‌های باز</h2>
+    <ol>
+      <li>کدام فیلترها در روز اول واقعاً در UI هستند؟ (برند اگر داده برند نداریم)</li>
+      <li>Suggestion در MVP هست یا فاز ۲؟</li>
+      <li>Related / Popular / Recently Viewed داخل MVP؟</li>
+      <li>Offset در برابر Cursor pagination</li>
+      <li>آیا Visitor نام فروشنده را روی کارت می‌بیند؟</li>
+      <li>حداقل طول query و debounce فرانت</li>
+      <li>کانال Analytics: فقط لاگ بک‌اند یا محصول جدا؟</li>
+      <li>قرارداد tRPC <span class="en">search.products</span></li>
+    </ol>
+
+    <p class="note">
+      کالا در <span class="en">03-product.html</span>. از نتیجه به سبد:
+      <span class="en">05-cart.html</span>. نقش‌ها:
+      <span class="en">02-user-seller-admin-visitor.html</span>.
+    </p>
+    <footer>
+      Virashops MVP Feature List · Module 06 Search &amp; Discovery · SRS-06 v1.0 · شناسه SRCH-* · آماده چاپ / Save as PDF.
+    </footer>
+  </div>
+</body>
+</html>
