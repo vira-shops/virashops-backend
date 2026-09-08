@@ -30,3 +30,23 @@ services:
       - /app/node_modules
       - ./test-results:/app/test-results
     command: ['npm', 'run', 'auth-api-check']
+
+  catalog-api-check:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: test
+    image: virashops-back:test
+    depends_on:
+      api:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      BASE_URL: http://api:3000
+      CATALOG_API_CHECK_OUTPUT: /app/test-results/catalog-api-check.json
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - ./test-results:/app/test-results
+    command: ['npm', 'run', 'catalog-api-check']
