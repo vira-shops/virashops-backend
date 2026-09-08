@@ -1,0 +1,18 @@
+{
+  "INTERNAL": "خطای غیرمنتظره‌ای رخ داد",
+  "UNAUTHORIZED": "عدم احراز هویت",
+  "FORBIDDEN": "دسترسی مجاز نیست",
+  "VALIDATION": "درخواست نامعتبر است",
+  "NOT_FOUND": "منبع پیدا نشد",
+  "INVALID_PHONE": "شماره موبایل نامعتبر است",
+  "INVALID_OTP": "کد تأیید نامعتبر است",
+  "OTP_EXPIRED": "کد تأیید منقضی شده است",
+  "OTP_RATE_LIMITED": "تعداد درخواست‌ها بیش از حد مجاز است. بعداً تلاش کنید",
+  "PHONE_ALREADY_REGISTERED": "این شماره موبایل قبلاً ثبت شده است",
+  "ACCOUNT_INACTIVE": "این حساب فعال نیست",
+  "ACCOUNT_NOT_FOUND": "حسابی با این شماره موبایل پیدا نشد",
+  "SELLER_ALREADY_EXISTS": "پروفایل فروشنده برای این حساب وجود دارد",
+  "SELLER_NOT_ACTIVE": "حساب فروشنده فعال نیست",
+  "SELLER_NOT_FOUND": "فروشنده پیدا نشد",
+  "SELLER_PROFILE_INCOMPLETE": "قبل از فعال‌سازی، اطلاعات غرفه را تکمیل کنید"
+}

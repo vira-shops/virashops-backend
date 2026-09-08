@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Virashops MVP — ماژول Product / Catalog | لیست فیچر</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #1c1410; --muted: #6b5e55; --line: #e6ddd4; --paper: #fbf7f2; --card: #fffdfb;
+      --accent: #b45309; --accent-soft: #fff4e5;
+      --visitor: #57534e; --visitor-bg: #f5f5f4; --user: #0369a1; --user-bg: #e0f2fe;
+      --seller: #047857; --seller-bg: #d1fae5; --admin: #9f1239; --admin-bg: #ffe4e6;
+      --ok: #047857; --wait: #b45309; --ready: #1d4ed8; --out: #57534e;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { margin: 0; background: var(--paper); color: var(--ink); font-family: "Vazirmatn", sans-serif; line-height: 1.85; font-size: 16px; }
+    .en { font-family: "IBM Plex Sans", "Vazirmatn", sans-serif; direction: ltr; unicode-bidi: isolate; }
+    .wrap { max-width: 1080px; margin: 0 auto; padding: 32px 24px 80px; }
+    header.hero { background: var(--ink); color: #faf6f1; padding: 48px 24px 40px; }
+    header.hero .wrap { padding-top: 0; padding-bottom: 0; }
+    .kicker { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; font-size: 12px; letter-spacing: 0.04em; color: #d6c4b4; margin-bottom: 16px; }
+    .kicker span { border: 1px solid #4a3c32; padding: 4px 10px; border-radius: 999px; }
+    h1 { font-size: clamp(28px, 4vw, 40px); line-height: 1.35; margin: 0 0 12px; font-weight: 800; }
+    .lead { color: #e7d5c4; max-width: 760px; margin: 0; font-size: 17px; }
+    .meta { display: flex; gap: 24px; flex-wrap: wrap; margin-top: 28px; color: #cbb8a6; font-size: 13px; }
+    .meta b { color: #fff; font-weight: 600; display: block; }
+    nav.toc { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 20px 24px; margin: 28px 0; }
+    nav.toc h2 { margin: 0 0 12px; font-size: 15px; }
+    nav.toc ol { margin: 0; padding: 0 22px; columns: 2; gap: 32px; }
+    nav.toc a { color: var(--ink); text-decoration: none; }
+    nav.toc a:hover { color: var(--accent); }
+    h2 { font-size: 26px; margin: 48px 0 8px; padding-top: 8px; border-top: 1px solid var(--line); }
+    h2:first-of-type { border-top: 0; }
+    h3 { font-size: 19px; margin: 28px 0 8px; }
+    .note { background: var(--accent-soft); border-right: 4px solid var(--accent); padding: 14px 16px; border-radius: 0 12px 12px 0; color: #7c2d12; margin: 16px 0 24px; }
+    .actors { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 20px 0 28px; }
+    .actor { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 16px; }
+    .actor .tag, .tag { display: inline-block; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 999px; margin-bottom: 8px; }
+    .tag.visitor { background: var(--visitor-bg); color: var(--visitor); }
+    .tag.user { background: var(--user-bg); color: var(--user); }
+    .tag.seller { background: var(--seller-bg); color: var(--seller); }
+    .tag.admin { background: var(--admin-bg); color: var(--admin); }
+    .actor h3 { margin: 0 0 6px; font-size: 18px; }
+    .actor p { margin: 0; color: var(--muted); font-size: 13.5px; line-height: 1.7; }
+    table { width: 100%; border-collapse: collapse; background: var(--card); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; font-size: 13.5px; }
+    th, td { border-bottom: 1px solid var(--line); padding: 10px 12px; text-align: right; vertical-align: top; }
+    th { background: #f3ece4; font-weight: 700; font-size: 12px; }
+    tr:last-child td { border-bottom: 0; }
+    .cell-yes { color: var(--ok); font-weight: 700; }
+    .cell-no { color: #a8a29e; }
+    .cell-part { color: var(--wait); font-weight: 600; }
+    .id { font-family: "IBM Plex Sans", monospace; font-size: 12px; color: var(--muted); white-space: nowrap; }
+    .badge { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+    .b-srs { background: #d1fae5; color: #065f46; }
+    .b-prop { background: #ffedd5; color: #9a3412; }
+    .b-ready { background: #dbeafe; color: #1e3a8a; }
+    .b-out { background: #e7e5e4; color: #44403c; }
+    .b-biz { background: #fce7f3; color: #9d174d; }
+    .b-tech { background: #e0e7ff; color: #3730a3; }
+    .b-both { background: #ede9fe; color: #5b21b6; }
+    .legend { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 16px; }
+    .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
+    .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 18px 18px 10px; }
+    .card h3 { margin-top: 0; }
+    .card ul { margin: 0 0 12px; padding-right: 18px; }
+    .card li { margin: 4px 0; }
+    .flow { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 16px 18px; margin: 12px 0; }
+    .steps { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .step { background: #f3ece4; border-radius: 10px; padding: 8px 12px; font-size: 13px; font-weight: 600; }
+    .arrow { color: var(--muted); }
+    .status-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .status { border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; background: var(--card); }
+    .status b { display: block; margin-bottom: 4px; }
+    footer { margin-top: 48px; color: var(--muted); font-size: 13px; border-top: 1px solid var(--line); padding-top: 16px; }
+    .print-bar { position: sticky; top: 0; z-index: 20; background: rgba(251, 247, 242, 0.92); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); padding: 8px 24px; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .print-bar button { font-family: inherit; background: var(--ink); color: #fff; border: 0; border-radius: 10px; padding: 8px 14px; cursor: pointer; font-weight: 600; }
+    .print-bar .links { display: flex; gap: 10px; flex-wrap: wrap; font-size: 12px; }
+    .print-bar .links a { color: var(--muted); text-decoration: none; }
+    .print-bar .links a:hover { color: var(--ink); }
+    .table-scroll { overflow-x: auto; margin: 16px 0 24px; }
+    @media (max-width: 900px) { .actors, .cards, .status-grid, nav.toc ol { grid-template-columns: 1fr 1fr; columns: 1; } }
+    @media (max-width: 640px) { .actors, .cards, .status-grid { grid-template-columns: 1fr; } table { font-size: 12px; } .print-bar .links { display: none; } }
+    @media print {
+      .print-bar { display: none; }
+      header.hero { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .wrap { max-width: none; }
+      h2 { break-before: page; }
+      h2#s1 { break-before: avoid; }
+      .actor, .card, .flow, table { break-inside: avoid; }
+      a { color: inherit; text-decoration: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="print-bar">
+    <span>Virashops · SRS-03 · Product / Catalog</span>
+    <span class="links">
+      <a href="01-auth.html">Auth</a>
+      <a href="02-user-seller-admin-visitor.html">بازیگران</a>
+      <a href="04-search.html">جستجو</a>
+      <a href="05-cart.html">سبد</a>
+      <a href="06-order.html">سفارش</a>
+    </span>
+    <button type="button" onclick="window.print()">چاپ / ذخیره PDF</button>
+  </div>
+
+  <header class="hero">
+    <div class="wrap">
+      <div class="kicker">
+        <span>MVP Feature List</span>
+        <span>Module 03 / 13</span>
+        <span>SRS-03 · Product Catalog Management</span>
+        <span>نسخه 1.0</span>
+      </div>
+      <h1>ماژول محصول و کاتالوگ</h1>
+      <p class="lead">
+        لیست شفاف فیچرهای Catalog برای
+        <span class="en">Visitor · User · Seller · Admin</span>.
+        Backend منبع حقیقت قیمت، موجودی و انتشار است. مشتری فقط محصول منتشرشده را می‌بیند؛ فروشنده فقط محصول خودش را می‌سازد.
+      </p>
+      <div class="meta">
+        <div><b>منبع</b>SRS-03 + SRS-04 (افزودن به سبد) + SRS-05 (شرایط عمده روی محصول) + SRS-09 (وضعیت پنل ادمین)</div>
+        <div><b>خروجی</b>فیچر غیرفنی + فنی + ماتریس نقش‌ها · شناسه <span class="en">PRD-*</span></div>
+        <div><b>وضعیت Implementation</b>ماژول Products هنوز ساخته نشده؛ MinIO/S3 برای تصویر آماده است</div>
+      </div>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <nav class="toc">
+      <h2>فهرست</h2>
+      <ol>
+        <li><a href="#s1">چهار حالت کاربری</a></li>
+        <li><a href="#s2">نقشه فیچرها</a></li>
+        <li><a href="#s3">فیچرهای غیرفنی</a></li>
+        <li><a href="#s4">فیچرهای فنی</a></li>
+        <li><a href="#s5">جریان‌های اصلی</a></li>
+        <li><a href="#s6">وضعیت‌های UI</a></li>
+        <li><a href="#s7">قوانین کسب‌وکار</a></li>
+        <li><a href="#s8">خارج از اسکوپ MVP</a></li>
+        <li><a href="#s9">وضعیت فعلی کد</a></li>
+        <li><a href="#s10">تصمیم‌های باز</a></li>
+      </ol>
+    </nav>
+
+    <p class="note">
+      <b>نحوه خواندن وضعیت فیچر:</b>
+      <span class="badge b-srs">در اسکوپ SRS</span>
+      تأییدشده در SRS-03 —
+      <span class="badge b-prop">پیشنهادی MVP</span>
+      لازم، ولی جزئیات به PO/CTO واگذار شده —
+      <span class="badge b-ready">زیرساخت آماده</span>
+      در بک‌اند فعلی وجود دارد —
+      <span class="badge b-out">خارج از MVP</span>
+      عمداً ساخته نمی‌شود.
+      Variant پیشرفته، PIM و AI Catalog وارد این سند به‌عنوان تعهد نمی‌شوند.
+    </p>
+
+    <h2 id="s1">۱. چهار حالت کاربری — Catalog</h2>
+    <p>
+      هویت از <span class="en">01-auth.html</span> می‌آید. این ماژول فقط کالا، دسته، قیمت، موجودی، تصویر و انتشار را مالک است.
+      جستجوی عمومی در <span class="en">04-search.html</span> است؛ افزودن به سبد در <span class="en">05-cart.html</span>.
+    </p>
+    <div class="actors">
+      <article class="actor">
+        <span class="tag visitor">VISITOR</span>
+        <h3>بازدیدکننده</h3>
+        <p>فقط محصول منتشرشده: عنوان، تصاویر، قیمت خرد، موجودی قابل‌نمایش. Draft / Inactive را نمی‌بیند. افزودن پایدار به سبد بعد از OTP است مگر PO سبد مهمان را تأیید کند.</p>
+      </article>
+      <article class="actor">
+        <span class="tag user">USER</span>
+        <h3>کاربر / خریدار</h3>
+        <p>همان ویترین + انتخاب تعداد و افزودن به سبد. اگر واجد شرایط B2B باشد قیمت عمده و MOQ روی همین محصول — نه کاتالوگ موازی.</p>
+      </article>
+      <article class="actor">
+        <span class="tag seller">SELLER</span>
+        <h3>فروشنده</h3>
+        <p>ساخت / ویرایش / لیست محصول خودش. قیمت، موجودی، تصویر، دسته، شرایط عمده. ایزوله از فروشنده دیگر. انتشار نهایی ممکن است نیازمند Admin باشد (PO).</p>
+      </article>
+      <article class="actor">
+        <span class="tag admin">ADMIN</span>
+        <h3>مدیر</h3>
+        <p>مشاهده و مدیریت همه محصولات. کنترل انتشار، غیرفعال‌سازی نامعتبر، دسته، اتصال به فروشنده. از پنل ادمین خرید نمی‌کند.</p>
+      </article>
+    </div>
+
+    <table>
+      <thead>
+        <tr><th>سؤال</th><th>Visitor</th><th>User</th><th>Seller</th><th>Admin</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>چه محصولی می‌بیند؟</td>
+          <td>فقط Published / Active قابل‌فروش</td>
+          <td>همان + خرید</td>
+          <td>همه وضعیت‌های خودش</td>
+          <td>همه فروشندگان و وضعیت‌ها</td>
+        </tr>
+        <tr>
+          <td>ایجاد / ویرایش؟</td>
+          <td class="cell-no">—</td>
+          <td class="cell-no">—</td>
+          <td class="cell-yes">فقط مالک</td>
+          <td class="cell-yes">همه · در صورت نیاز ایجاد</td>
+        </tr>
+        <tr>
+          <td>قیمت عمده؟</td>
+          <td class="cell-no">پیشنهاد: خیر</td>
+          <td class="cell-part">اگر واجد شرایط</td>
+          <td class="cell-yes">تنظیم روی محصول خودش</td>
+          <td class="cell-yes">نظارت صحت</td>
+        </tr>
+        <tr>
+          <td>منبع قیمت / موجودی</td>
+          <td colspan="4">Backend — کلاینت منبع حقیقت نیست</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2 id="s2">۲. نقشه فیچرها در یک نگاه</h2>
+    <div class="legend">
+      <span class="legend-item"><span class="cell-yes">✓</span> دارد</span>
+      <span class="legend-item"><span class="cell-part">◐</span> محدود / شرطی</span>
+      <span class="legend-item"><span class="cell-no">—</span> ندارد</span>
+    </div>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th><th>فیچر</th><th>Visitor</th><th>User</th><th>Seller</th><th>Admin</th><th>نوع</th><th>وضعیت</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="id">PRD-01</td>
+            <td>مشاهده لیست و جزئیات محصول منتشرشده</td>
+            <td class="cell-yes">✓</td><td class="cell-yes">✓</td>
+            <td class="cell-yes">ویترین عمومی</td><td class="cell-yes">همه</td>
+            <td><span class="badge b-both">هر دو</span></td>
+            <td><span class="badge b-srs">SRS-03</span></td>
+          </tr>
+          <tr>
+            <td class="id">PRD-02</td>
+            <td>ایجاد محصول با اطلاعات پایه، دسته، قیمت، موجودی، تصویر</td>
+            <td class="cell-no">—</td><td class="cell-no">—</td>
+            <td class="cell-yes">خودش</td><td class="cell-part">در صورت نیاز</td>
+            <td><span class="badge b-both">هر دو</span></td>
+            <td><span class="badge b-srs">SRS-03</span></td>
+          </tr>
+          <tr>
+            <td class="id">PRD-03</td>
+            <td>ویرایش فیلدهای مجاز محصول</td>
+            <td class="cell-no">—</td><td class="cell-no">—</td>
+            <td class="cell-yes">خودش</td><td class="cell-yes">همه</td>
+            <td><span class="badge b-both">هر دو</span></td>
+            <td><span class="badge b-srs">SRS-03</span></td>
+          </tr>
+          <tr>
+            <td class="id">PRD-04</td>
+            <td>مالکیت: Seller ID اجباری؛ ایزوله فروشنده</td>
+            <td class="cell-no">—</td><td class="cell-no">—</td>
+            <td class="cell-yes">✓</td><td class="cell-yes">عبور با Permission</td>
+            <td><span class="badge b-tech">فنی</span></td>
+            <td><span class="badge b-srs">SRS-03 §8</span></td>
+          </tr>
+          <tr>
+            <td class="id">PRD-05</td>
+            <td>اتصال به Category معتبر</td>
+            <td class="cell-yes">ناوبری</td><td class="cell-yes">ناوبری</td>
+            <td class="cell-yes">انتخاب</td><td class="cell-yes">CRUD دسته در SRS-09</td>
+            <td><span class="badge b-both">هر دو</span></td>
+            <td><span class="badge b-srs">SRS-03</span></td>
+          </tr>
+          <tr>
+            <td class="id">PRD-06</td>
+            <td>تصاویر: آپلود، حذف، تصویر اصلی، محدودیت نوع/حجم/تعداد</td>
+            <td class="cell-yes">نمایش</td><td class="cell-yes">نمایش</td>
+            <td class="cell-yes">مدیریت</td><td class="cell-yes">مدیریت</td>
+            <td><span class="badge b-both">هر دو</span></td>
+            <td><span class="badge b-srs">SRS-03</span></td>
+          </tr>
+          <tr>
+            <td class="id">PRD-07</td>
+            <td>قیمت خرد؛ تخفیف اگر PO فعال کند؛ محاسبه نهایی در Backend</td>
+            <td class="cell-yes">نمایش</td><td class="cell-yes">نمایش</td>
+            <td class="cell-yes">ثبت/ویرایش</td><td class="cell-yes">نظارت</td>
+            <td><span class="badge b-both">هر دو</span></td>
+            <td><span class="badge b-srs">SRS-03</span></td>
+          </tr>
+          <tr>
+            <td class="id">PRD-08</td>
+            <td>موجودی: مقدار + In Stock / Low Stock / Out of Stock</td>
+            <td class="cell-part">قابل‌نمایش</td><td class="cell-yes">+ کنترل خرید</td>
+            <td class="cell-yes">مدیریت</td><td class="cell-yes">نظارت</td>
+            <td><span class="badge b-both">هر دو</span></td>
+            <td><span class="badge b-srs">SRS-03</span></td>
+          </tr>
+          <tr>
+            <td class="id">PRD-09</td>
+            <td>وضعیت: Draft / Active / Inactive / Out of Stock</td>
+            <td class="cell-no">فقط Active منتشرشده</td><td class="cell-no">همان</td>
+            <td class="cell-yes">مشاهده / تغییر در محدوده</td><td class="cell-yes">کنترل کامل</td>
+            <td><span class="badge b-both">هر دو</span></td>
+            <td><span class="badge b-srs">SRS-03</span></td>
+          </tr>
+          <tr>
+            <td class="id">PRD-10</td>
+            <td>Pending Review / Rejected / Archived</td>
+            <td class="cell-no">پنهان</td><td class="cell-no">پنهان</td>
+            <td class="cell-part">اگر PO بپذیرد</td><td class="cell-part">SRS-09</td>
+            <td><span class="badge b-both">هر دو</span></td>
+            <td><span class="badge b-prop">نیاز تأیید PO</span></td>
+          </tr>
+          <tr>
+            <td class="id">PRD-11</td>
+            <td>Publish / Unpublish با شروط: معتبر، Seller مجاز، دسته، قیمت، وضعیت</td>
+            <td class="cell-yes">اثر ویترین</td><td class="cell-yes">اثر ویترین</td>
+            <td class="cell-part">طبق سیاست PO</td><td class="cell-yes">✓</td>
+            <td><span class="badge b-both">هر دو</span></td>
+            <td><span class="badge b-srs">SRS-03 §14</span></td>
+          </tr>
+          <tr>
+            <td class="id">PRD-12</td>
+            <td>لیست فروشنده: جستجو / فیلتر / مرتب / صفحه‌بندی سروری</td>
+            <td class="cell-no">—</td><td class="cell-no">—</td>
+            <td class="cell-yes">خودش</td><td class="cell-yes">همه</td>
+            <td><span class="badge b-tech">فنی</span></td>
+            <td><span class="badge b-srs">SRS-03 §15</span></td>
+          </tr>
+          <tr>
+            <td class="id">PRD-13</td>
+            <td>Validation Backend: نام، قیمت، موجودی، دسته، فایل، Seller مجاز</td>
+            <td class="cell-no">—</td><td class="cell-no">—</td>
+            <td class="cell-yes">✓</td><td class="cell-yes">✓</td>
+            <td><span class="badge b-tech">فنی</span></td>
+            <td><span class="badge b-srs">SRS-03</span></td>
+          </tr>
+          <tr>
+            <td class="id">PRD-14</td>
+            <td>شرایط عمده روی محصول: قیمت، MOQ، max qty، pack multiple</td>
+            <td class="cell-no">—</td><td class="cell-part">اگر واجد شرایط</td>
+            <td class="cell-yes">تنظیم</td><td class="cell-yes">نظارت</td>
+            <td><span class="badge b-both">هر دو</span></td>
+            <td><span class="badge b-srs">SRS-05</span></td>
+          </tr>
+          <tr>
+            <td class="id">PRD-15</td>
+            <td>گیت افزودن به سبد: Active، Seller معتبر، موجودی، قیمت سرور</td>
+            <td class="cell-part">بعد از OTP / سبد PO</td><td class="cell-yes">✓</td>
+            <td class="cell-no">از پنل فروشنده خیر</td><td class="cell-no">از پنل ادمین خیر</td>
+            <td><span class="badge b-tech">فنی</span></td>
+            <td><span class="badge b-srs">SRS-03 §22</span></td>
+          </tr>
+          <tr>
+            <td class="id">PRD-16</td>
+            <td>Snapshot محصول برای Order (نام، قیمت واحد، Seller)</td>
+            <td class="cell-no">—</td><td class="cell-yes">مصرف</td>
+            <td class="cell-yes">منبع قلم</td><td class="cell-yes">مشاهده</td>
+            <td><span class="badge b-tech">فنی</span></td>
+            <td><span class="badge b-srs">SRS-03 §23</span></td>
+          </tr>
+          <tr>
+            <td class="id">PRD-17</td>
+            <td>SKU / برند در صورت نیاز MVP</td>
+            <td class="cell-part">نمایش اگر باشد</td><td class="cell-part">نمایش</td>
+            <td class="cell-part">ثبت</td><td class="cell-part">ثبت</td>
+            <td><span class="badge b-both">هر دو</span></td>
+            <td><span class="badge b-prop">فیلد نهایی Data Model</span></td>
+          </tr>
+          <tr>
+            <td class="id">PRD-18</td>
+            <td>حذف سخت محصول</td>
+            <td class="cell-no">—</td><td class="cell-no">—</td>
+            <td class="cell-no">—</td><td class="cell-no">—</td>
+            <td><span class="badge b-tech">فنی</span></td>
+            <td><span class="badge b-out">پیشنهاد: Deactivate نه Delete</span></td>
+          </tr>
+          <tr>
+            <td class="id">PRD-19</td>
+            <td>AI Enrichment / Dynamic Pricing / PIM / Recommendation</td>
+            <td class="cell-no">—</td><td class="cell-no">—</td>
+            <td class="cell-no">—</td><td class="cell-no">—</td>
+            <td><span class="badge b-biz">غیرفنی</span></td>
+            <td><span class="badge b-out">خارج از MVP</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2 id="s3">۳. فیچرهای غیرفنی</h2>
+    <div class="cards">
+      <article class="card">
+        <span class="tag visitor">Visitor / User</span>
+        <h3>ویترین</h3>
+        <ul>
+          <li>لیست محصول منتشرشده با تصویر، نام، قیمت خرد</li>
+          <li>صفحه جزئیات: توضیحات، گالری، موجودی به‌زبان انسان</li>
+          <li>خریدار: انتخاب تعداد و «افزودن به سبد»</li>
+          <li>ناموجود: محصول دیده می‌شود، خرید قفل — الگوی دقیق با Figma</li>
+          <li>قیمت عمده به بازدیدکننده نشان داده نمی‌شود مگر PO خلاف بگوید</li>
+        </ul>
+      </article>
+      <article class="card">
+        <span class="tag seller">Seller</span>
+        <h3>پنل کالا</h3>
+        <ul>
+          <li>فرم ایجاد: نام، دسته، توضیحات، قیمت، موجودی، تصاویر</li>
+          <li>ویرایش همان فیلدها روی محصول خودش</li>
+          <li>لیست با تصویر بندانگشتی، قیمت، موجودی، وضعیت، تاریخ به‌روزرسانی</li>
+          <li>شرایط عمده روی همان فرم محصول</li>
+          <li>پیام واضح اگر Pending Review یا Inactive است</li>
+        </ul>
+      </article>
+      <article class="card">
+        <span class="tag admin">Admin</span>
+        <h3>کنترل پلتفرم</h3>
+        <ul>
+          <li>لیست همه محصولات با جستجو و فیلتر وضعیت / فروشنده / دسته</li>
+          <li>انتشار یا برداشتن از ویترین</li>
+          <li>غیرفعال‌سازی کالای نامعتبر</li>
+          <li>در صورت نیاز اصلاح اطلاعات</li>
+          <li>ایجاد محصول «در صورت نیاز» — کیس را PO مشخص می‌کند</li>
+        </ul>
+      </article>
+      <article class="card">
+        <h3>صفحات UI</h3>
+        <ul>
+          <li>لیست عمومی / جزئیات عمومی — SRS-03 / 04</li>
+          <li>Seller: List · Add · Edit · Images · Price · Inventory · Status</li>
+          <li>Admin: Products list / edit / publish — SRS-09</li>
+          <li>فیلدهای دقیق فرم با Figma قفل می‌شود</li>
+        </ul>
+      </article>
+    </div>
+
+    <h2 id="s4">۴. فیچرهای فنی</h2>
+    <h3>۴.۱ لایه‌ها</h3>
+    <div class="cards">
+      <article class="card">
+        <h3>Domain</h3>
+        <ul>
+          <li>ماژول <span class="en">products</span> — موجودیت غنی، نه TypeORM در دامنه</li>
+          <li>وضعیت و Transition کنترل‌شده</li>
+          <li>قیمت و موجودی invariant در مدل</li>
+          <li>مالکیت <span class="en">sellerId</span> غیرقابل جعل از کلاینت</li>
+          <li>دسته از use case ماژول Category؛ import entity دسته ممنوع</li>
+        </ul>
+      </article>
+      <article class="card">
+        <h3>Use cases</h3>
+        <ul>
+          <li>Create / Update / Get / List / Search (پنل)</li>
+          <li>Update price / Update stock</li>
+          <li>Upload / Remove / Set primary image</li>
+          <li>Publish / Unpublish / Deactivate</li>
+          <li>Public catalog query: فقط قابل‌نمایش</li>
+        </ul>
+      </article>
+      <article class="card">
+        <h3>Persistence / Files</h3>
+        <ul>
+          <li>Product · ProductImage · Inventory · (Price اگر جدا)</li>
+          <li>فایل در MinIO/S3 — هرگز در Postgres</li>
+          <li>Index روی sellerId، categoryId، status، updatedAt</li>
+          <li>Pagination سروری اجباری</li>
+        </ul>
+      </article>
+      <article class="card">
+        <h3>API / امنیت</h3>
+        <ul>
+          <li>tRPC برای Next.js؛ Validation در مرز</li>
+          <li>عمومی: list/detail Published بدون توکن</li>
+          <li>Seller mutation: Role + ownership</li>
+          <li>رد Price / Stock از Client به‌عنوان حقیقت</li>
+          <li>عدم افشای موجودی داخلی انبار یا داده فروشنده دیگر</li>
+        </ul>
+      </article>
+    </div>
+
+    <h3>۴.۲ حداقل داده Product</h3>
+    <table>
+      <thead><tr><th>مفهوم</th><th>توضیح</th></tr></thead>
+      <tbody>
+        <tr><td>Product ID</td><td>شناسه پایدار</td></tr>
+        <tr><td>Seller ID</td><td>مالک اجباری</td></tr>
+        <tr><td>Name / Descriptions</td><td>نام؛ توضیح کوتاه و کامل</td></tr>
+        <tr><td>Category ID</td><td>دسته معتبر</td></tr>
+        <tr><td>SKU / Brand</td><td>اگر Data Model MVP بخواهد</td></tr>
+        <tr><td>Images</td><td>چند تصویر + primary؛ URL از S3</td></tr>
+        <tr><td>Price / Discount</td><td>حداقل یک قیمت قابل‌فروش؛ تخفیف اختیاری</td></tr>
+        <tr><td>Stock qty + status</td><td>مقدار؛ In / Low / Out</td></tr>
+        <tr><td>Status</td><td>Draft / Active / Inactive / Out of Stock</td></tr>
+        <tr><td>Wholesale rules</td><td>روی همین محصول — SRS-05</td></tr>
+        <tr><td>Created / Updated · By</td><td>Audit حداقلی SRS-03 §27</td></tr>
+      </tbody>
+    </table>
+
+    <h3>۴.۳ خطا</h3>
+    <p>Product Not Found · Unauthorized · Forbidden (مالک دیگر) · Invalid Product Data · Invalid Category · Invalid Price · Insufficient Stock · Invalid Image · Upload Failed · Product Already Inactive · Seller Not Sellable</p>
+    <p>محصول unpublished برای مشتری مثل Not Found است — بدون افشای Draft بودن.</p>
+
+    <h3>۴.۴ تست DoD</h3>
+    <ul>
+      <li><b>Unit:</b> Validation، Transition وضعیت، Publish rules، مالکیت، قیمت سرور</li>
+      <li><b>Integration:</b> Postgres + S3 تصویر؛ اتصال Seller و Category</li>
+      <li><b>Authorization:</b> Seller A به محصول Seller B → 403</li>
+      <li><b>Edge:</b> Stock=0 · Price=0 · بدون تصویر · دسته حذف‌شده · Seller غیرفعال · Quantity &gt; Stock</li>
+      <li><b>E2E:</b> Seller Active → ایجاد → Publish (طبق PO) → Visitor می‌بیند · Inactive از ویترین حذف</li>
+    </ul>
+
+    <h2 id="s5">۵. جریان‌های اصلی</h2>
+    <div class="flow">
+      <h3>A. ایجاد توسط فروشنده</h3>
+      <div class="steps">
+        <span class="step">Seller Active وارد پنل</span><span class="arrow">←</span>
+        <span class="step">فرم کالا</span><span class="arrow">←</span>
+        <span class="step">دسته + قیمت + موجودی + تصویر</span><span class="arrow">←</span>
+        <span class="step">Validation Backend</span><span class="arrow">←</span>
+        <span class="step">وضعیت اولیه MVP (معمولاً Draft)</span>
+      </div>
+    </div>
+    <div class="flow">
+      <h3>B. انتشار</h3>
+      <div class="steps">
+        <span class="step">شروط Publish</span><span class="arrow">←</span>
+        <span class="step">Seller یا Admin طبق PO</span><span class="arrow">←</span>
+        <span class="step">Active + قابل‌نمایش</span><span class="arrow">←</span>
+        <span class="step">ویترین Visitor/User و ایندکس جستجو</span>
+      </div>
+    </div>
+    <div class="flow">
+      <h3>C. مصرف خریدار</h3>
+      <div class="steps">
+        <span class="step">لیست / جزئیات Published</span><span class="arrow">←</span>
+        <span class="step">قیمت و موجودی از سرور</span><span class="arrow">←</span>
+        <span class="step">افزودن به سبد اگر User</span><span class="arrow">←</span>
+        <span class="step">در Order: Snapshot نه قیمت زنده بعدی</span>
+      </div>
+    </div>
+
+    <h2 id="s6">۶. وضعیت‌های UI</h2>
+    <div class="status-grid">
+      <div class="status"><b>Default</b>فرم / لیست آماده</div>
+      <div class="status"><b>Loading</b>لیست، جزئیات، آپلود</div>
+      <div class="status"><b>Empty</b>بدون محصول در پنل یا ویترین</div>
+      <div class="status"><b>Validation Error</b>روی فیلد</div>
+      <div class="status"><b>Success</b>ذخیره / انتشار</div>
+      <div class="status"><b>Unauthorized / Forbidden</b></div>
+      <div class="status"><b>Not Found</b>نامعتبر یا unpublished برای مشتری</div>
+      <div class="status"><b>Out of Stock</b></div>
+      <div class="status"><b>Inactive / Draft banner</b>در پنل فروشنده</div>
+      <div class="status"><b>Upload Failed</b>فایل نامعتبر</div>
+      <div class="status"><b>Disabled</b>Seller Pending/Suspended</div>
+      <div class="status"><b>Server Error</b>بدون جزئیات داخلی</div>
+    </div>
+
+    <h2 id="s7">۷. قوانین کسب‌وکار</h2>
+    <table>
+      <thead><tr><th>کد</th><th>قانون</th></tr></thead>
+      <tbody>
+        <tr><td class="id">BR-P1</td><td>هر محصول به یک Seller متصل است.</td></tr>
+        <tr><td class="id">BR-P2</td><td>فروشنده محصول فروشنده دیگر را نمی‌بیند و تغییر نمی‌دهد.</td></tr>
+        <tr><td class="id">BR-P3</td><td>مشتری فقط محصولی را می‌بیند که شروط انتشار برقرار باشد.</td></tr>
+        <tr><td class="id">BR-P4</td><td>قیمت و موجودی از Backend است؛ کلاینت حقیقت نیست.</td></tr>
+        <tr><td class="id">BR-P5</td><td>بدون اطلاعات ضروری ناقص، محصول ساخته نمی‌شود.</td></tr>
+        <tr><td class="id">BR-P6</td><td>Validation Frontend جایگزین Backend نیست.</td></tr>
+        <tr><td class="id">BR-P7</td><td>افزودن به سبد فقط برای محصول Active، Seller قابل‌فروش، موجودی کافی، قیمت معتبر.</td></tr>
+        <tr><td class="id">BR-P8</td><td>شرایط B2B روی همان محصول ذخیره می‌شود؛ کاتالوگ جدا نیست.</td></tr>
+        <tr><td class="id">BR-P9</td><td>تغییر قیمت بعدی Order قبلی را عوض نمی‌کند (Snapshot در سفارش).</td></tr>
+        <tr><td class="id">BR-P10</td><td>منطق کسب‌وکار به Figma وابسته نیست؛ فیلد UI با Figma قفل می‌شود.</td></tr>
+      </tbody>
+    </table>
+
+    <h2 id="s8">۸. خارج از اسکوپ MVP</h2>
+    <ul>
+      <li>AI Product Enrichment / Generation / Categorization</li>
+      <li>Dynamic Pricing · Price Intelligence · Group Buying Pricing پیشرفته</li>
+      <li>Advanced PIM · Semantic / AI Search داخل این ماژول</li>
+      <li>Recommendation Engine · Bundling پیشرفته · Multi-Warehouse</li>
+      <li>Import کاتالوگ تأمین‌کننده · Multi-Seller Offer روی یک SKU</li>
+      <li>ویدیو محصول مگر Figma MVP صریحاً بخواهد</li>
+      <li>Variant پیچیده — SRS آینده؛ اگر MVP فقط یک SKU ساده است حدس زده نشود</li>
+    </ul>
+
+    <h2 id="s9">۹. وضعیت فعلی Implementation</h2>
+    <p>دامنه Products وجود ندارد. App فقط Health + زیرساخت مشترک است.</p>
+    <table>
+      <thead><tr><th>قطعه</th><th>وضعیت</th><th>مسیر</th></tr></thead>
+      <tbody>
+        <tr><td>S3 / MinIO port</td><td>آداپتر آماده — برای تصویر محصول</td><td class="en">s3-storage.adapter.ts</td></tr>
+        <tr><td>PostgreSQL + TypeORM</td><td>آماده در سطح اپ</td><td>—</td></tr>
+        <tr><td>Products domain / use cases</td><td>ساخته نشده</td><td class="en">src/modules/products</td></tr>
+        <tr><td>Categories</td><td>ساخته نشده</td><td>—</td></tr>
+        <tr><td>Public catalog API</td><td>ساخته نشده</td><td>—</td></tr>
+      </tbody>
+    </table>
+
+    <h2 id="s10">۱۰. تصمیم‌هایی که قبل از پیاده‌سازی حدس زده نشود</h2>
+    <ol>
+      <li>چه کسی Publish می‌کند: Seller مستقیم یا Admin بعد از Pending Review؟</li>
+      <li>آیا Pending Review / Rejected / Archived در MVP هستند؟ (SRS-03 اختیاری؛ SRS-09 برای ادمین آورده)</li>
+      <li>نمایش موجودی به مشتری: عدد یا فقط «موجود / ناموجود»؟</li>
+      <li>SKU و Brand اجباری‌اند؟</li>
+      <li>تخفیف روی محصول در MVP فعال است؟</li>
+      <li>سقف نوع/حجم/تعداد تصویر</li>
+      <li>Variant: صفر در MVP یا رنگ/سایز ساده؟</li>
+      <li>ایجاد محصول توسط Admin — چه کیس‌هایی؟</li>
+      <li>نام فروشگاه روی کارت محصول؟</li>
+      <li>قرارداد tRPC نهایی list/detail/create/update/publish</li>
+    </ol>
+
+    <p class="note">
+      این فایل را با
+      <span class="en">02-user-seller-admin-visitor.html</span> (نقش‌ها)،
+      <span class="en">04-search.html</span>،
+      <span class="en">05-cart.html</span> و
+      <span class="en">06-order.html</span>
+      با هم بخوانید. Catalog منبع حقیقت کالاست؛ Search ایندکس است نه کاتالوگ دوم.
+    </p>
+    <footer>
+      Virashops MVP Feature List · Module 03 Product Catalog · SRS-03 v1.0 · شناسه PRD-* · آماده چاپ / Save as PDF.
+    </footer>
+  </div>
+</body>
+</html>

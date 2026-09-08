@@ -1,0 +1,32 @@
+services:
+  api:
+    profiles: !reset []
+    environment:
+      OTP_DEV_CODE: '123456'
+      OTP_RESEND_SECONDS: '1'
+      ADMIN_PHONE: '09000000001'
+      ADMIN_NAME: Api Check Admin
+      AWS_S3_BUCKET: ''
+      AWS_S3_ENDPOINT: ''
+
+  auth-api-check:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: test
+    image: virashops-back:test
+    depends_on:
+      api:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      BASE_URL: http://api:3000
+      OTP_DEV_CODE: '123456'
+      ADMIN_PHONE: '09000000001'
+      AUTH_API_CHECK_OUTPUT: /app/test-results/auth-api-check.json
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - ./test-results:/app/test-results
+    command: ['npm', 'run', 'auth-api-check']

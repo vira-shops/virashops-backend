@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Virashops MVP — ماژول Cart | لیست فیچر</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #1c1410; --muted: #6b5e55; --line: #e6ddd4; --paper: #fbf7f2; --card: #fffdfb;
+      --accent: #b45309; --accent-soft: #fff4e5;
+      --visitor: #57534e; --visitor-bg: #f5f5f4; --user: #0369a1; --user-bg: #e0f2fe;
+      --seller: #047857; --seller-bg: #d1fae5; --admin: #9f1239; --admin-bg: #ffe4e6;
+      --ok: #047857; --wait: #b45309; --ready: #1d4ed8; --out: #57534e;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { margin: 0; background: var(--paper); color: var(--ink); font-family: "Vazirmatn", sans-serif; line-height: 1.85; font-size: 16px; }
+    .en { font-family: "IBM Plex Sans", "Vazirmatn", sans-serif; direction: ltr; unicode-bidi: isolate; }
+    .wrap { max-width: 1080px; margin: 0 auto; padding: 32px 24px 80px; }
+    header.hero { background: var(--ink); color: #faf6f1; padding: 48px 24px 40px; }
+    header.hero .wrap { padding-top: 0; padding-bottom: 0; }
+    .kicker { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; font-size: 12px; letter-spacing: 0.04em; color: #d6c4b4; margin-bottom: 16px; }
+    .kicker span { border: 1px solid #4a3c32; padding: 4px 10px; border-radius: 999px; }
+    h1 { font-size: clamp(28px, 4vw, 40px); line-height: 1.35; margin: 0 0 12px; font-weight: 800; }
+    .lead { color: #e7d5c4; max-width: 760px; margin: 0; font-size: 17px; }
+    .meta { display: flex; gap: 24px; flex-wrap: wrap; margin-top: 28px; color: #cbb8a6; font-size: 13px; }
+    .meta b { color: #fff; font-weight: 600; display: block; }
+    nav.toc { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 20px 24px; margin: 28px 0; }
+    nav.toc h2 { margin: 0 0 12px; font-size: 15px; }
+    nav.toc ol { margin: 0; padding: 0 22px; columns: 2; gap: 32px; }
+    nav.toc a { color: var(--ink); text-decoration: none; }
+    nav.toc a:hover { color: var(--accent); }
+    h2 { font-size: 26px; margin: 48px 0 8px; padding-top: 8px; border-top: 1px solid var(--line); }
+    h2:first-of-type { border-top: 0; }
+    h3 { font-size: 19px; margin: 28px 0 8px; }
+    .note { background: var(--accent-soft); border-right: 4px solid var(--accent); padding: 14px 16px; border-radius: 0 12px 12px 0; color: #7c2d12; margin: 16px 0 24px; }
+    .actors { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 20px 0 28px; }
+    .actor { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 16px; }
+    .actor .tag, .tag { display: inline-block; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 999px; margin-bottom: 8px; }
+    .tag.visitor { background: var(--visitor-bg); color: var(--visitor); }
+    .tag.user { background: var(--user-bg); color: var(--user); }
+    .tag.seller { background: var(--seller-bg); color: var(--seller); }
+    .tag.admin { background: var(--admin-bg); color: var(--admin); }
+    .actor h3 { margin: 0 0 6px; font-size: 18px; }
+    .actor p { margin: 0; color: var(--muted); font-size: 13.5px; line-height: 1.7; }
+    table { width: 100%; border-collapse: collapse; background: var(--card); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; font-size: 13.5px; }
+    th, td { border-bottom: 1px solid var(--line); padding: 10px 12px; text-align: right; vertical-align: top; }
+    th { background: #f3ece4; font-weight: 700; font-size: 12px; }
+    tr:last-child td { border-bottom: 0; }
+    .cell-yes { color: var(--ok); font-weight: 700; }
+    .cell-no { color: #a8a29e; }
+    .cell-part { color: var(--wait); font-weight: 600; }
+    .id { font-family: "IBM Plex Sans", monospace; font-size: 12px; color: var(--muted); white-space: nowrap; }
+    .badge { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+    .b-srs { background: #d1fae5; color: #065f46; }
+    .b-prop { background: #ffedd5; color: #9a3412; }
+    .b-ready { background: #dbeafe; color: #1e3a8a; }
+    .b-out { background: #e7e5e4; color: #44403c; }
+    .b-biz { background: #fce7f3; color: #9d174d; }
+    .b-tech { background: #e0e7ff; color: #3730a3; }
+    .b-both { background: #ede9fe; color: #5b21b6; }
+    .legend { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 16px; }
+    .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
+    .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 18px 18px 10px; }
+    .card h3 { margin-top: 0; }
+    .card ul { margin: 0 0 12px; padding-right: 18px; }
+    .card li { margin: 4px 0; }
+    .flow { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 16px 18px; margin: 12px 0; }
+    .steps { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .step { background: #f3ece4; border-radius: 10px; padding: 8px 12px; font-size: 13px; font-weight: 600; }
+    .arrow { color: var(--muted); }
+    .status-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .status { border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; background: var(--card); }
+    .status b { display: block; margin-bottom: 4px; }
+    footer { margin-top: 48px; color: var(--muted); font-size: 13px; border-top: 1px solid var(--line); padding-top: 16px; }
+    .print-bar { position: sticky; top: 0; z-index: 20; background: rgba(251, 247, 242, 0.92); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); padding: 8px 24px; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .print-bar button { font-family: inherit; background: var(--ink); color: #fff; border: 0; border-radius: 10px; padding: 8px 14px; cursor: pointer; font-weight: 600; }
+    .print-bar .links { display: flex; gap: 10px; flex-wrap: wrap; font-size: 12px; }
+    .print-bar .links a { color: var(--muted); text-decoration: none; }
+    .print-bar .links a:hover { color: var(--ink); }
+    .table-scroll { overflow-x: auto; margin: 16px 0 24px; }
+    @media (max-width: 900px) { .actors, .cards, .status-grid, nav.toc ol { grid-template-columns: 1fr 1fr; columns: 1; } }
+    @media (max-width: 640px) { .actors, .cards, .status-grid { grid-template-columns: 1fr; } table { font-size: 12px; } .print-bar .links { display: none; } }
+    @media print {
+      .print-bar { display: none; }
+      header.hero { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .wrap { max-width: none; }
+      h2 { break-before: page; }
+      h2#s1 { break-before: avoid; }
+      .actor, .card, .flow, table { break-inside: avoid; }
+      a { color: inherit; text-decoration: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="print-bar">
+    <span>Virashops · SRS-07 · Cart</span>
+    <span class="links">
+      <a href="01-auth.html">Auth</a>
+      <a href="02-user-seller-admin-visitor.html">بازیگران</a>
+      <a href="03-product.html">محصول</a>
+      <a href="04-search.html">جستجو</a>
+      <a href="06-order.html">سفارش</a>
+    </span>
+    <button type="button" onclick="window.print()">چاپ / ذخیره PDF</button>
+  </div>
+
+  <header class="hero">
+    <div class="wrap">
+      <div class="kicker">
+        <span>MVP Feature List</span>
+        <span>Module 07 / 13 · نیمه Cart</span>
+        <span>SRS-07 · Cart &amp; Order Management</span>
+        <span>نسخه 1.0</span>
+      </div>
+      <h1>ماژول سبد خرید</h1>
+      <p class="lead">
+        <b>Cart ≠ Order ≠ Payment</b>. سبد محل انتخاب و محاسبه است، مدرک پرداخت نیست، و بعد از ایجاد سفارش دیگر منبع تغییر Order نیست.
+        مالک پایدار سبد در MVP: <b>User واردشده با OTP</b>. سبد مهمان تا تأیید PO پیاده نمی‌شود.
+      </p>
+      <div class="meta">
+        <div><b>منبع</b>SRS-07 (Cart) + SRS-04 (B2C add-to-cart) + SRS-05 (MOQ روی همان سبد)</div>
+        <div><b>خروجی</b>فیچر غیرفنی + فنی + ماتریس نقش‌ها · شناسه <span class="en">CART-*</span></div>
+        <div><b>سفارش</b>جدا در <span class="en">06-order.html</span></div>
+      </div>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <nav class="toc">
+      <h2>فهرست</h2>
+      <ol>
+        <li><a href="#s1">چهار حالت کاربری</a></li>
+        <li><a href="#s2">نقشه فیچرها</a></li>
+        <li><a href="#s3">فیچرهای غیرفنی</a></li>
+        <li><a href="#s4">فیچرهای فنی</a></li>
+        <li><a href="#s5">جریان‌های اصلی</a></li>
+        <li><a href="#s6">وضعیت‌های UI</a></li>
+        <li><a href="#s7">قوانین کسب‌وکار</a></li>
+        <li><a href="#s8">خارج از اسکوپ MVP</a></li>
+        <li><a href="#s9">وضعیت فعلی کد</a></li>
+        <li><a href="#s10">تصمیم‌های باز</a></li>
+      </ol>
+    </nav>
+
+    <p class="note">
+      Checkout و ساخت Order در سند سفارش است. اینجا فقط تا «سبد معتبر آماده Checkout».
+      تخفیف کد کوپن، اگر در SRS-07 «در صورت وجود» آمده، بدون تأیید PO تعهد نیست.
+      رزرو دائمی موجودی با افزودن به سبد انجام نمی‌شود مگر Inventory Policy جدا بگوید.
+    </p>
+
+    <h2 id="s1">۱. چهار حالت کاربری — Cart</h2>
+    <div class="actors">
+      <article class="actor">
+        <span class="tag visitor">VISITOR</span>
+        <h3>بازدیدکننده</h3>
+        <p>سبد پایدار سروری ندارد. افزودن/Checkout → OTP. سبد محلی/مهمان و Merge بعد از ورود: نیاز تأیید PO. Checkout مهمان خارج از MVP تا PO.</p>
+      </article>
+      <article class="actor">
+        <span class="tag user">USER</span>
+        <h3>کاربر / خریدار</h3>
+        <p>مالک Cart. ایجاد/بازیابی سبد فعال، CRUD اقلام، محاسبه، Validate، ورود به Checkout. B2B روی همین سبد.</p>
+      </article>
+      <article class="actor">
+        <span class="tag seller">SELLER</span>
+        <h3>فروشنده</h3>
+        <p>سبد خریدار را نمی‌بیند و مدیریت نمی‌کند. به‌عنوان User می‌تواند برای خودش خرید کند — نه از Seller Panel.</p>
+      </article>
+      <article class="actor">
+        <span class="tag admin">ADMIN</span>
+        <h3>مدیر</h3>
+        <p>سبد مشتری را در پنل ادمین مدیریت نمی‌کند. از Admin Panel خرید B2C ندارد.</p>
+      </article>
+    </div>
+
+    <table>
+      <thead><tr><th>سؤال</th><th>Visitor</th><th>User</th><th>Seller</th><th>Admin</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>سبد پایدار؟</td>
+          <td class="cell-part">تا تأیید PO خیر</td>
+          <td class="cell-yes">یک سبد فعال</td>
+          <td class="cell-part">به‌عنوان User</td>
+          <td class="cell-no">خیر</td>
+        </tr>
+        <tr>
+          <td>قیمت خط از کجا؟</td>
+          <td colspan="4">Backend در لحظه add/update — نه عدد کلاینت</td>
+        </tr>
+        <tr>
+          <td>چند فروشنده در یک سبد؟</td>
+          <td colspan="4">معماری باید تحمل کند؛ تفکیک سفارش = تصمیم PO در سند Order</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2 id="s2">۲. نقشه فیچرها در یک نگاه</h2>
+    <div class="legend">
+      <span class="legend-item"><span class="cell-yes">✓</span> دارد</span>
+      <span class="legend-item"><span class="cell-part">◐</span> محدود / شرطی</span>
+      <span class="legend-item"><span class="cell-no">—</span> ندارد</span>
+    </div>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr><th>ID</th><th>فیچر</th><th>Visitor</th><th>User</th><th>Seller</th><th>Admin</th><th>نوع</th><th>وضعیت</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="id">CART-01</td>
+            <td>ایجاد یا بازیابی Cart فعال با شناسه یکتا</td>
+            <td class="cell-no">—</td><td class="cell-yes">✓</td>
+            <td class="cell-part">به‌عنوان User</td><td class="cell-no">—</td>
+            <td><span class="badge b-tech">فنی</span></td>
+            <td><span class="badge b-srs">FR-01</span></td>
+          </tr>
+          <tr>
+            <td class="id">CART-02</td>
+            <td>افزودن قلم: Product، Variant در صورت وجود، Quantity؛ قیمت از سرور</td>
+            <td class="cell-part">گیت OTP</td><td class="cell-yes">✓</td>
+            <td class="cell-no">پنل فروشنده</td><td class="cell-no">—</td>
+            <td><span class="badge b-both">هر دو</span></td>
+            <td><span class="badge b-srs">FR-02</span></td>
+          </tr>
+          <tr>
+            <td class="id">CART-03</td>
+            <td>اعتبارسنجی قبل از افزودن: وجود، Active، قابل‌خرید، Seller قابل‌فروش، موجودی، min/max/pack</td>
+            <td class="cell-yes">اگر مسیر باز شود</td><td class="cell-yes">✓</td>
+            <td class="cell-no">—</td><td class="cell-no">—</td>
+            <td><span class="badge b-tech">فنی</span></td>
+            <td><span class="badge b-srs">SRS-07 §6.3</span></td>
+          </tr>
+          <tr>
+            <td class="id">CART-04</td>
+            <td>تغییر Quantity + محاسبه مجدد</td>
+            <td class="cell-no">—</td><td class="cell-yes">✓</td>
+            <td class="cell-no">—</td><td class="cell-no">—</td>
+            <td><span class="badge b-both">هر دو</span></td>
+            <td><span class="badge b-srs">FR-03</span></td>
+          </tr>
+          <tr>
+            <td class="id">CART-05</td>
+            <td>حذف قلم — بدون اثر روی Order قبلی</td>
+            <td class="cell-no">—</td><td class="cell-yes">✓</td>
+            <td class="cell-no">—</td><td class="cell-no">—</td>
+            <td><span class="badge b-both">هر دو</span></td>
+            <td><span class="badge b-srs">FR-04</span></td>
+          </tr>
+          <tr>
+            <td class="id">CART-06</td>
+            <td>خالی کردن سبد</td>
+            <td class="cell-no">—</td><td class="cell-yes">✓</td>
+            <td class="cell-no">—</td><td class="cell-no">—</td>
+            <td><span class="badge b-both">هر دو</span></td>
+            <td><span class="badge b-srs">API SRS-07</span></td>
+          </tr>
+          <tr>
+            <td class="id">CART-07</td>
+            <td>محاسبه Subtotal / Discount معتبر / هزینه ارسال اگر مشخص / Grand Total</td>
+            <td class="cell-no">—</td><td class="cell-yes">✓</td>
+            <td class="cell-no">—</td><td class="cell-no">—</td>
+            <td><span class="badge b-both">هر دو</span></td>
+            <td><span class="badge b-srs">FR-06</span></td>
+          </tr>
+          <tr>
+            <td class="id">CART-08</td>
+            <td>Validate Cart قبل از Checkout (موجودی + قیمت زنده)</td>
+            <td class="cell-no">—</td><td class="cell-yes">✓</td>
+            <td class="cell-no">—</td><td class="cell-no">—</td>
+            <td><span class="badge b-tech">فنی</span></td>
+            <td><span class="badge b-srs">FR-05 / 07</span></td>
+          </tr>
+          <tr>
+            <td class="id">CART-09</td>
+            <td>قوانین B2B روی همان سبد: MOQ / max / pack multiple</td>
+            <td class="cell-no">—</td><td class="cell-part">واجد شرایط</td>
+            <td class="cell-no">—</td><td class="cell-no">—</td>
+            <td><span class="badge b-both">هر دو</span></td>
+            <td><span class="badge b-srs">SRS-05</span></td>
+          </tr>
+          <tr>
+            <td class="id">CART-10</td>
+            <td>مالکیت: فقط صاحب سبد؛ جلوگیری از IDOR</td>
+            <td class="cell-yes">401 روی mutation پایدار</td><td class="cell-yes">✓</td>
+            <td class="cell-yes">ندیدن سبد مشتری</td><td class="cell-yes">بدون مدیریت سبد</td>
+            <td><span class="badge b-tech">فنی</span></td>
+            <td><span class="badge b-srs">FR-17</span></td>
+          </tr>
+          <tr>
+            <td class="id">CART-11</td>
+            <td>Empty state + بازگشت به Browse/Search</td>
+            <td class="cell-part">◐</td><td class="cell-yes">✓</td>
+            <td class="cell-no">—</td><td class="cell-no">—</td>
+            <td><span class="badge b-biz">غیرفنی</span></td>
+            <td><span class="badge b-srs">SRS-07 §21</span></td>
+          </tr>
+          <tr>
+            <td class="id">CART-12</td>
+            <td>سبد مهمان محلی یا سروری + Merge بعد از OTP</td>
+            <td class="cell-part">PO</td><td class="cell-part">Merge</td>
+            <td class="cell-no">—</td><td class="cell-no">—</td>
+            <td><span class="badge b-both">هر دو</span></td>
+            <td><span class="badge b-prop">نیاز تأیید PO</span></td>
+          </tr>
+          <tr>
+            <td class="id">CART-13</td>
+            <td>کد تخفیف / کوپن</td>
+            <td class="cell-no">—</td><td class="cell-part">اگر PO</td>
+            <td class="cell-no">—</td><td class="cell-no">—</td>
+            <td><span class="badge b-both">هر دو</span></td>
+            <td><span class="badge b-prop">«در صورت وجود»</span></td>
+          </tr>
+          <tr>
+            <td class="id">CART-14</td>
+            <td>ورود به Checkout از سبد معتبر</td>
+            <td class="cell-no">OTP اول</td><td class="cell-yes">✓</td>
+            <td class="cell-no">از پنل فروشنده</td><td class="cell-no">از پنل ادمین</td>
+            <td><span class="badge b-both">هر دو</span></td>
+            <td><span class="badge b-srs">SRS-04 / 07</span></td>
+          </tr>
+          <tr>
+            <td class="id">CART-15</td>
+            <td>رزرو دائمی موجودی در add-to-cart</td>
+            <td class="cell-no">—</td><td class="cell-no">—</td>
+            <td class="cell-no">—</td><td class="cell-no">—</td>
+            <td><span class="badge b-tech">فنی</span></td>
+            <td><span class="badge b-out">مگر Policy جدا</span></td>
+          </tr>
+          <tr>
+            <td class="id">CART-16</td>
+            <td>Smart Cart / AI assistant / Recommendation در سبد</td>
+            <td class="cell-no">—</td><td class="cell-no">—</td>
+            <td class="cell-no">—</td><td class="cell-no">—</td>
+            <td><span class="badge b-biz">غیرفنی</span></td>
+            <td><span class="badge b-out">خارج از MVP</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2 id="s3">۳. فیچرهای غیرفنی</h2>
+    <div class="cards">
+      <article class="card">
+        <span class="tag user">خریدار</span>
+        <h3>روی صفحه سبد</h3>
+        <ul>
+          <li>لیست اقلام: تصویر، نام، قیمت واحد، تعداد، جمع خط</li>
+          <li>دکمه +/− و حذف</li>
+          <li>خلاصه مبلغ</li>
+          <li>CTA تسویه اگر سبد معتبر باشد</li>
+          <li>پیام موجودی ناکافی / تعداد نامعتبر / تغییر قیمت — بدون جزئیات داخلی</li>
+        </ul>
+      </article>
+      <article class="card">
+        <h3>صفحات UI</h3>
+        <ul>
+          <li>Cart page</li>
+          <li>Empty cart</li>
+          <li>Quantity controls</li>
+          <li>Remove item</li>
+          <li>Price summary</li>
+          <li>Checkout entry → سند سفارش</li>
+        </ul>
+      </article>
+    </div>
+
+    <h2 id="s4">۴. فیچرهای فنی</h2>
+    <div class="cards">
+      <article class="card">
+        <h3>Domain · <span class="en">carts</span></h3>
+        <ul>
+          <li>Cart و CartItem جدا از Order</li>
+          <li>یک سبد فعال per User (سیاست چندسبد: PO؛ پیش‌فرض یکی)</li>
+          <li>Add: خواندن محصول از use case کاتالوگ — نه کپی entity</li>
+          <li>قیمت authoritative در execute</li>
+        </ul>
+      </article>
+      <article class="card">
+        <h3>API</h3>
+        <ul>
+          <li>Create / Get active</li>
+          <li>Add / Update / Remove item</li>
+          <li>Clear · Validate · Calculate</li>
+          <li>401 بدون نشست؛ 403 سبد دیگری</li>
+        </ul>
+      </article>
+      <article class="card">
+        <h3>خطا</h3>
+        <ul>
+          <li>Insufficient stock · Invalid qty · MOQ / pack</li>
+          <li>Product unavailable · Seller not sellable</li>
+          <li>Price changed (رفتار نهایی PO — تا آن حدس نزن)</li>
+          <li>Empty cart checkout forbidden</li>
+        </ul>
+      </article>
+      <article class="card">
+        <h3>تست DoD</h3>
+        <ul>
+          <li>Unit: تعداد، موجودی، MOQ، جمع‌ها</li>
+          <li>Integration: persistence سبد</li>
+          <li>E2E: OTP → add → update → remove</li>
+          <li>منفی: دستکاری قیمت کلاینت رد شود؛ IDOR</li>
+        </ul>
+      </article>
+    </div>
+
+    <h3>حداقل داده Cart</h3>
+    <table>
+      <thead><tr><th>مفهوم</th><th>توضیح</th></tr></thead>
+      <tbody>
+        <tr><td>Cart ID</td><td>یکتا؛ متعلق به Customer</td></tr>
+        <tr><td>CartItem</td><td>Product ID · Variant اختیاری · Seller · Qty · Unit price سرور</td></tr>
+        <tr><td>Totals</td><td>Subtotal، تخفیف معتبر، هزینه در صورت تعریف، Grand Total</td></tr>
+        <tr><td>Updated At</td><td>هر تغییر قلم</td></tr>
+      </tbody>
+    </table>
+
+    <h2 id="s5">۵. جریان‌های اصلی</h2>
+    <div class="flow">
+      <h3>A. افزودن</h3>
+      <div class="steps">
+        <span class="step">جزئیات Published</span><span class="arrow">←</span>
+        <span class="step">اگر Visitor: OTP</span><span class="arrow">←</span>
+        <span class="step">Get/create active cart</span><span class="arrow">←</span>
+        <span class="step">Validate product/stock/price</span><span class="arrow">←</span>
+        <span class="step">Persist item + totals</span>
+      </div>
+    </div>
+    <div class="flow">
+      <h3>B. ویرایش</h3>
+      <div class="steps">
+        <span class="step">تغییر qty یا حذف</span><span class="arrow">←</span>
+        <span class="step">قوانین خرید دوباره</span><span class="arrow">←</span>
+        <span class="step">Recalculate</span>
+      </div>
+    </div>
+    <div class="flow">
+      <h3>C. آماده‌سازی Checkout</h3>
+      <div class="steps">
+        <span class="step">Validate cart</span><span class="arrow">←</span>
+        <span class="step">اگر نامعتبر: قفل CTA</span><span class="arrow">←</span>
+        <span class="step">اگر معتبر: ورود به جریان Order</span>
+      </div>
+    </div>
+
+    <h2 id="s6">۶. وضعیت‌های UI</h2>
+    <div class="status-grid">
+      <div class="status"><b>Default</b>سبد با قلم</div>
+      <div class="status"><b>Loading</b></div>
+      <div class="status"><b>Empty Cart</b></div>
+      <div class="status"><b>Validation Error</b>تعداد / MOQ</div>
+      <div class="status"><b>Out of Stock / Unavailable</b></div>
+      <div class="status"><b>Price Changed</b>اگر PO تعریف کند</div>
+      <div class="status"><b>Unauthorized</b>نشست منقضی → OTP</div>
+      <div class="status"><b>Disabled Checkout</b>سبد نامعتبر</div>
+      <div class="status"><b>Success</b>به‌روزرسانی قلم</div>
+      <div class="status"><b>Server / Network Error</b></div>
+    </div>
+
+    <h2 id="s7">۷. قوانین کسب‌وکار</h2>
+    <table>
+      <thead><tr><th>کد</th><th>قانون</th></tr></thead>
+      <tbody>
+        <tr><td class="id">BR-01</td><td>Cart متعلق به Customer یا Session معتبر است — در MVP قطعی: User احرازشده.</td></tr>
+        <tr><td class="id">BR-02</td><td>هر Cart می‌تواند چند Item داشته باشد.</td></tr>
+        <tr><td class="id">BR-03</td><td>هر Item به Product معتبر متصل است.</td></tr>
+        <tr><td class="id">BR-04</td><td>Quantity مطابق محدودیت Product/Seller / B2B است.</td></tr>
+        <tr><td class="id">BR-C5</td><td>Cart مدرک پرداخت نیست.</td></tr>
+        <tr><td class="id">BR-C6</td><td>حذف Item سفارش قبلی را پاک نمی‌کند.</td></tr>
+        <tr><td class="id">BR-C7</td><td>فروشنده و ادمین سبد مشتری را از پنل خود مدیریت نمی‌کنند.</td></tr>
+        <tr><td class="id">BR-C8</td><td>Checkout با قلم نامعتبر انجام نمی‌شود.</td></tr>
+      </tbody>
+    </table>
+
+    <h2 id="s8">۸. خارج از اسکوپ MVP این نیمه</h2>
+    <ul>
+      <li>ساخت Order و Payment — سند سفارش / Payment</li>
+      <li>AI Cart Assistant · Smart recommendation در سبد</li>
+      <li>سبد چندگانه همزمان (مگر PO)</li>
+      <li>Wishlist به‌عنوان سبد</li>
+      <li>Guest checkout بدون حساب</li>
+    </ul>
+
+    <h2 id="s9">۹. وضعیت فعلی Implementation</h2>
+    <table>
+      <thead><tr><th>قطعه</th><th>وضعیت</th></tr></thead>
+      <tbody>
+        <tr><td>ماژول <span class="en">carts</span></td><td>ساخته نشده</td></tr>
+        <tr><td>Users / OTP برای مالک سبد</td><td>ساخته نشده — وابستگی Auth</td></tr>
+        <tr><td>Products برای validate</td><td>ساخته نشده</td></tr>
+      </tbody>
+    </table>
+
+    <h2 id="s10">۱۰. تصمیم‌های باز</h2>
+    <ol>
+      <li>سبد مهمان: هست؟ محلی یا سروری؟ الگوریتم Merge؟</li>
+      <li>رزرو موجودی: add-to-cart یا فقط Checkout/Order؟</li>
+      <li>رفتار تغییر قیمت بین افزودن و Checkout</li>
+      <li>کوپن در MVP؟</li>
+      <li>هزینه ارسال در سبد نشان داده شود یا فقط Checkout؟</li>
+      <li>ادغام خط اگر همان variant دوباره اضافه شود؟</li>
+      <li>چند فروشنده در یک سبد — UI گروه‌بندی؟</li>
+      <li>قرارداد tRPC cart.*</li>
+    </ol>
+
+    <p class="note">
+      ادامه در <span class="en">06-order.html</span>. کالا:
+      <span class="en">03-product.html</span>. هویت:
+      <span class="en">01-auth.html</span>.
+    </p>
+    <footer>
+      Virashops MVP Feature List · Module 07 Cart · SRS-07 v1.0 (Cart slice) · شناسه CART-* · آماده چاپ / Save as PDF.
+    </footer>
+  </div>
+</body>
+</html>

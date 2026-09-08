@@ -1,0 +1,1782 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Virashops MVP — بازیگران | Visitor · User · Seller · Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #1c1410;
+      --muted: #6b5e55;
+      --line: #e6ddd4;
+      --paper: #fbf7f2;
+      --card: #fffdfb;
+      --accent: #b45309;
+      --accent-soft: #fff4e5;
+      --visitor: #57534e;
+      --visitor-bg: #f5f5f4;
+      --user: #0369a1;
+      --user-bg: #e0f2fe;
+      --seller: #047857;
+      --seller-bg: #d1fae5;
+      --admin: #9f1239;
+      --admin-bg: #ffe4e6;
+      --ok: #047857;
+      --wait: #b45309;
+      --ready: #1d4ed8;
+      --out: #57534e;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: "Vazirmatn", sans-serif;
+      line-height: 1.85;
+      font-size: 16px;
+    }
+    .en { font-family: "IBM Plex Sans", "Vazirmatn", sans-serif; direction: ltr; unicode-bidi: isolate; }
+
+    .wrap { max-width: 1080px; margin: 0 auto; padding: 32px 24px 80px; }
+
+    header.hero {
+      background: var(--ink);
+      color: #faf6f1;
+      padding: 48px 24px 40px;
+    }
+    header.hero .wrap { padding-top: 0; padding-bottom: 0; }
+    .kicker {
+      display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+      font-size: 12px; letter-spacing: 0.04em; color: #d6c4b4; margin-bottom: 16px;
+    }
+    .kicker span {
+      border: 1px solid #4a3c32; padding: 4px 10px; border-radius: 999px;
+    }
+    h1 { font-size: clamp(28px, 4vw, 40px); line-height: 1.35; margin: 0 0 12px; font-weight: 800; }
+    .lead { color: #e7d5c4; max-width: 760px; margin: 0; font-size: 17px; }
+    .meta { display: flex; gap: 24px; flex-wrap: wrap; margin-top: 28px; color: #cbb8a6; font-size: 13px; }
+    .meta b { color: #fff; font-weight: 600; display: block; }
+
+    nav.toc {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 20px 24px;
+      margin: 28px 0;
+    }
+    nav.toc h2 { margin: 0 0 12px; font-size: 15px; border-top: 0; padding-top: 0; }
+    nav.toc ol { margin: 0; padding: 0 22px; columns: 2; gap: 32px; }
+    nav.toc a { color: var(--ink); text-decoration: none; }
+    nav.toc a:hover { color: var(--accent); }
+
+    .subnav {
+      display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0 8px;
+    }
+    .subnav a {
+      text-decoration: none; font-size: 13px; font-weight: 700;
+      padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line);
+      background: var(--card); color: var(--ink);
+    }
+    .subnav a.visitor { background: var(--visitor-bg); color: var(--visitor); }
+    .subnav a.user { background: var(--user-bg); color: var(--user); }
+    .subnav a.seller { background: var(--seller-bg); color: var(--seller); }
+    .subnav a.admin { background: var(--admin-bg); color: var(--admin); }
+
+    h2 {
+      font-size: 26px; margin: 48px 0 8px; padding-top: 8px;
+      border-top: 1px solid var(--line);
+    }
+    h2:first-of-type { border-top: 0; }
+    h2.chapter { margin-top: 56px; }
+    h3 { font-size: 19px; margin: 28px 0 8px; }
+    p, li { color: var(--ink); }
+    .note {
+      background: var(--accent-soft);
+      border-right: 4px solid var(--accent);
+      padding: 14px 16px;
+      border-radius: 0 12px 12px 0;
+      color: #7c2d12;
+      margin: 16px 0 24px;
+    }
+
+    .actors {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin: 20px 0 28px;
+    }
+    .actor {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 16px;
+      min-height: 100%;
+    }
+    .actor .tag, .tag {
+      display: inline-block; font-size: 11px; font-weight: 700;
+      padding: 3px 8px; border-radius: 999px; margin-bottom: 8px;
+    }
+    .tag.visitor { background: var(--visitor-bg); color: var(--visitor); }
+    .tag.user { background: var(--user-bg); color: var(--user); }
+    .tag.seller { background: var(--seller-bg); color: var(--seller); }
+    .tag.admin { background: var(--admin-bg); color: var(--admin); }
+    .actor h3 { margin: 0 0 6px; font-size: 18px; }
+    .actor p { margin: 0; color: var(--muted); font-size: 13.5px; line-height: 1.7; }
+
+    .banner {
+      border-radius: 16px; padding: 14px 16px; margin: 12px 0 20px;
+      font-size: 14.5px;
+    }
+    .banner.visitor { background: var(--visitor-bg); color: var(--visitor); }
+    .banner.user { background: var(--user-bg); color: var(--user); }
+    .banner.seller { background: var(--seller-bg); color: var(--seller); }
+    .banner.admin { background: var(--admin-bg); color: var(--admin); }
+
+    table {
+      width: 100%; border-collapse: collapse; background: var(--card);
+      border: 1px solid var(--line); border-radius: 12px; overflow: hidden;
+      font-size: 13.5px;
+    }
+    th, td { border-bottom: 1px solid var(--line); padding: 10px 12px; text-align: right; vertical-align: top; }
+    th { background: #f3ece4; font-weight: 700; font-size: 12px; }
+    tr:last-child td { border-bottom: 0; }
+    .cell-yes { color: var(--ok); font-weight: 700; }
+    .cell-no { color: #a8a29e; }
+    .cell-part { color: var(--wait); font-weight: 600; }
+    .id { font-family: "IBM Plex Sans", monospace; font-size: 12px; color: var(--muted); white-space: nowrap; }
+
+    .table-scroll { overflow-x: auto; margin: 16px 0 24px; }
+    .table-scroll table { min-width: 860px; }
+    .matrix td { font-size: 12.5px; line-height: 1.7; }
+    .matrix th:first-child, .matrix td:first-child { white-space: nowrap; }
+
+    .badge {
+      display: inline-block; font-size: 11px; font-weight: 700;
+      padding: 2px 8px; border-radius: 999px; white-space: nowrap;
+    }
+    .b-srs { background: #d1fae5; color: #065f46; }
+    .b-prop { background: #ffedd5; color: #9a3412; }
+    .b-ready { background: #dbeafe; color: #1e3a8a; }
+    .b-out { background: #e7e5e4; color: #44403c; }
+    .b-biz { background: #fce7f3; color: #9d174d; }
+    .b-tech { background: #e0e7ff; color: #3730a3; }
+    .b-both { background: #ede9fe; color: #5b21b6; }
+
+    .legend { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 16px; }
+    .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
+
+    .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .card {
+      background: var(--card); border: 1px solid var(--line);
+      border-radius: 16px; padding: 18px 18px 10px;
+    }
+    .card h3 { margin-top: 0; }
+    .card ul { margin: 0 0 12px; padding-right: 18px; }
+    .card li { margin: 4px 0; }
+
+    .flow {
+      background: var(--card); border: 1px solid var(--line);
+      border-radius: 16px; padding: 16px 18px; margin: 12px 0;
+    }
+    .steps { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .step {
+      background: #f3ece4; border-radius: 10px; padding: 8px 12px;
+      font-size: 13px; font-weight: 600;
+    }
+    .arrow { color: var(--muted); }
+
+    .status-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .status {
+      border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; background: var(--card);
+    }
+    .status b { display: block; margin-bottom: 4px; }
+
+    footer {
+      margin-top: 48px; color: var(--muted); font-size: 13px;
+      border-top: 1px solid var(--line); padding-top: 16px;
+    }
+
+    .print-bar {
+      position: sticky; top: 0; z-index: 20;
+      background: rgba(251, 247, 242, 0.92);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--line);
+      padding: 8px 24px;
+      display: flex; justify-content: space-between; align-items: center;
+      gap: 12px;
+    }
+    .print-bar button {
+      font-family: inherit; background: var(--ink); color: #fff;
+      border: 0; border-radius: 10px; padding: 8px 14px; cursor: pointer; font-weight: 600;
+    }
+    .print-bar .links { display: flex; gap: 10px; flex-wrap: wrap; font-size: 12px; }
+    .print-bar .links a { color: var(--muted); text-decoration: none; }
+    .print-bar .links a:hover { color: var(--ink); }
+
+    @media (max-width: 900px) {
+      .actors, .cards, .status-grid, nav.toc ol { grid-template-columns: 1fr 1fr; columns: 1; }
+    }
+    @media (max-width: 640px) {
+      .actors, .cards, .status-grid { grid-template-columns: 1fr; }
+      table { font-size: 12px; }
+      .print-bar .links { display: none; }
+    }
+    @media print {
+      .print-bar { display: none; }
+      header.hero { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .wrap { max-width: none; }
+      h2 { break-before: auto; }
+      h2.chapter { break-before: page; }
+      h2#s1 { break-before: avoid; }
+      .actor, .card, .flow, table, .status { break-inside: avoid; }
+      a { color: inherit; text-decoration: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="print-bar">
+    <span>Virashops · Actors · Visitor / User / Seller / Admin</span>
+    <span class="links">
+      <a href="#s1">ماتریس</a>
+      <a href="#visitor">بازدیدکننده</a>
+      <a href="#user">خریدار</a>
+      <a href="#seller">فروشنده</a>
+      <a href="#admin">مدیر</a>
+      <a href="03-product.html">محصول</a>
+      <a href="04-search.html">جستجو</a>
+      <a href="05-cart.html">سبد</a>
+      <a href="06-order.html">سفارش</a>
+    </span>
+    <button type="button" onclick="window.print()">چاپ / ذخیره PDF</button>
+  </div>
+
+  <header class="hero">
+    <div class="wrap">
+      <div class="kicker">
+        <span>MVP Feature List</span>
+        <span>Actors · نه ۱۳ بک‌اند ماژول</span>
+        <span>SRS-01 تا SRS-09</span>
+        <span>نسخه 1.0</span>
+        <span>ورود: OTP موبایل</span>
+      </div>
+      <h1>چهار بازیگر ویراشاپس — قابلیت از نگاه نقش</h1>
+      <p class="lead">
+        این سند <b>ماژول بازیگر</b> است: Visitor، User (خریدار)، Seller و Admin
+        در کل MVP چه می‌توانند بکنند. جزئیات OTP در
+        <span class="en">01-auth.html</span> است.
+        تصمیم قطعی هویت: <b>فقط شماره موبایل + OTP پیامکی</b>.
+        ایمیل اگر باشد تماس پروفایل است، نه Login. بازیابی رمز وجود ندارد چون رمزی در کار نیست.
+      </p>
+      <div class="meta">
+        <div><b>منبع</b>SRS-01 حساب · SRS-02 فروشنده · SRS-03 کاتالوگ · SRS-04 B2C · SRS-05 B2B · SRS-06 جستجو · SRS-07 سبد/سفارش · SRS-09 پنل ادمین + تصمیم Phone OTP</div>
+        <div><b>خروجی</b>ماتریس ۱۳×۴ + چهار فصل کامل با IDهای VIS / USR / SLR / ADM</div>
+        <div><b>هویت</b>یک User؛ نقش‌ها روی همان حساب. Admin از ثبت‌نام عمومی ساخته نمی‌شود.</div>
+      </div>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <nav class="toc">
+      <h2>فهرست</h2>
+      <ol>
+        <li><a href="#s1">حالت شفاف — ماتریس ۱۳ ماژول × ۴ بازیگر</a></li>
+        <li><a href="#s2">چهار بازیگر — تعریف شفاف</a></li>
+        <li><a href="#visitor">فصل بازدیدکننده · <span class="en">VIS-*</span></a></li>
+        <li><a href="#user">فصل کاربر / خریدار · <span class="en">USR-*</span></a></li>
+        <li><a href="#seller">فصل فروشنده · <span class="en">SLR-*</span></a></li>
+        <li><a href="#admin">فصل مدیر · <span class="en">ADM-*</span></a></li>
+        <li><a href="#s7">تصمیم‌های باز مشترک (PO / CTO)</a></li>
+      </ol>
+    </nav>
+
+    <div class="subnav">
+      <a class="visitor" href="#visitor">بازدیدکننده</a>
+      <a class="user" href="#user">خریدار</a>
+      <a class="seller" href="#seller">فروشنده</a>
+      <a class="admin" href="#admin">مدیر</a>
+    </div>
+
+    <p class="note">
+      <b>نحوه خواندن وضعیت فیچر:</b>
+      <span class="badge b-srs">در اسکوپ SRS</span>
+      در SRS آمده —
+      <span class="badge b-prop">پیشنهادی MVP</span>
+      برای محصول واقعی لازم است، ولی SRS جزئیات را به Product واگذار کرده —
+      <span class="badge b-out">خارج از MVP</span>
+      عمداً ساخته نمی‌شود.
+      نوع:
+      <span class="badge b-biz">غیرفنی</span>
+      <span class="badge b-tech">فنی</span>
+      <span class="badge b-both">هر دو</span>.
+      هر ردیف با برچسب «نیاز تأیید PO» تا تصمیم Product Owner فرض پیاده‌سازی نیست.
+    </p>
+
+    <h2 id="s1">۱. حالت شفاف — ماتریس ۱۳ ماژول MVP × ۴ بازیگر</h2>
+    <p>
+      سطرها همان ۱۳ حوزه محصول MVP هستند (Auth تا Security/QA).
+      ستون‌ها قابلیت <b>از نگاه بازیگر</b> است، نه فهرست API بک‌اند.
+      جزئیات هر سلول در فصل همان بازیگر آمده.
+    </p>
+    <div class="legend">
+      <span class="legend-item"><span class="cell-yes">✓</span> دارد / مسیر اصلی</span>
+      <span class="legend-item"><span class="cell-part">◐</span> محدود / شرطی / باز</span>
+      <span class="legend-item"><span class="cell-no">—</span> ندارد</span>
+    </div>
+
+    <div class="table-scroll">
+      <table class="matrix">
+        <thead>
+          <tr>
+            <th>ماژول MVP</th>
+            <th>Visitor</th>
+            <th>User · خریدار</th>
+            <th>Seller</th>
+            <th>Admin</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><b>01 Auth / حساب</b><br /><span class="id">SRS-01</span></td>
+            <td>صفحات عمومی بدون حساب. شروع ورود: موبایل → OTP. پنل ندارد.</td>
+            <td class="cell-yes">ثبت‌نام/ورود با OTP. پروفایل مجاز. وضعیت حساب. خروج.</td>
+            <td class="cell-yes">همان OTP روی همان شماره. نقش فروشنده جدا از سیستم ورود نیست.</td>
+            <td class="cell-yes">حساب داخلی seedشده. ثبت‌نام عمومی Admin ممنوع. OTP + امنیت بالاتر.</td>
+          </tr>
+          <tr>
+            <td><b>02 Seller</b><br /><span class="id">SRS-02</span></td>
+            <td class="cell-part">◐ دیدن نام فروشگاه روی محصول منتشرشده — اگر UI نشان دهد</td>
+            <td class="cell-part">◐ درخواست ارتقا به فروشنده بعد از ورود</td>
+            <td class="cell-yes">پروفایل، کسب‌وکار، وضعیت، پنل خودش</td>
+            <td class="cell-yes">لیست / جزئیات / تغییر وضعیت (از جمله Rejected — نیاز تأیید PO)</td>
+          </tr>
+          <tr>
+            <td><b>03 Catalog</b><br /><span class="id">SRS-03</span></td>
+            <td class="cell-yes">فقط محصول منتشرشده: قیمت، موجودی قابل‌نمایش، تصاویر</td>
+            <td class="cell-yes">همان + انتخاب تعداد و افزودن به سبد</td>
+            <td class="cell-yes">ساخت/ویرایش/مشاهده محصول خودش؛ قیمت؛ موجودی؛ تصویر؛ وضعیت انتشار</td>
+            <td class="cell-yes">مشاهده/ویرایش/مدیریت همه؛ کنترل انتشار؛ غیرفعال‌سازی نامعتبر</td>
+          </tr>
+          <tr>
+            <td><b>04 B2C</b><br /><span class="id">SRS-04</span></td>
+            <td class="cell-part">مرور آزاد. Checkout و سفارش نیاز به ورود OTP. سبد مهمان: نیاز تأیید PO</td>
+            <td class="cell-yes">لیست، جزئیات، تعداد، سبد، Checkout، پرداخت، سفارش</td>
+            <td class="cell-part">سفارش محصولات خودش را می‌بیند؛ از پنل خرید نمی‌کند</td>
+            <td class="cell-yes">نظارت سفارش B2C در پنل</td>
+          </tr>
+          <tr>
+            <td><b>05 B2B</b><br /><span class="id">SRS-05</span></td>
+            <td class="cell-no">قیمت عمده به بازدیدکننده نشان داده نمی‌شود مگر PO خلاف بگوید</td>
+            <td class="cell-part">◐ اگر واجد شرایط باشد: قیمت عمده، MOQ، سقف، بسته‌ای — همان سبد/سفارش</td>
+            <td class="cell-yes">تنظیم شرایط عمده روی محصول خودش</td>
+            <td class="cell-yes">نظارت شرایط عمده و صحت</td>
+          </tr>
+          <tr>
+            <td><b>06 Search</b><br /><span class="id">SRS-06</span></td>
+            <td class="cell-yes">جستجو، دسته، فیلتر، مرتب‌سازی، کارت محصول — عمومی</td>
+            <td class="cell-yes">همان</td>
+            <td class="cell-part">جستجوی عمومی + فیلتر محصولات خودش در پنل</td>
+            <td class="cell-yes">جستجو / فیلتر / صفحه‌بندی سروری در همه لیست‌های پنل</td>
+          </tr>
+          <tr>
+            <td><b>07 Cart / Order</b><br /><span class="id">SRS-07</span></td>
+            <td class="cell-part">سفارش خیر. سبد مهمان نیاز تأیید PO</td>
+            <td class="cell-yes">CRUD سبد، Checkout، تاریخچه، وضعیت سفارش</td>
+            <td class="cell-part">سبد را مدیریت نمی‌کند. سفارش محصولات خودش را می‌بیند</td>
+            <td class="cell-yes">جزئیات سفارش؛ تغییر وضعیت در صورت مجوز</td>
+          </tr>
+          <tr>
+            <td><b>08 Payment</b></td>
+            <td class="cell-no">—</td>
+            <td class="cell-yes">پرداخت از مسیر ماژول Payment</td>
+            <td class="cell-part">◐ وضعیت پرداخت سفارش خودش — نه جزئیات تسویه</td>
+            <td class="cell-yes">وضعیت پرداخت روی سفارش؛ نه secret درگاه</td>
+          </tr>
+          <tr>
+            <td><b>09 Admin Panel</b><br /><span class="id">SRS-09</span></td>
+            <td class="cell-no">Deny</td>
+            <td class="cell-no">Deny</td>
+            <td class="cell-no">Deny — Seller Panel جداست</td>
+            <td class="cell-yes">داشبورد، کاربران، فروشندگان، محصولات، سفارش، دسته، محتوا، تنظیمات</td>
+          </tr>
+          <tr>
+            <td><b>10 Notification</b></td>
+            <td class="cell-no">—</td>
+            <td class="cell-yes">رویداد سفارش و پرداخت</td>
+            <td class="cell-yes">ثبت‌نام، فعال‌سازی، تعلیق، تغییر وضعیت</td>
+            <td class="cell-part">◐ رویدادهای عملیاتی حساس — کانال نیاز تأیید PO</td>
+          </tr>
+          <tr>
+            <td><b>11 API</b></td>
+            <td class="cell-yes">فقط قراردادهای عمومی کاتالوگ / جستجو / محتوا</td>
+            <td class="cell-yes">API خریدار احرازشده</td>
+            <td class="cell-yes">API فروشنده ایزوله</td>
+            <td class="cell-yes">API ادمین + Audit</td>
+          </tr>
+          <tr>
+            <td><b>12 SEO</b></td>
+            <td class="cell-yes">صفحات عمومی قابل ایندکس</td>
+            <td class="cell-part">حساب و Checkout: noindex پیشنهادی</td>
+            <td class="cell-part">پنل: noindex</td>
+            <td class="cell-part">پنل: noindex + دسترسی محدود</td>
+          </tr>
+          <tr>
+            <td><b>13 Security / QA</b></td>
+            <td class="cell-yes">Rate limit OTP؛ بدون افشای وجود حساب</td>
+            <td class="cell-yes">Authn/Authz نقش USER؛ قیمت از بک‌اند</td>
+            <td class="cell-yes">ایزوله‌سازی فروشنده؛ وضعیت پنل</td>
+            <td class="cell-yes">RBAC، Audit اقدامات حساس، امنیت بالاتر، بدون دیتابیس ادمین موازی</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>دروازه‌های قطعی (یک نگاه)</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>سؤال</th>
+          <th>Visitor</th>
+          <th>User</th>
+          <th>Seller</th>
+          <th>Admin</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>حساب در دیتابیس؟</td>
+          <td class="cell-no">خیر</td>
+          <td class="cell-yes">بله</td>
+          <td class="cell-yes">بله + Seller Profile</td>
+          <td class="cell-yes">بله — داخلی</td>
+        </tr>
+        <tr>
+          <td>روش ورود</td>
+          <td class="cell-no">ندارد</td>
+          <td class="cell-yes">موبایل + OTP</td>
+          <td class="cell-yes">همان موبایل + OTP</td>
+          <td class="cell-yes">موبایل seedشده + OTP</td>
+        </tr>
+        <tr>
+          <td>ایمیل / رمز عبور برای Login؟</td>
+          <td class="cell-no">خیر</td>
+          <td class="cell-no">خیر</td>
+          <td class="cell-no">خیر</td>
+          <td class="cell-no">خیر</td>
+        </tr>
+        <tr>
+          <td>خرید B2C؟</td>
+          <td class="cell-no">بعد از OTP</td>
+          <td class="cell-yes">بله</td>
+          <td class="cell-yes">به‌عنوان User بله؛ در پنل فروشنده خیر</td>
+          <td class="cell-no">در Admin Panel خیر</td>
+        </tr>
+        <tr>
+          <td>فروش؟</td>
+          <td class="cell-no">خیر</td>
+          <td class="cell-no">تا ارتقا خیر</td>
+          <td class="cell-part">اگر Active</td>
+          <td class="cell-no">مدیریت می‌کند، نمی‌فروشد</td>
+        </tr>
+        <tr>
+          <td>مقصد بعد از OTP</td>
+          <td>—</td>
+          <td>فروشگاه / حساب / بازگشت به Checkout</td>
+          <td>Seller Panel اگر نقش فعال باشد</td>
+          <td>Admin Panel</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2 id="s2">۲. چهار بازیگر — تعریف شفاف</h2>
+    <p>
+      هویت یک‌بار ساخته می‌شود. نقش‌ها روی همان حساب سوار می‌شوند.
+      <b>بازدیدکننده حساب ندارد</b>. User و Seller و Admin همگی User احرازشده‌اند؛
+      تفاوت در Role، پروفایل فروشنده، و سطح پنل است.
+    </p>
+
+    <div class="actors">
+      <article class="actor">
+        <span class="tag visitor">VISITOR</span>
+        <h3>بازدیدکننده</h3>
+        <p>
+          وارد نشده. کاتالوگ، جستجو، دسته و جزئیات محصول عمومی.
+          پنل‌ها قفل. Checkout و سفارش فقط بعد از OTP.
+          سبد مهمان نهایی نشده (SRS-04).
+        </p>
+      </article>
+      <article class="actor">
+        <span class="tag user">USER</span>
+        <h3>کاربر / خریدار</h3>
+        <p>
+          ثبت‌نام با موبایل + OTP. پروفایل، خرید B2C، در صورت واجد شرایط B2B،
+          سبد، پرداخت، تاریخچه سفارش، اعلان سفارش/پرداخت.
+          همان هویت می‌تواند بعداً فروشنده شود.
+        </p>
+      </article>
+      <article class="actor">
+        <span class="tag seller">SELLER</span>
+        <h3>فروشنده</h3>
+        <p>
+          User + پروفایل فروشنده. ثبت‌نام/ارتقا، اطلاعات کسب‌وکار،
+          وضعیت Pending / Active / Suspended / Inactive.
+          پنل: داشبورد پایه، محصول و سفارش خودش. ایزوله از فروشنده دیگر.
+        </p>
+      </article>
+      <article class="actor">
+        <span class="tag admin">ADMIN</span>
+        <h3>مدیر</h3>
+        <p>
+          حساب داخلی؛ ثبت‌نام عمومی ندارد. پنل: داشبورد، کاربران، فروشندگان،
+          محصولات، سفارش‌ها، دسته‌ها، محتوای MVP، تنظیمات، Audit.
+          از پنل ادمین خرید نمی‌کند.
+        </p>
+      </article>
+    </div>
+
+    <h3>مدل هویت (یک جمله)</h3>
+    <p>
+      شناسه ورود <b>شماره موبایل یکتا</b> است.
+      <span class="en">Visitor = no session</span>.
+      <span class="en">User / Seller / Admin = یک User + Role</span>، همه با همان OTP موبایل.
+      فروشنده سیستم ورود جدا ندارد. ایمیل هرگز Login نیست.
+      تغییر شماره — اگر در MVP باشد — OTP جدید روی شماره جدید می‌خواهد؛ جزئیات در
+      <span class="en">01-auth.html</span> و تأیید PO.
+    </p>
+
+    <!-- ========== VISITOR ========== -->
+    <h2 id="visitor" class="chapter">۳. فصل بازدیدکننده · Visitor</h2>
+    <div class="banner visitor">
+      <span class="tag visitor">VIS-*</span>
+      بدون حساب. فقط سطح عمومی فروشگاه. هر عمل حساب/خرید/پنل یعنی هدایت به OTP یا Deny.
+    </div>
+
+    <h3 id="v-def">۳.۱ تعریف شفاف</h3>
+    <p>
+      بازدیدکننده کسی است که Session معتبر ندارد.
+      می‌تواند ویترین را ببیند تا تصمیم بگیرد وارد شود.
+      <b>نمی‌تواند</b> به حساب، سبد پایدار قطعی، Checkout، سفارش، پرداخت،
+      Seller Panel یا Admin Panel دسترسی پیدا کند — مگر بعد از تبدیل شدن به User با OTP.
+    </p>
+    <table>
+      <thead><tr><th>سؤال</th><th>پاسخ MVP</th></tr></thead>
+      <tbody>
+        <tr><td>حساب؟</td><td class="cell-no">خیر</td></tr>
+        <tr><td>ورود؟</td><td>می‌تواند جریان OTP را شروع کند (خروج از حالت Visitor)</td></tr>
+        <tr><td>کاتالوگ؟</td><td class="cell-yes">فقط Published</td></tr>
+        <tr><td>خرید؟</td><td class="cell-no">بعد از Login</td></tr>
+        <tr><td>سبد مهمان؟</td><td class="cell-part">نیاز تأیید PO — SRS-04 قطعی نکرده</td></tr>
+      </tbody>
+    </table>
+
+    <h3 id="v-map">۳.۲ نقشه فیچر</h3>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr><th>ID</th><th>فیچر</th><th>نوع</th><th>وضعیت</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="id">VIS-01</td>
+            <td>مشاهده صفحه اصلی و محتوای عمومی (بنر / بلوک‌های MVP)</td>
+            <td><span class="badge b-both">هر دو</span></td>
+            <td><span class="badge b-srs">SRS-09 محتوا</span></td>
+          </tr>
+          <tr>
+            <td class="id">VIS-02</td>
+            <td>ناوبری دسته‌بندی سلسله‌مراتبی فعال</td>
+            <td><span class="badge b-both">هر دو</span></td>
+            <td><span class="badge b-srs">SRS-06</span></td>
+          </tr>
+          <tr>
+            <td class="id">VIS-03</td>
+            <td>لیست محصولات منتشرشده</td>
+            <td><span class="badge b-both">هر دو</span></td>
+            <td><span class="badge b-srs">SRS-03 / 04</span></td>
+          </tr>
+          <tr>
+            <td class="id">VIS-04</td>
+            <td>جزئیات محصول: عنوان، تصاویر، قیمت خرد، موجودی قابل‌نمایش</td>
+            <td><span class="badge b-both">هر دو</span></td>
+            <td><span class="badge b-srs">SRS-03</span></td>
+          </tr>
+          <tr>
+            <td class="id">VIS-05</td>
+            <td>جستجوی محصول</td>
+            <td><span class="badge b-both">هر دو</span></td>
+            <td><span class="badge b-srs">SRS-06</span></td>
+          </tr>
+          <tr>
+            <td class="id">VIS-06</td>
+            <td>فیلتر و مرتب‌سازی نتایج / لیست</td>
+            <td><span class="badge b-both">هر دو</span></td>
+            <td><span class="badge b-srs">SRS-06</span></td>
+          </tr>
+          <tr>
+            <td class="id">VIS-07</td>
+            <td>کارت محصول در لیست و جستجو</td>
+            <td><span class="badge b-biz">غیرفنی</span></td>
+            <td><span class="badge b-srs">SRS-06</span></td>
+          </tr>
+          <tr>
+            <td class="id">VIS-08</td>
+            <td>صفحات FAQ، شرایط استفاده، حریم خصوصی</td>
+            <td><span class="badge b-biz">غیرفنی</span></td>
+            <td><span class="badge b-srs">SRS-09</span></td>
+          </tr>
+          <tr>
+            <td class="id">VIS-09</td>
+            <td>شروع ورود: شماره موبایل → درخواست OTP</td>
+            <td><span class="badge b-both">هر دو</span></td>
+            <td><span class="badge b-srs">قطعی OTP</span></td>
+          </tr>
+          <tr>
+            <td class="id">VIS-10</td>
+            <td>عدم دسترسی به پنل حساب، فروشنده، ادمین</td>
+            <td><span class="badge b-tech">فنی</span></td>
+            <td><span class="badge b-srs">SRS</span></td>
+          </tr>
+          <tr>
+            <td class="id">VIS-11</td>
+            <td>Checkout / ثبت سفارش بدون ورود → هدایت به OTP</td>
+            <td><span class="badge b-both">هر دو</span></td>
+            <td><span class="badge b-srs">SRS-04</span></td>
+          </tr>
+          <tr>
+            <td class="id">VIS-12</td>
+            <td>سبد مهمان (محلی یا سروری) و ادغام بعد از ورود</td>
+            <td><span class="badge b-both">هر دو</span></td>
+            <td><span class="badge b-prop">نیاز تأیید PO</span></td>
+          </tr>
+          <tr>
+            <td class="id">VIS-13</td>
+            <td>Checkout مهمان بدون حساب</td>
+            <td><span class="badge b-biz">غیرفنی</span></td>
+            <td><span class="badge b-out">خارج از MVP تا تأیید PO</span></td>
+          </tr>
+          <tr>
+            <td class="id">VIS-14</td>
+            <td>عدم نمایش محصول Draft / Pending Review / Rejected / Inactive</td>
+            <td><span class="badge b-tech">فنی</span></td>
+            <td><span class="badge b-srs">SRS-03</span></td>
+          </tr>
+          <tr>
+            <td class="id">VIS-15</td>
+            <td>عدم نمایش قیمت عمده / MOQ به بازدیدکننده</td>
+            <td><span class="badge b-both">هر دو</span></td>
+            <td><span class="badge b-prop">پیشنهادی — تأیید PO</span></td>
+          </tr>
+          <tr>
+            <td class="id">VIS-16</td>
+            <td>API عمومی کاتالوگ / جستجو / محتوا؛ 401 برای مسیرهای محافظت‌شده</td>
+            <td><span class="badge b-tech">فنی</span></td>
+            <td><span class="badge b-srs">SRS</span></td>
+          </tr>
+          <tr>
+            <td class="id">VIS-17</td>
+            <td>صفحات عمومی قابل ایندکس (SEO)</td>
+            <td><span class="badge b-both">هر دو</span></td>
+            <td><span class="badge b-prop">پیشنهادی</span></td>
+          </tr>
+          <tr>
+            <td class="id">VIS-18</td>
+            <td>محدودیت نرخ درخواست OTP از همین صفحه ورود</td>
+            <td><span class="badge b-tech">فنی</span></td>
+            <td><span class="badge b-srs">قطعی OTP</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 id="v-biz">۳.۳ فیچرهای غیرفنی</h3>
+    <div class="cards">
+      <article class="card">
+        <h3>روی صفحه می‌بیند</h3>
+        <ul>
+          <li>فروشگاه بدون اجبار به ساخت حساب</li>
+          <li>دکمه «ورود با موبایل» — نه ایمیل، نه رمز</li>
+          <li>دسته‌ها، جستجو، کارت محصول، صفحه جزئیات</li>
+          <li>قیمت خرد و وضعیت موجودی به‌زبان انسان (مثلاً ناموجود)</li>
+          <li>محتوای عمومی: بنر، FAQ، قوانین، حریم خصوصی</li>
+        </ul>
+      </article>
+      <article class="card">
+        <h3>نمی‌بیند / نمی‌تواند</h3>
+        <ul>
+          <li>تاریخچه سفارش، آدرس‌های ذخیره، اعلان حساب</li>
+          <li>Seller Panel و Admin Panel</li>
+          <li>محصول منتشرنشده یا متعلق به پیش‌نویس فروشنده</li>
+          <li>پرداخت و ثبت سفارش تا بعد از OTP</li>
+          <li>فرم ایمیل/رمز یا «فراموشی رمز»</li>
+        </ul>
+      </article>
+    </div>
+    <h3>صفحات UI بازدیدکننده</h3>
+    <table>
+      <thead><tr><th>صفحه</th><th>منبع</th></tr></thead>
+      <tbody>
+        <tr><td>خانه / لندینگ محتوا</td><td>SRS-09</td></tr>
+        <tr><td>لیست دسته و محصول</td><td>SRS-03 / 04 / 06</td></tr>
+        <tr><td>جزئیات محصول</td><td>SRS-03 / 04</td></tr>
+        <tr><td>جستجو و نتایج</td><td>SRS-06</td></tr>
+        <tr><td>ورود — شماره · ورود — OTP</td><td>قطعی Product</td></tr>
+        <tr><td>FAQ / شرایط / حریم خصوصی</td><td>SRS-09</td></tr>
+        <tr><td>گیت Checkout → ورود</td><td>SRS-04</td></tr>
+      </tbody>
+    </table>
+
+    <h3 id="v-tech">۳.۴ فیچرهای فنی</h3>
+    <div class="cards">
+      <article class="card">
+        <h3>سطح دسترسی</h3>
+        <ul>
+          <li>Queryهای عمومی: دسته فعال، محصول Published، جستجو، محتوا</li>
+          <li>هیچ <span class="en">req.user</span> لازم نیست</li>
+          <li>Mutation سبد پایدار / سفارش / پرداخت → <span class="en">401</span></li>
+          <li>مسیر <span class="en">/seller</span> و <span class="en">/admin</span> → Deny در فرانت و بک‌اند</li>
+        </ul>
+      </article>
+      <article class="card">
+        <h3>قواعد داده</h3>
+        <ul>
+          <li>فیلتر انتشار فقط در Backend؛ فرانت منبع حقیقت نیست</li>
+          <li>قیمت نمایش‌داده‌شده از سرور است</li>
+          <li>موجودی انبار داخلی و داده فروشنده دیگر افشا نمی‌شود</li>
+          <li>OTP: همان قرارداد <span class="en">01-auth</span> — بدون ساخت Admin از این مسیر</li>
+        </ul>
+      </article>
+      <article class="card">
+        <h3>خطا</h3>
+        <ul>
+          <li>Not Found برای محصول نامعتبر یا unpublished (بدون افشای دلیل داخلی)</li>
+          <li>Empty results برای جستجو</li>
+          <li>Validation شماره موبایل روی فرم OTP</li>
+          <li>Rate limit پیام قابل‌فهم</li>
+        </ul>
+      </article>
+      <article class="card">
+        <h3>تست DoD</h3>
+        <ul>
+          <li>Unit: فقط Published در query کاتالوگ</li>
+          <li>HTTP: GET عمومی ۲۰۰؛ POST سفارش بدون توکن ۴۰۱</li>
+          <li>E2E: مرور → جزئیات → CTA ورود</li>
+          <li>منفی: حدس URL پنل ادمین</li>
+        </ul>
+      </article>
+    </div>
+
+    <h3 id="v-flow">۳.۵ جریان‌های اصلی</h3>
+    <div class="flow">
+      <h3>A. کشف محصول</h3>
+      <div class="steps">
+        <span class="step">ورود به سایت</span><span class="arrow">←</span>
+        <span class="step">خانه / دسته / جستجو</span><span class="arrow">←</span>
+        <span class="step">کارت محصول</span><span class="arrow">←</span>
+        <span class="step">جزئیات Published</span>
+      </div>
+    </div>
+    <div class="flow">
+      <h3>B. قصد خرید</h3>
+      <div class="steps">
+        <span class="step">افزودن به سبد یا Checkout</span><span class="arrow">←</span>
+        <span class="step">اگر مهمان و سبد PO تأیید نشده: هدایت به OTP</span><span class="arrow">←</span>
+        <span class="step">موبایل → پیامک → تأیید</span><span class="arrow">←</span>
+        <span class="step">تبدیل به User و ادامه خرید</span>
+      </div>
+    </div>
+
+    <h3 id="v-ui">۳.۶ وضعیت‌های UI</h3>
+    <div class="status-grid">
+      <div class="status"><b>Default</b>ویترین آماده</div>
+      <div class="status"><b>Loading</b>لیست / جستجو / جزئیات</div>
+      <div class="status"><b>Empty catalog / no results</b>نتیجه‌ای نیست</div>
+      <div class="status"><b>Out of stock</b>محصول دیده می‌شود، خرید قفل — الگوی دقیق با Figma</div>
+      <div class="status"><b>Unauthorized gate</b>Checkout نیاز به ورود با موبایل</div>
+      <div class="status"><b>OTP Default / Loading / Error</b>طبق سند Auth</div>
+      <div class="status"><b>Not Found</b>محصول یا دسته نامعتبر</div>
+      <div class="status"><b>Server Error</b>بدون جزئیات داخلی</div>
+    </div>
+
+    <h3 id="v-br">۳.۷ قوانین کسب‌وکار</h3>
+    <table>
+      <thead><tr><th>کد</th><th>قانون</th></tr></thead>
+      <tbody>
+        <tr><td class="id">BR-V1</td><td>بازدیدکننده فقط منبع Published و محتوای فعال عمومی را می‌بیند.</td></tr>
+        <tr><td class="id">BR-V2</td><td>پنل‌ها و منابع حساب بدون Authentication معتبر در Backend رد می‌شوند.</td></tr>
+        <tr><td class="id">BR-V3</td><td>ثبت سفارش و پرداخت بدون User مجاز نیست.</td></tr>
+        <tr><td class="id">BR-V4</td><td>سبد مهمان و Checkout مهمان تا تأیید PO پیاده نمی‌شود.</td></tr>
+        <tr><td class="id">BR-V5</td><td>ثبت‌نام عمومی هرگز نقش Admin نمی‌سازد.</td></tr>
+      </tbody>
+    </table>
+
+    <h3 id="v-out">۳.۸ خارج از اسکوپ این بازیگر</h3>
+    <ul>
+      <li>حساب، پروفایل، تاریخچه، اعلان شخصی</li>
+      <li>ورود ایمیل/رمز، OAuth، مهمانِ پرداخت‌کننده بدون OTP (تا PO)</li>
+      <li>دیدن پیش‌نویس فروشنده یا سفارش دیگران</li>
+      <li>قیمت عمده — مگر PO نمایش عمومی را بخواهد</li>
+    </ul>
+
+    <h3 id="v-open">۳.۹ تصمیم‌های باز بازدیدکننده</h3>
+    <ol>
+      <li>آیا سبد مهمان در MVP هست؟ محلی است یا سروری؟ بعد از OTP چطور Merge می‌شود؟</li>
+      <li>Checkout مهمان (SRS-04 تصریح کرده نهایی نشده).</li>
+      <li>آیا بازدیدکننده نام فروشگاه را روی کارت می‌بیند؟</li>
+      <li>نمایش موجودی عددی یا فقط «موجود / ناموجود»؟</li>
+    </ol>
+
+    <!-- ========== USER ========== -->
+    <h2 id="user" class="chapter">۴. فصل کاربر / خریدار · User</h2>
+    <div class="banner user">
+      <span class="tag user">USR-*</span>
+      خریدار ثبت‌شده با موبایل + OTP. مالک حساب، سبد، سفارش و پرداخت خودش. می‌تواند بعداً Seller شود.
+    </div>
+
+    <h3 id="u-def">۴.۱ تعریف شفاف</h3>
+    <p>
+      User همان خریدار B2C است. هویت با شماره موبایل یکتا ساخته می‌شود
+      (شماره جدید → حساب جدید با نقش USER؛ شماره موجود → ورود به همان حساب).
+      ایمیل در پروفایل اگر باشد فقط تماس است.
+      اگر واجد شرایط B2B باشد، همان سبد و همان زنجیره سفارش — سیستم سفارش موازی ندارد.
+    </p>
+    <table>
+      <thead><tr><th>سؤال</th><th>پاسخ MVP</th></tr></thead>
+      <tbody>
+        <tr><td>Login</td><td class="cell-yes">موبایل + SMS OTP</td></tr>
+        <tr><td>ایمیل</td><td>اختیاری · تماس · نه Authentication</td></tr>
+        <tr><td>رمز / بازیابی رمز</td><td class="cell-no">خارج از MVP</td></tr>
+        <tr><td>B2B</td><td class="cell-part">اگر واجد شرایط — معیار نیاز تأیید PO</td></tr>
+        <tr><td>ارتقا به فروشنده</td><td class="cell-yes">همان هویت</td></tr>
+      </tbody>
+    </table>
+
+    <h3 id="u-map">۴.۲ نقشه فیچر</h3>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr><th>ID</th><th>فیچر</th><th>نوع</th><th>وضعیت</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="id">USR-01</td>
+            <td>ثبت‌نام و ورود یک جریان: موبایل + تأیید OTP</td>
+            <td><span class="badge b-both">هر دو</span></td>
+            <td><span class="badge b-srs">SRS-01 + قطعی OTP</span></td>
+          </tr>
+          <tr>
+            <td class="id">USR-02</td>
+            <td>یکتایی حساب روی شماره موبایل</td>
+            <td><span class="badge b-tech">فنی</span></td>
+            <td><span class="badge b-srs">SRS BR-01</span></td>
+          </tr>
+          <tr>
+            <td class="id">USR-03</td>
+            <td>مشاهده اطلاعات حساب و وضعیت (Active / Inactive / …)</td>
+            <td><span class="badge b-biz">غیرفنی</span></td>
+            <td><span class="badge b-srs">SRS-01</span></td>
+          </tr>
+          <tr>
+            <td class="id">USR-04</td>
+            <td>مشاهده / ویرایش فیلدهای مجاز پروفایل؛ ایمیل اختیاری فقط تماس</td>
+            <td><span class="badge b-both">هر دو</span></td>
+            <td><span class="badge b-srs">SRS-01</span></td>
+          </tr>
+          <tr>
+            <td class="id">USR-05</td>
+            <td>خروج و ابطال Session / Token</td>
+            <td><span class="badge b-both">هر دو</span></td>
+            <td><span class="badge b-prop">پیشنهادی</span></td>
+          </tr>
+          <tr>
+            <td class="id">USR-06</td>
+            <td>کاتالوگ، جستجو، دسته، جزئیات — مانند Visitor به‌علاوه خرید</td>
+            <td><span class="badge b-both">هر دو</span></td>
+            <td><span class="badge b-srs">SRS-03 / 06</span></td>
+          </tr>
+          <tr>
+            <td class="id">USR-07</td>
+            <td>انتخاب تعداد و افزودن به سبد (با کنترل موجودی از سرور)</td>
+            <td><span class="badge b-both">هر دو</span></td>
+            <td><span class="badge b-srs">SRS-04</span></td>
+          </tr>
+          <tr>
+            <td class="id">USR-08</td>
+            <td>CRUD سبد: دیدن، تغییر تعداد، حذف قلم، خالی کردن</td>
+            <td><span class="badge b-both">هر دو</span></td>
+            <td><span class="badge b-srs">SRS-07</span></td>
+          </tr>
+          <tr>
+            <td class="id">USR-09</td>
+            <td>Checkout: آدرس / تماس مجاز، مرور اقلام، تأیید</td>
+            <td><span class="badge b-both">هر دو</span></td>
+            <td><span class="badge b-srs">SRS-04 / 07</span></td>
+          </tr>
+          <tr>
+            <td class="id">USR-10</td>
+            <td>پرداخت از طریق ماژول Payment — مبلغ از Backend</td>
+            <td><span class="badge b-both">هر دو</span></td>
+            <td><span class="badge b-srs">SRS-04</span></td>
+          </tr>
+          <tr>
+            <td class="id">USR-11</td>
+            <td>ایجاد سفارش و مشاهده تاریخچه + وضعیت</td>
+            <td><span class="badge b-both">هر دو</span></td>
+            <td><span class="badge b-srs">SRS-07</span></td>
+          </tr>
+          <tr>
+            <td class="id">USR-12</td>
+            <td>خرید عمده در صورت واجد شرایط: قیمت، MOQ، سقف تعداد، ضریب بسته</td>
+            <td><span class="badge b-both">هر دو</span></td>
+            <td><span class="badge b-srs">SRS-05</span></td>
+          </tr>
+          <tr>
+            <td class="id">USR-13</td>
+            <td>اعلان رویداد سفارش و پرداخت</td>
+            <td><span class="badge b-both">هر دو</span></td>
+            <td><span class="badge b-srs">اعلان + SRS خرید</span></td>
+          </tr>
+          <tr>
+            <td class="id">USR-14</td>
+            <td>درخواست ارتقا به فروشنده (ثبت‌نام Seller روی همین User)</td>
+            <td><span class="badge b-both">هر دو</span></td>
+            <td><span class="badge b-srs">SRS-02</span></td>
+          </tr>
+          <tr>
+            <td class="id">USR-15</td>
+            <td>عدم دسترسی به Admin Panel و داده کاربران دیگر</td>
+            <td><span class="badge b-tech">فنی</span></td>
+            <td><span class="badge b-srs">SRS</span></td>
+          </tr>
+          <tr>
+            <td class="id">USR-16</td>
+            <td>Authorization نقش USER در Backend؛ قیمت و موجودی از سرور</td>
+            <td><span class="badge b-tech">فنی</span></td>
+            <td><span class="badge b-srs">SRS-01</span></td>
+          </tr>
+          <tr>
+            <td class="id">USR-17</td>
+            <td>بازگشت به مقصد بعد از OTP (مثلاً سبد / Checkout)</td>
+            <td><span class="badge b-biz">غیرفنی</span></td>
+            <td><span class="badge b-prop">پیشنهادی</span></td>
+          </tr>
+          <tr>
+            <td class="id">USR-18</td>
+            <td>حساب Inactive / Suspended: ورود یا خرید طبق سیاست وضعیت — جزئیات PO</td>
+            <td><span class="badge b-both">هر دو</span></td>
+            <td><span class="badge b-prop">نیاز تأیید PO</span></td>
+          </tr>
+          <tr>
+            <td class="id">USR-19</td>
+            <td>ورود با ایمیل / رمز / بازیابی رمز</td>
+            <td><span class="badge b-tech">فنی</span></td>
+            <td><span class="badge b-out">خارج از MVP</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 id="u-biz">۴.۳ فیچرهای غیرفنی</h3>
+    <div class="cards">
+      <article class="card">
+        <h3>حساب</h3>
+        <ul>
+          <li>ورود و ثبت‌نام با یک فرم موبایل</li>
+          <li>دیدن شماره خودش؛ تغییر شماره جدا و نیازمند OTP جدید است اگر PO بپذیرد</li>
+          <li>ویرایش نام و فیلدهای مجاز Figma</li>
+          <li>ایمیل اختیاری برای تماس / فاکتور — نه ورود</li>
+          <li>خروج آگاهانه</li>
+        </ul>
+      </article>
+      <article class="card">
+        <h3>خرید</h3>
+        <ul>
+          <li>لیست و جزئیات، انتخاب تعداد، افزودن به سبد</li>
+          <li>سبد قابل ویرایش تا Checkout</li>
+          <li>پرداخت و دیدن نتیجه موفق / ناموفق</li>
+          <li>تاریخچه سفارش و پیگیری وضعیت</li>
+          <li>اگر B2B فعال باشد: رعایت حداقل سفارش روی همان UI سبد</li>
+        </ul>
+      </article>
+    </div>
+    <h3>صفحات UI خریدار</h3>
+    <table>
+      <thead><tr><th>صفحه</th><th>منبع</th></tr></thead>
+      <tbody>
+        <tr><td>ورود OTP (مشترک)</td><td>قطعی Product</td></tr>
+        <tr><td>حساب / پروفایل</td><td>SRS-01</td></tr>
+        <tr><td>سبد</td><td>SRS-07</td></tr>
+        <tr><td>Checkout</td><td>SRS-04 / 07</td></tr>
+        <tr><td>نتیجه پرداخت</td><td>Payment</td></tr>
+        <tr><td>لیست و جزئیات سفارش</td><td>SRS-07</td></tr>
+        <tr><td>فرم «فروشنده شو»</td><td>SRS-02</td></tr>
+      </tbody>
+    </table>
+    <p class="note">فیلدهای دقیق پروفایل و Checkout در SRS قفل نشده و باید با Figma نهایی شود.</p>
+
+    <h3 id="u-tech">۴.۴ فیچرهای فنی</h3>
+    <div class="cards">
+      <article class="card">
+        <h3>Account / Auth</h3>
+        <ul>
+          <li>Create user روی OTP موفق شماره جدید</li>
+          <li>Login روی OTP موفق شماره موجود</li>
+          <li>Retrieve / update profile فقط self (یا Admin)</li>
+          <li>شناسه ورود = phone unique؛ بدون password hash برای Login</li>
+          <li>ایمیل unique اختیاری اگر ذخیره شود — نه کلید Auth</li>
+        </ul>
+      </article>
+      <article class="card">
+        <h3>Commerce</h3>
+        <ul>
+          <li>Use case افزودن به سبد: محصول، variant، موجودی، قیمت authoritative</li>
+          <li>B2B: اعمال MOQ / max / pack multiple روی همان Cart</li>
+          <li>Checkout و Order از Cart؛ Payment نتیجه را به Order می‌چسباند</li>
+          <li>تاریخچه فقط سفارش‌های <span class="en">buyerId = self</span></li>
+        </ul>
+      </article>
+      <article class="card">
+        <h3>خطا</h3>
+        <ul>
+          <li>Invalid OTP / expired / rate limit — بدون enumeration</li>
+          <li>Unauthorized · Forbidden · Not Found</li>
+          <li>Insufficient stock · MOQ not met · Invalid qty</li>
+          <li>Payment failed قابل نمایش، بدون secret درگاه</li>
+        </ul>
+      </article>
+      <article class="card">
+        <h3>تست DoD</h3>
+        <ul>
+          <li>Unit: قوانین تعداد، موجودی، MOQ، قیمت سرور</li>
+          <li>Integration: User + Cart + Order persistence</li>
+          <li>E2E: OTP → سبد → Checkout → سفارش</li>
+          <li>منفی: دیدن سفارش User دیگر → 403</li>
+        </ul>
+      </article>
+    </div>
+    <h3>حداقل داده User</h3>
+    <table>
+      <thead><tr><th>مفهوم</th><th>توضیح</th></tr></thead>
+      <tbody>
+        <tr><td>ID</td><td>شناسه پایدار</td></tr>
+        <tr><td>Phone</td><td>شناسه ورود یکتا</td></tr>
+        <tr><td>Email</td><td>اختیاری، تماس، نه Login</td></tr>
+        <tr><td>Profile</td><td>نام و فیلدهای مجاز Figma</td></tr>
+        <tr><td>Role</td><td>حداقل USER؛ ممکن است SELLER هم باشد</td></tr>
+        <tr><td>Status</td><td>حداقل Active / Inactive — Suspended/Pending طبق SRS-09 برای ادمین</td></tr>
+        <tr><td>Created / Updated</td><td>الزام SRS-01</td></tr>
+      </tbody>
+    </table>
+
+    <h3 id="u-flow">۴.۵ جریان‌های اصلی</h3>
+    <div class="flow">
+      <h3>A. ثبت‌نام / ورود خریدار</h3>
+      <div class="steps">
+        <span class="step">شماره موبایل</span><span class="arrow">←</span>
+        <span class="step">ارسال OTP + محدودیت نرخ</span><span class="arrow">←</span>
+        <span class="step">تأیید کد</span><span class="arrow">←</span>
+        <span class="step">ساخت User یا ورود</span><span class="arrow">←</span>
+        <span class="step">Session + بازگشت به مقصد</span>
+      </div>
+    </div>
+    <div class="flow">
+      <h3>B. خرید B2C</h3>
+      <div class="steps">
+        <span class="step">لیست / جزئیات</span><span class="arrow">←</span>
+        <span class="step">تعداد</span><span class="arrow">←</span>
+        <span class="step">سبد</span><span class="arrow">←</span>
+        <span class="step">Checkout</span><span class="arrow">←</span>
+        <span class="step">Payment</span><span class="arrow">←</span>
+        <span class="step">Order + اعلان</span>
+      </div>
+    </div>
+    <div class="flow">
+      <h3>C. خرید B2B (واجد شرایط)</h3>
+      <div class="steps">
+        <span class="step">تشخیص واجد شرایط بودن در Backend</span><span class="arrow">←</span>
+        <span class="step">نمایش قیمت عمده و MOQ</span><span class="arrow">←</span>
+        <span class="step">اعتبارسنجی تعداد</span><span class="arrow">←</span>
+        <span class="step">همان سبد و سفارش — نه سیستم موازی</span>
+      </div>
+    </div>
+
+    <h3 id="u-ui">۴.۶ وضعیت‌های UI</h3>
+    <div class="status-grid">
+      <div class="status"><b>Default</b>حساب و فروشگاه</div>
+      <div class="status"><b>Loading</b>سبد، پرداخت، سفارش</div>
+      <div class="status"><b>Validation Error</b>تعداد، آدرس، فیلد پروفایل</div>
+      <div class="status"><b>Empty cart / empty orders</b></div>
+      <div class="status"><b>Payment pending / success / fail</b></div>
+      <div class="status"><b>Unauthorized</b>نشست منقضی → OTP دوباره</div>
+      <div class="status"><b>Forbidden</b>مثلاً B2B بدون صلاحیت</div>
+      <div class="status"><b>Disabled</b>حساب غیرفعال؛ خرید قفل</div>
+      <div class="status"><b>MOQ / pack error</b>تعداد عمده نامعتبر</div>
+      <div class="status"><b>Server Error</b></div>
+    </div>
+
+    <h3 id="u-br">۴.۷ قوانین کسب‌وکار</h3>
+    <table>
+      <thead><tr><th>کد</th><th>قانون</th></tr></thead>
+      <tbody>
+        <tr><td class="id">BR-01</td><td>هر حساب شناسه یکتا دارد — در MVP یعنی موبایل یکتا.</td></tr>
+        <tr><td class="id">BR-U1</td><td>قیمت، جمع، موجودی و صلاحیت B2B از Backend است نه کلاینت.</td></tr>
+        <tr><td class="id">BR-U2</td><td>User فقط سبد و سفارش خودش را می‌بیند.</td></tr>
+        <tr><td class="id">BR-U3</td><td>B2B سیستم سفارش جدا نیست؛ همان Cart → Order.</td></tr>
+        <tr><td class="id">BR-U4</td><td>ایمیل Login نیست؛ نبود ایمیل مانع OTP نیست.</td></tr>
+        <tr><td class="id">BR-U5</td><td>یک User می‌تواند هم‌زمان خریدار بماند و فروشنده شود.</td></tr>
+      </tbody>
+    </table>
+
+    <h3 id="u-out">۴.۸ خارج از اسکوپ</h3>
+    <ul>
+      <li>ورود ایمیل/رمز، بازیابی رمز، TOTP اجباری، SSO</li>
+      <li>کیف پول پیشرفته، امتیاز وفاداری، لیست علاقه‌مندی پیچیده (مگر Figma MVP بخواهد)</li>
+      <li>دیدن داده سایر خریداران یا پنل ادمین</li>
+      <li>تسویه فروشنده از حساب خریدار</li>
+    </ul>
+
+    <h3 id="u-open">۴.۹ تصمیم‌های باز خریدار</h3>
+    <ol>
+      <li>معیار واجد شرایط بودن B2B چیست؟</li>
+      <li>سبد چندفروشنده: یک سفارش یا تفکیک؟</li>
+      <li>رزرو موجودی در افزودن به سبد یا در Checkout؟</li>
+      <li>سیاست Status: کدام وضعیت Login یا خرید را می‌بندد؟</li>
+      <li>آدرس‌ها: چند آدرس ذخیره در MVP؟</li>
+      <li>کانال اعلان: SMS / درون‌برنامه / ایمیل اختیاری؟</li>
+    </ol>
+
+    <!-- ========== SELLER ========== -->
+    <h2 id="seller" class="chapter">۵. فصل فروشنده · Seller</h2>
+    <div class="banner seller">
+      <span class="tag seller">SLR-*</span>
+      User + پروفایل فروشنده. ورود همان OTP. پنل فقط داده خودش. وضعیت را Admin عوض می‌کند.
+    </div>
+
+    <h3 id="s-def">۵.۱ تعریف شفاف</h3>
+    <p>
+      فروشنده حساب جدا نمی‌سازد: روی User موجود (یا بعد از OTP شماره جدید) پروفایل Seller ساخته می‌شود.
+      فیلدهای ثبت‌نام SRS-02: نام، موبایل، ایمیل اختیاری، اطلاعات کسب‌وکار، نام فروشگاه.
+      وضعیت: <b>Pending · Active · Suspended · Inactive</b>.
+      SRS-09 برای ادمین وضعیت <b>Rejected</b> هم آورده — نهایی با PO/CTO.
+      فروشنده سبد را مدیریت نمی‌کند؛ سفارش محصولات خودش را می‌بیند.
+      قیمت عمده، MOQ، سقف و بسته‌ای را روی محصول خودش می‌گذارد.
+    </p>
+
+    <h3 id="s-map">۵.۲ نقشه فیچر</h3>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr><th>ID</th><th>فیچر</th><th>نوع</th><th>وضعیت</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="id">SLR-01</td>
+            <td>ورود با همان موبایل + OTP — بدون سیستم Auth جدا</td>
+            <td><span class="badge b-both">هر دو</span></td>
+            <td><span class="badge b-srs">SRS-02 + OTP</span></td>
+          </tr>
+          <tr>
+            <td class="id">SLR-02</td>
+            <td>ثبت‌نام / ارتقا: نام، موبایل، ایمیل اختیاری، کسب‌وکار، نام فروشگاه</td>
+            <td><span class="badge b-both">هر دو</span></td>
+            <td><span class="badge b-srs">SRS-02</span></td>
+          </tr>
+          <tr>
+            <td class="id">SLR-03</td>
+            <td>پروفایل فروشنده: seller id، نام‌ها، تماس، کسب‌وکار، وضعیت، created at</td>
+            <td><span class="badge b-both">هر دو</span></td>
+            <td><span class="badge b-srs">SRS-02</span></td>
+          </tr>
+          <tr>
+            <td class="id">SLR-04</td>
+            <td>کسب‌وکار: نام، نوع، تماس، نشانی، شهر/منطقه، توضیحات</td>
+            <td><span class="badge b-biz">غیرفنی</span></td>
+            <td><span class="badge b-srs">SRS-02</span></td>
+          </tr>
+          <tr>
+            <td class="id">SLR-05</td>
+            <td>وضعیت Pending / Active / Suspended / Inactive (+ Rejected اگر PO تأیید کند)</td>
+            <td><span class="badge b-both">هر دو</span></td>
+            <td><span class="badge b-srs">SRS-02 / 09</span></td>
+          </tr>
+          <tr>
+            <td class="id">SLR-06</td>
+            <td>پنل: داشبورد پایه (شمارنده‌های خودش، نه analytics پیشرفته)</td>
+            <td><span class="badge b-biz">غیرفنی</span></td>
+            <td><span class="badge b-srs">SRS-02</span></td>
+          </tr>
+          <tr>
+            <td class="id">SLR-07</td>
+            <td>ساخت / ویرایش / مشاهده محصول خودش: قیمت، موجودی، تصاویر، وضعیت انتشار</td>
+            <td><span class="badge b-both">هر دو</span></td>
+            <td><span class="badge b-srs">SRS-03</span></td>
+          </tr>
+          <tr>
+            <td class="id">SLR-08</td>
+            <td>شرایط عمده روی محصول خودش: قیمت، MOQ، max qty، pack multiple</td>
+            <td><span class="badge b-both">هر دو</span></td>
+            <td><span class="badge b-srs">SRS-05</span></td>
+          </tr>
+          <tr>
+            <td class="id">SLR-09</td>
+            <td>مشاهده سفارش‌هایی که قلم محصول خودش را دارند</td>
+            <td><span class="badge b-both">هر دو</span></td>
+            <td><span class="badge b-srs">SRS-07</span></td>
+          </tr>
+          <tr>
+            <td class="id">SLR-10</td>
+            <td>ایزوله‌سازی: هیچ داده فروشنده دیگر (محصول، سفارش، آمار)</td>
+            <td><span class="badge b-tech">فنی</span></td>
+            <td><span class="badge b-srs">SRS-02 BR-S1</span></td>
+          </tr>
+          <tr>
+            <td class="id">SLR-11</td>
+            <td>API: create / get / update seller، profile، get status؛ get products / orders</td>
+            <td><span class="badge b-tech">فنی</span></td>
+            <td><span class="badge b-srs">SRS-02</span></td>
+          </tr>
+          <tr>
+            <td class="id">SLR-12</td>
+            <td>تغییر وضعیت فقط توسط نقش مجاز (Admin) — فروشنده خودش را Active نمی‌کند</td>
+            <td><span class="badge b-both">هر دو</span></td>
+            <td><span class="badge b-srs">SRS-02 BR-S2</span></td>
+          </tr>
+          <tr>
+            <td class="id">SLR-13</td>
+            <td>اعلان: ثبت‌نام، فعال‌سازی، تعلیق، تغییر وضعیت</td>
+            <td><span class="badge b-both">هر دو</span></td>
+            <td><span class="badge b-srs">SRS-02</span></td>
+          </tr>
+          <tr>
+            <td class="id">SLR-14</td>
+            <td>عدم مدیریت سبد خریدار</td>
+            <td><span class="badge b-tech">فنی</span></td>
+            <td><span class="badge b-srs">SRS-07</span></td>
+          </tr>
+          <tr>
+            <td class="id">SLR-15</td>
+            <td>Pending: ورود ممکن، عملیات فروش محدود، پیام وضعیت واضح</td>
+            <td><span class="badge b-both">هر دو</span></td>
+            <td><span class="badge b-prop">پیشنهادی هم‌راستا با Auth</span></td>
+          </tr>
+          <tr>
+            <td class="id">SLR-16</td>
+            <td>Suspended / Inactive: عدم دسترسی به پنل عملیاتی</td>
+            <td><span class="badge b-both">هر دو</span></td>
+            <td><span class="badge b-srs">SRS-02</span></td>
+          </tr>
+          <tr>
+            <td class="id">SLR-17</td>
+            <td>ادامه خرید به‌عنوان User با همان شماره</td>
+            <td><span class="badge b-biz">غیرفنی</span></td>
+            <td><span class="badge b-prop">پیشنهادی</span></td>
+          </tr>
+          <tr>
+            <td class="id">SLR-18</td>
+            <td>تحلیل پیشرفته، CRM، تبلیغات، AI فروشنده، اعتبار، جزئیات تسویه</td>
+            <td><span class="badge b-biz">غیرفنی</span></td>
+            <td><span class="badge b-out">خارج از MVP</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 id="s-biz">۵.۳ فیچرهای غیرفنی</h3>
+    <div class="cards">
+      <article class="card">
+        <h3>ثبت‌نام و وضعیت</h3>
+        <ul>
+          <li>از حساب خریدار «فروشنده شو» را می‌زند</li>
+          <li>فرم کسب‌وکار و نام فروشگاه</li>
+          <li>منتظر تأیید می‌ماند (Pending) با پیام واضح</li>
+          <li>بعد از Active وارد پنل عملیاتی می‌شود</li>
+          <li>اگر تعلیق شد دلیل/وضعیت را می‌بیند — نه ابزار دور زدن</li>
+        </ul>
+      </article>
+      <article class="card">
+        <h3>پنل خودش</h3>
+        <ul>
+          <li>داشبورد پایه: تعداد محصول، سفارش باز، وضعیت حساب</li>
+          <li>پروفایل و کسب‌وکار قابل ویرایش در محدوده مجاز</li>
+          <li>کاتالوگ خودش: ساخت و ویرایش</li>
+          <li>سفارش اقلام خودش</li>
+          <li>هرگز لیست فروشندگان یا سبد مشتری را نمی‌بیند</li>
+        </ul>
+      </article>
+    </div>
+    <h3>صفحات UI فروشنده</h3>
+    <table>
+      <thead><tr><th>صفحه</th><th>منبع</th></tr></thead>
+      <tbody>
+        <tr><td>فرم ثبت‌نام فروشنده (بعد از OTP)</td><td>SRS-02</td></tr>
+        <tr><td>داشبورد پایه</td><td>SRS-02</td></tr>
+        <tr><td>پروفایل / کسب‌وکار / وضعیت</td><td>SRS-02</td></tr>
+        <tr><td>لیست و فرم محصول</td><td>SRS-03</td></tr>
+        <tr><td>شرایط عمده روی محصول</td><td>SRS-05</td></tr>
+        <tr><td>لیست / جزئیات سفارش خودش</td><td>SRS-07</td></tr>
+      </tbody>
+    </table>
+
+    <h3 id="s-tech">۵.۴ فیچرهای فنی</h3>
+    <div class="cards">
+      <article class="card">
+        <h3>API (SRS-02)</h3>
+        <ul>
+          <li>Create seller (متصل به User جاری)</li>
+          <li>Get / update seller و profile (self)</li>
+          <li>Get status (self)؛ Update status فقط authorized Admin</li>
+          <li>Get own products / own orders</li>
+        </ul>
+      </article>
+      <article class="card">
+        <h3>ایزوله و وضعیت</h3>
+        <ul>
+          <li>هر query محصول/سفارش با <span class="en">sellerId = self</span></li>
+          <li>Guard نقش SELLER + بررسی Status قبل از عمل عملیاتی</li>
+          <li>انتشار نهایی ممکن است نیازمند Admin باشد — نیاز تأیید PO</li>
+          <li>دامنه Seller جدا از adapter ماژول دیگر import نمی‌شود</li>
+        </ul>
+      </article>
+      <article class="card">
+        <h3>خطا</h3>
+        <ul>
+          <li>403 برای داده فروشنده دیگر (بدون افشا)</li>
+          <li>Forbidden اگر Pending/Suspended برای آن عمل</li>
+          <li>Validation فیلدهای کسب‌وکار و محصول</li>
+          <li>Conflict اگر یک User دو Seller بسازد — سیاست: یک پروفایل؛ تأیید PO</li>
+        </ul>
+      </article>
+      <article class="card">
+        <h3>تست DoD</h3>
+        <ul>
+          <li>Unit: انتقال وضعیت فقط از مسیر Admin</li>
+          <li>Integration: محصول به sellerId گره خورده</li>
+          <li>E2E: ارتقا → Pending → Admin Active → ساخت محصول</li>
+          <li>منفی: GET محصول فروشنده دیگر → 403</li>
+        </ul>
+      </article>
+    </div>
+
+    <h3 id="s-flow">۵.۵ جریان‌های اصلی</h3>
+    <div class="flow">
+      <h3>A. تبدیل به فروشنده</h3>
+      <div class="steps">
+        <span class="step">User با OTP وارد است</span><span class="arrow">←</span>
+        <span class="step">فرم Seller</span><span class="arrow">←</span>
+        <span class="step">Status=Pending</span><span class="arrow">←</span>
+        <span class="step">اعلان ثبت‌نام</span><span class="arrow">←</span>
+        <span class="step">Admin Active می‌کند</span><span class="arrow">←</span>
+        <span class="step">اعلان فعال‌سازی + پنل عملیاتی</span>
+      </div>
+    </div>
+    <div class="flow">
+      <h3>B. محصول</h3>
+      <div class="steps">
+        <span class="step">ساخت / ویرایش</span><span class="arrow">←</span>
+        <span class="step">قیمت، موجودی، تصویر، عمده</span><span class="arrow">←</span>
+        <span class="step">وضعیت انتشار (طبق سیاست PO)</span><span class="arrow">←</span>
+        <span class="step">در صورت Published در ویترین خریدار</span>
+      </div>
+    </div>
+    <div class="flow">
+      <h3>C. سفارش</h3>
+      <div class="steps">
+        <span class="step">خریدار سفارش می‌دهد</span><span class="arrow">←</span>
+        <span class="step">فروشنده فقط اقلام خودش را می‌بیند</span><span class="arrow">←</span>
+        <span class="step">وضعیت در محدوده مجاز — جزئیات PO</span>
+      </div>
+    </div>
+
+    <h3 id="s-ui">۵.۶ وضعیت‌های UI</h3>
+    <div class="status-grid">
+      <div class="status"><b>Default</b>پنل Active</div>
+      <div class="status"><b>Pending banner</b>منتظر تأیید؛ عملیات محدود</div>
+      <div class="status"><b>Suspended / Inactive</b>پیام وضعیت؛ پنل عملیاتی قفل</div>
+      <div class="status"><b>Empty products / empty orders</b></div>
+      <div class="status"><b>Validation Error</b>فرم محصول / کسب‌وکار</div>
+      <div class="status"><b>Forbidden</b>تلاش برای منبع غیرخود</div>
+      <div class="status"><b>Product publish states</b>Draft / Pending Review / … طبق کاتالوگ</div>
+      <div class="status"><b>Success / Loading / Server Error</b></div>
+    </div>
+
+    <h3 id="s-br">۵.۷ قوانین کسب‌وکار</h3>
+    <table>
+      <thead><tr><th>کد</th><th>قانون</th></tr></thead>
+      <tbody>
+        <tr><td class="id">BR-S1</td><td>فروشنده فقط به داده خودش دسترسی دارد.</td></tr>
+        <tr><td class="id">BR-S2</td><td>تغییر وضعیت Seller فقط توسط نقش مجاز (Admin) است.</td></tr>
+        <tr><td class="id">BR-S3</td><td>ورود OTP موفق به‌معنای پنل عملیاتی نیست؛ Status هم باید اجازه بدهد.</td></tr>
+        <tr><td class="id">BR-S4</td><td>فروشنده Cart خریدار را نمی‌بیند و مدیریت نمی‌کند.</td></tr>
+        <tr><td class="id">BR-S5</td><td>شرایط B2B فقط روی محصول همان فروشنده اعمال و ذخیره می‌شود.</td></tr>
+        <tr><td class="id">BR-S6</td><td>ایمیل فروشنده Login نیست؛ موبایل User کلید ورود است.</td></tr>
+      </tbody>
+    </table>
+
+    <h3 id="s-out">۵.۸ خارج از اسکوپ</h3>
+    <ul>
+      <li>تحلیل پیشرفته، CRM، تبلیغات، فروشنده AI</li>
+      <li>اعتبار فروشنده، جزئیات تسویه و حسابداری پیچیده</li>
+      <li>چند فروشگاه برای یک User (مگر PO بخواهد؛ پیش‌فرض یک پروفایل)</li>
+      <li>دیدن کاتالوگ یا سفارش رقبا</li>
+    </ul>
+
+    <h3 id="s-open">۵.۹ تصمیم‌های باز فروشنده</h3>
+    <ol>
+      <li>Rejected جدا از Inactive است یا خیر؟ (SRS-09 در برابر SRS-02)</li>
+      <li>آیا فروشنده محصول را Publish می‌کند یا فقط Admin؟</li>
+      <li>Pending Review برای محصول اجباری است؟</li>
+      <li>فروشنده چه وضعیت‌های سفارش را می‌تواند عوض کند؟</li>
+      <li>یک User چند Seller Profile؟ پیشنهاد: یکی</li>
+      <li>KPI دقیق داشبورد پایه چیست؟</li>
+    </ol>
+
+    <!-- ========== ADMIN ========== -->
+    <h2 id="admin" class="chapter">۶. فصل مدیر · Admin</h2>
+    <div class="banner admin">
+      <span class="tag admin">ADM-*</span>
+      حساب داخلی seedشده. پنل مدیریت پلتفرم. OTP موبایل. از این پنل خرید نمی‌کند. دیتابیس موازی ندارد.
+    </div>
+
+    <h3 id="a-def">۶.۱ تعریف شفاف</h3>
+    <p>
+      Admin از UI عمومی ثبت‌نام نمی‌شود؛ شماره در seed / عملیات داخلی ساخته می‌شود و با OTP وارد پنل می‌شود.
+      امنیت بالاتر از خریدار: Audit اقدامات حساس، RBAC، بدون نمایش secret.
+      پنل: داشبورد شمارنده‌ها، کاربران، فروشندگان، محصولات، سفارش‌ها، دسته‌ها، محتوای MVP، تنظیمات محصولی
+      (نه راز زیرساخت). صفحه‌بندی سروری. نقش‌های نمونه SRS-09 تا تأیید PO/CTO:
+      Super Admin، Admin، Content Manager، Seller Manager، Order Manager.
+    </p>
+
+    <h3 id="a-map">۶.۲ نقشه فیچر</h3>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr><th>ID</th><th>فیچر</th><th>نوع</th><th>وضعیت</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="id">ADM-01</td>
+            <td>عدم ساخت Admin از ثبت‌نام عمومی فروشگاه</td>
+            <td><span class="badge b-tech">فنی</span></td>
+            <td><span class="badge b-prop">پیشنهادی امنیتی</span></td>
+          </tr>
+          <tr>
+            <td class="id">ADM-02</td>
+            <td>ورود پنل با موبایل seedشده + OTP؛ امنیت نشست بالاتر</td>
+            <td><span class="badge b-both">هر دو</span></td>
+            <td><span class="badge b-srs">SRS + قطعی OTP</span></td>
+          </tr>
+          <tr>
+            <td class="id">ADM-03</td>
+            <td>داشبورد: شمارنده کاربران، فروشندگان، محصولات، سفارش‌ها، موارد Pending</td>
+            <td><span class="badge b-biz">غیرفنی</span></td>
+            <td><span class="badge b-srs">SRS-09</span></td>
+          </tr>
+          <tr>
+            <td class="id">ADM-04</td>
+            <td>کاربران: لیست، جستجو، فیلتر، جزئیات، وضعیت Active/Inactive/Suspended/Pending، غیرفعال‌سازی</td>
+            <td><span class="badge b-both">هر دو</span></td>
+            <td><span class="badge b-srs">SRS-09</span></td>
+          </tr>
+          <tr>
+            <td class="id">ADM-05</td>
+            <td>مشاهده تاریخچه سفارش کاربر در سطح مجاز</td>
+            <td><span class="badge b-both">هر دو</span></td>
+            <td><span class="badge b-srs">SRS-09</span></td>
+          </tr>
+          <tr>
+            <td class="id">ADM-06</td>
+            <td>فروشندگان: لیست، مشاهده، تغییر وضعیت از جمله Rejected اگر PO تأیید کند</td>
+            <td><span class="badge b-both">هر دو</span></td>
+            <td><span class="badge b-srs">SRS-02 / 09</span></td>
+          </tr>
+          <tr>
+            <td class="id">ADM-07</td>
+            <td>محصولات: لیست، ایجاد در صورت نیاز، ویرایش، انتشار، دسته، اتصال به فروشنده</td>
+            <td><span class="badge b-both">هر دو</span></td>
+            <td><span class="badge b-srs">SRS-03 / 09</span></td>
+          </tr>
+          <tr>
+            <td class="id">ADM-08</td>
+            <td>وضعیت محصول: Draft / Active / Inactive / Pending Review / Rejected</td>
+            <td><span class="badge b-both">هر دو</span></td>
+            <td><span class="badge b-srs">SRS-09</span></td>
+          </tr>
+          <tr>
+            <td class="id">ADM-09</td>
+            <td>غیرفعال‌سازی محصول نامعتبر</td>
+            <td><span class="badge b-both">هر دو</span></td>
+            <td><span class="badge b-srs">SRS-03</span></td>
+          </tr>
+          <tr>
+            <td class="id">ADM-10</td>
+            <td>دسته‌ها: CRUD سلسله‌مراتبی، ترتیب، فعال/غیرفعال</td>
+            <td><span class="badge b-both">هر دو</span></td>
+            <td><span class="badge b-srs">SRS-09</span></td>
+          </tr>
+          <tr>
+            <td class="id">ADM-11</td>
+            <td>سفارش: جزئیات، مشتری، فروشنده، وضعیت پرداخت / تحویل / سفارش؛ تغییر در صورت مجوز</td>
+            <td><span class="badge b-both">هر دو</span></td>
+            <td><span class="badge b-srs">SRS-07 / 09</span></td>
+          </tr>
+          <tr>
+            <td class="id">ADM-12</td>
+            <td>محتوا: بنر، خانه، FAQ، شرایط، حریم خصوصی</td>
+            <td><span class="badge b-both">هر دو</span></td>
+            <td><span class="badge b-srs">SRS-09</span></td>
+          </tr>
+          <tr>
+            <td class="id">ADM-13</td>
+            <td>تنظیمات: پلتفرم، سفارش، اعلان، مارکت‌پلیس — نه secret زیرساخت</td>
+            <td><span class="badge b-both">هر دو</span></td>
+            <td><span class="badge b-srs">SRS-09</span></td>
+          </tr>
+          <tr>
+            <td class="id">ADM-14</td>
+            <td>جستجو / فیلتر / صفحه‌بندی سروری روی همه لیست‌ها</td>
+            <td><span class="badge b-tech">فنی</span></td>
+            <td><span class="badge b-srs">SRS-09</span></td>
+          </tr>
+          <tr>
+            <td class="id">ADM-15</td>
+            <td>Audit: ورود، تغییر وضعیت، محصول، سفارش، دسته، تنظیمات</td>
+            <td><span class="badge b-tech">فنی</span></td>
+            <td><span class="badge b-srs">SRS-09</span></td>
+          </tr>
+          <tr>
+            <td class="id">ADM-16</td>
+            <td>RBAC نقش‌های نمونه؛ ماتریس نهایی PO/CTO</td>
+            <td><span class="badge b-both">هر دو</span></td>
+            <td><span class="badge b-prop">نمونه SRS — نیاز تأیید</span></td>
+          </tr>
+          <tr>
+            <td class="id">ADM-17</td>
+            <td>عدم خرید از داخل Admin Panel</td>
+            <td><span class="badge b-biz">غیرفنی</span></td>
+            <td><span class="badge b-srs">تصریح محصول</span></td>
+          </tr>
+          <tr>
+            <td class="id">ADM-18</td>
+            <td>بدون دیتابیس یا IAM موازی برای ادمین — همان User + Role</td>
+            <td><span class="badge b-tech">فنی</span></td>
+            <td><span class="badge b-srs">SRS-09</span></td>
+          </tr>
+          <tr>
+            <td class="id">ADM-19</td>
+            <td>نظارت شرایط B2B و صحت کاتالوگ</td>
+            <td><span class="badge b-both">هر دو</span></td>
+            <td><span class="badge b-srs">SRS-05</span></td>
+          </tr>
+          <tr>
+            <td class="id">ADM-20</td>
+            <td>عدم نمایش OTP، توکن، کلید درگاه، رمز زیرساخت در UI</td>
+            <td><span class="badge b-tech">فنی</span></td>
+            <td><span class="badge b-prop">پیشنهادی امنیتی</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 id="a-biz">۶.۳ فیچرهای غیرفنی</h3>
+    <div class="cards">
+      <article class="card">
+        <h3>عملیات روزانه</h3>
+        <ul>
+          <li>ورود جدا از مسیر «ثبت‌نام فروشگاه» — همان OTP، مقصد پنل ادمین</li>
+          <li>دیدن سلامت Marketplace از روی شمارنده‌ها</li>
+          <li>تأیید یا رد/تعلیق فروشنده</li>
+          <li>انتشار یا برداشتن محصول نامعتبر</li>
+          <li>کمک به سفارش در محدوده نقش</li>
+        </ul>
+      </article>
+      <article class="card">
+        <h3>محتوا و تنظیمات</h3>
+        <ul>
+          <li>بنر و خانه و FAQ و متون حقوقی</li>
+          <li>دسته‌بندی فروشگاه</li>
+          <li>تنظیمات کسب‌وکاری سفارش / اعلان / مارکت</li>
+          <li>ندیدن Connection string، JWT secret، کلید SMS</li>
+          <li>خرید تستی از این پنل انجام نمی‌شود</li>
+        </ul>
+      </article>
+    </div>
+    <h3>صفحات UI مدیر</h3>
+    <table>
+      <thead><tr><th>صفحه</th><th>منبع</th></tr></thead>
+      <tbody>
+        <tr><td>ورود OTP ادمین</td><td>قطعی OTP</td></tr>
+        <tr><td>داشبورد شمارنده‌ها</td><td>SRS-09</td></tr>
+        <tr><td>کاربران — لیست / جزئیات</td><td>SRS-09</td></tr>
+        <tr><td>فروشندگان — لیست / جزئیات / وضعیت</td><td>SRS-02 / 09</td></tr>
+        <tr><td>محصولات — لیست / ویرایش / انتشار</td><td>SRS-03 / 09</td></tr>
+        <tr><td>دسته‌ها</td><td>SRS-09</td></tr>
+        <tr><td>سفارش‌ها</td><td>SRS-07 / 09</td></tr>
+        <tr><td>محتوا · تنظیمات · (Audit اگر در MVP UI بیاید)</td><td>SRS-09</td></tr>
+      </tbody>
+    </table>
+
+    <h3 id="a-tech">۶.۴ فیچرهای فنی</h3>
+    <div class="cards">
+      <article class="card">
+        <h3>امنیت و RBAC</h3>
+        <ul>
+          <li>نقش از همان ماژول Users؛ جدول Permission موازی ساخته نمی‌شود مگر CTO بخواهد</li>
+          <li>هر mutation حساس: بررسی Role + Permission در Backend</li>
+          <li>403 اگر Content Manager سفارش را عوض کند — پس از ماتریس نهایی</li>
+          <li>Audit append-only برای login و تغییرات وضعیت / محصول / سفارش / دسته / تنظیمات</li>
+        </ul>
+      </article>
+      <article class="card">
+        <h3>لیست‌ها</h3>
+        <ul>
+          <li>صفحه‌بندی سروری اجباری — نه dump کل جدول</li>
+          <li>جستجو و فیلتر روی Users / Sellers / Products / Orders</li>
+          <li>پاسخ API هرگز TypeORM entity خام نیست</li>
+        </ul>
+      </article>
+      <article class="card">
+        <h3>خطا</h3>
+        <ul>
+          <li>401 نشست نامعتبر · 403 نقش ناکافی</li>
+          <li>Validation تنظیمات و محتوا</li>
+          <li>Conflict وضعیت غیرمجاز (مثلاً انتقال نامعتبر سفارش)</li>
+          <li>Not Found منابع حذف‌شده</li>
+        </ul>
+      </article>
+      <article class="card">
+        <h3>تست DoD</h3>
+        <ul>
+          <li>Unit: انتقال وضعیت User/Seller/Product/Order</li>
+          <li>Integration: pagination و فیلتر</li>
+          <li>E2E: seed Admin → OTP → تغییر وضعیت Seller → Audit ثبت شد</li>
+          <li>منفی: User عادی به procedure ادمین → 403؛ Register عمومی Admin نمی‌سازد</li>
+        </ul>
+      </article>
+    </div>
+    <h3>نقش‌های نمونه SRS-09 (نهایی نیست)</h3>
+    <table>
+      <thead><tr><th>نقش</th><th>تمرکز پیشنهادی تا تأیید PO/CTO</th></tr></thead>
+      <tbody>
+        <tr><td>Super Admin</td><td>همه + تنظیمات + نقش‌ها</td></tr>
+        <tr><td>Admin</td><td>عملیات گسترده به‌جز شاید تنظیمات زیرساختی محصولی حساس</td></tr>
+        <tr><td>Content Manager</td><td>محتوا، دسته، شاید انتشار محتوایی</td></tr>
+        <tr><td>Seller Manager</td><td>فروشندگان و وضعیت و بررسی کسب‌وکار</td></tr>
+        <tr><td>Order Manager</td><td>سفارش و وضعیت پرداخت/تحویل در محدوده مجاز</td></tr>
+      </tbody>
+    </table>
+    <p class="note">ماتریس Permission دقیق را Developer از این جدول حدس نزند — تأیید PO/CTO لازم است.</p>
+
+    <h3 id="a-flow">۶.۵ جریان‌های اصلی</h3>
+    <div class="flow">
+      <h3>A. ورود ادمین</h3>
+      <div class="steps">
+        <span class="step">شماره seedشده</span><span class="arrow">←</span>
+        <span class="step">OTP</span><span class="arrow">←</span>
+        <span class="step">بررسی Role ADMIN (یا زیرنقش)</span><span class="arrow">←</span>
+        <span class="step">Admin Panel</span><span class="arrow">←</span>
+        <span class="step">Audit login</span>
+      </div>
+    </div>
+    <div class="flow">
+      <h3>B. فعال‌سازی فروشنده</h3>
+      <div class="steps">
+        <span class="step">لیست Pending</span><span class="arrow">←</span>
+        <span class="step">مشاهده پروفایل / کسب‌وکار</span><span class="arrow">←</span>
+        <span class="step">Active یا Rejected/Inactive</span><span class="arrow">←</span>
+        <span class="step">Audit + اعلان به فروشنده</span>
+      </div>
+    </div>
+    <div class="flow">
+      <h3>C. کنترل کاتالوگ</h3>
+      <div class="steps">
+        <span class="step">لیست / جستجو محصول</span><span class="arrow">←</span>
+        <span class="step">ویرایش یا تغییر وضعیت</span><span class="arrow">←</span>
+        <span class="step">Publish / Deactivate</span><span class="arrow">←</span>
+        <span class="step">اثر فوری روی ویترین Visitor/User</span>
+      </div>
+    </div>
+
+    <h3 id="a-ui">۶.۶ وضعیت‌های UI</h3>
+    <div class="status-grid">
+      <div class="status"><b>Default</b>لیست‌ها و داشبورد</div>
+      <div class="status"><b>Loading</b>صفحه‌بندی و جستجو</div>
+      <div class="status"><b>Empty list</b></div>
+      <div class="status"><b>Confirm status change</b>تأیید قبل از تعلیق / رد</div>
+      <div class="status"><b>Validation Error</b>فرم محتوا / دسته / تنظیمات</div>
+      <div class="status"><b>Forbidden</b>نقش برای این عمل کافی نیست</div>
+      <div class="status"><b>Audit view</b>اگر در MVP صفحه داشته باشد</div>
+      <div class="status"><b>Unauthorized / Server Error / Success</b></div>
+    </div>
+
+    <h3 id="a-br">۶.۷ قوانین کسب‌وکار</h3>
+    <table>
+      <thead><tr><th>کد</th><th>قانون</th></tr></thead>
+      <tbody>
+        <tr><td class="id">BR-A1</td><td>Admin از Register عمومی ساخته نمی‌شود.</td></tr>
+        <tr><td class="id">BR-A2</td><td>منبع حقیقت Permission فقط Backend است.</td></tr>
+        <tr><td class="id">BR-A3</td><td>اقدامات حساس Audit می‌شوند.</td></tr>
+        <tr><td class="id">BR-A4</td><td>تنظیمات پنل شامل secret زیرساخت نیست.</td></tr>
+        <tr><td class="id">BR-A5</td><td>از Admin Panel مسیر خرید B2C اجرا نمی‌شود.</td></tr>
+        <tr><td class="id">BR-A6</td><td>لیست‌های بزرگ فقط با pagination سروری.</td></tr>
+        <tr><td class="id">BR-A7</td><td>دیتابیس یا سرویس هویت جدا برای ادمین در MVP ساخته نمی‌شود.</td></tr>
+      </tbody>
+    </table>
+
+    <h3 id="a-out">۶.۸ خارج از اسکوپ</h3>
+    <ul>
+      <li>IAM سازمانی، SSO، Impersonation کامل مشتری (مگر PO جدا بخواهد)</li>
+      <li>BI/انبار داده، Fraud engine پیشرفته</li>
+      <li>ویرایش خام DNS، کلید درگاه، secret SMS در UI</li>
+      <li>خرید و Checkout داخل پنل ادمین</li>
+    </ul>
+
+    <h3 id="a-open">۶.۹ تصمیم‌های باز مدیر</h3>
+    <ol>
+      <li>ماتریس نهایی RBAC و اینکه Super Admin در MVP هست یا یک نقش Admin کافی است.</li>
+      <li>آیا همان شماره می‌تواند هم Admin باشد هم خریدار فروشگاه؟</li>
+      <li>UI لاگ Audit در MVP یا فقط ذخیره بک‌اند؟</li>
+      <li>مدت نشست ادمین کوتاه‌تر از خریدار؟</li>
+      <li>ایجاد محصول توسط Admin «در صورت نیاز» — چه کیس‌هایی؟</li>
+      <li>سطح مجاز دیدن تاریخچه سفارش کاربر تا کجاست (اقلام، پرداخت، آدرس)؟</li>
+    </ol>
+
+    <!-- ========== SHARED OPEN ========== -->
+    <h2 id="s7">۷. تصمیم‌های باز مشترک — قبل از پیاده‌سازی حدس زده نشود</h2>
+    <p>
+      SRS صریحاً می‌گوید Developer این‌ها را بدون تأیید Product Owner / CTO فرض نکند.
+      جزئیات مکانیک OTP در <span class="en">01-auth.html</span> است؛ اینجا فقط تقاطع بازیگران.
+    </p>
+    <ol>
+      <li><b>سبد و Checkout مهمان:</b> SRS-04 مرور مهمان را مجاز دانسته؛ Checkout مهمان را نهایی نکرده. VIS-12 / VIS-13.</li>
+      <li><b>وضعیت Rejected فروشنده:</b> در SRS-09 هست، در فهرست وضعیت SRS-02 نیست. PO/CTO.</li>
+      <li><b>نقش‌های ادمین:</b> پنج نقش نمونه SRS-09 نهایی نیستند.</li>
+      <li><b>واجد شرایط B2B:</b> چه کسی قیمت عمده را می‌بیند — فلگ روی User، آستانه خرید، یا تأیید دستی؟</li>
+      <li><b>نمایش عمده به Visitor:</b> پیشنهاد این سند: خیر.</li>
+      <li><b>سبد چندفروشنده:</b> یک سفارش Marketplace یا چند سفارش per seller؟</li>
+      <li><b>چه کسی Publish می‌کند:</b> Seller مستقیم یا Admin بعد از Pending Review؟</li>
+      <li><b>انتقال وضعیت سفارش:</b> کدام را User می‌بیند، کدام را Seller عوض می‌کند، کدام فقط Admin.</li>
+      <li><b>رزرو موجودی:</b> add-to-cart یا Checkout.</li>
+      <li><b>Admin و خریدار روی یک شماره:</b> مجاز یا ممنوع.</li>
+      <li><b>فیلدهای Figma</b> پروفایل، Checkout، ثبت‌نام فروشنده.</li>
+      <li><b>کانال اعلان</b> برای USR-13 و SLR-13 (SMS در OTP قطعی است؛ بقیه نه).</li>
+      <li><b>سیاست Account Status</b> برای Login و خرید.</li>
+      <li><b>قرارداد tRPC نهایی</b> per actor — این سند قابلیت است نه schema.</li>
+    </ol>
+
+    <p class="note">
+      Auth جزئیات OTP را جدا نگه می‌دارد. این فایل را با
+      <span class="en">01-auth.html</span> با هم بخوانید.
+      اگر آن سند هنوز ردی از ایمیل+رمز در بخش فنی قدیمی داشته باشد،
+      <b>این سند و تصمیم Product ملاک بازیگران است: Phone OTP only</b>.
+    </p>
+
+    <footer>
+      Virashops MVP Feature List · Actors Visitor / User / Seller / Admin · مبتنی بر SRS-01 تا SRS-09 و تصمیم Phone OTP ·
+      شناسه فیچر VIS-* · USR-* · SLR-* · ADM-* · آماده چاپ A4 / Save as PDF.
+    </footer>
+  </div>
+</body>
+</html>
