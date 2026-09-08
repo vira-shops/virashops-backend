@@ -4,6 +4,8 @@ Reusable playbook for **live HTTP contract checks**: a TypeScript script hits a 
 
 This is **not** a unit test and **not** Jest. The script talks to a real backend over HTTP (usually inside Docker Compose), using seeded credentials. Copy this layout into another service and keep the same names, env vars, and report format so runners stay interchangeable.
 
+**This repo:** npm (not pnpm), Compose service `api`, no global `/api` prefix, envelope `{ status, data }`, OTP login with `OTP_DEV_CODE` (default `123456`). Default success status is **200** for POST auth routes. See [§11](#11-checks-in-this-repo).
+
 Reference implementation in this repo:
 
 | Piece | Path |
@@ -487,46 +489,41 @@ On unexpected throw, still write the report with `success: false` and whatever s
 
 ## 11. Checks in this repo
 
-This service uses **npm** (not pnpm). The API Compose service is **`api`** (not `backend`). Routes are under `/api/v1` except `GET /health` and `/health/live`. Login/register bodies are **flat** (`user` + `tokens`), not `{ data }`.
+This service uses **npm**. The API Compose service is **`api`**. There is **no** global prefix (`/auth`, `/health`, `/admin/sellers`). Every JSON body is `{ status, data }` and HTTP status matches `body.status`. Signup never returns a JWT; login is mobile + 6-digit OTP (`OTP_DEV_CODE=123456`). Admin is seed-only (`ADMIN_PHONE`). The `api` container runs migrations on start — there is no separate `migrate` / `seed` service. Checks do not need MinIO (empty `AWS_S3_BUCKET` uses local `uploads/`).
 
 | npm / Compose service | Script | Notes |
 | --- | --- | --- |
-| `auth-api-check` | `scripts/auth-api-check.ts` | Register, login, me, refresh/reuse, logout, password change/reset, host request, admin |
-| `user-api-check` | `scripts/user-api-check.ts` | Traveler `/users/me/*`, phone OTP (`000000` when `AUTH_TEST_FIXED_OTP=true`), panel stubs |
-| `host-api-check` | `scripts/host-api-check.ts` | Host `/host/me` (null / pending / approved), listing RBAC, profile, wallet stub |
-| `property-api-check` | `scripts/property-api-check.ts` | Host listings CRUD/publication, spaces GET|PUT|POST|PATCH|DELETE, meta GET|PUT, location/nearby GET|PUT, images GET|POST|presign|complete|url|PATCH|cover|reorder|DELETE, admin approve → PUBLISHED public stay. |
-| `amenities-geo-availability-api-check` | `scripts/amenities-geo-availability-api-check.ts` | Public amenity catalog, host amenity CRUD, geo tree/reverse, host location/nearby, host calendar block/unblock, seeded Kish/Ramsar public stay/calendar/availability. |
+| `auth-api-check` | `scripts/auth-api-check.ts` | Covers every current HTTP route: health envelope; buyer / wholesale-buyer / seller / both signup; OTP request / verify / resend; `GET /auth/me`; logout + denylist; `PATCH /auth/sellers/me`; admin `PATCH /admin/sellers/:id/status`; errors `400 VALIDATION`, `401`, `403`, `404 ACCOUNT_NOT_FOUND` / `SELLER_NOT_FOUND`, `409 PHONE_ALREADY_REGISTERED`, `400 SELLER_PROFILE_INCOMPLETE`. |
 
-Bring-up and run:
+Bring-up and run (needs a gitignored `.env` copied from `.env.example`):
 
 ```bash
-docker compose -f docker-compose.yml -f docker-compose.test.yml up -d postgres redis api
-docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm migrate
+docker compose -f docker-compose.yml -f docker-compose.test.yml up -d postgres redis api --wait
 docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm auth-api-check
-docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm user-api-check
-docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm host-api-check
-docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm property-api-check
-docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm amenities-geo-availability-api-check
 ```
 
-After API code changes, rebuild `api` so overlay env such as `AUTH_TEST_FIXED_OTP` is actually used by the running process:
+The overlay sets `OTP_DEV_CODE=123456`, `OTP_RESEND_SECONDS=1`, and `ADMIN_PHONE=09000000001` on `api` so admin seed and OTP steps work. After API code changes, rebuild `api` so that overlay env is actually used:
 
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.test.yml build api
-docker compose -f docker-compose.yml -f docker-compose.test.yml up -d api
+docker compose -f docker-compose.yml -f docker-compose.test.yml up -d api --wait
+docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm auth-api-check
 ```
 
-Host fallback (API already on localhost:3000, with `AUTH_TEST_FIXED_OTP=true` on that process for OTP steps):
+Rebuild the check image after `package.json` / lockfile changes:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.test.yml build auth-api-check
+docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm auth-api-check
+```
+
+Host fallback (API already on `http://localhost:3000`, with `OTP_DEV_CODE` and `ADMIN_PHONE` set on that process; use `OTP_RESEND_SECONDS=1` so the signup-resend step is not rate-limited):
 
 ```bash
 npm run auth-api-check
-npm run user-api-check
-npm run host-api-check
-npm run property-api-check
-npm run amenities-geo-availability-api-check
 ```
 
-Related overlay one-shots: `migrate`. Admin credentials come from `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD` via `getSeedConfig()`. Seeded host is `SEED_HOST_EMAIL` / `SEED_HOST_PASSWORD` (`host@jabama.local`). Traveler checks **register** unique emails per `RUN_ID` (admin has no `user` role, so `/users/me` and `/host/me` are `403 ACCESS_DENIED`).
+Report: `test-results/auth-api-check.json`. Unique `09xxxxxxxxx` phones are generated per run so reruns do not collide.
 
 ---
 

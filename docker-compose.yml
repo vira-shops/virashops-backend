@@ -29,7 +29,7 @@ services:
 
   minio:
     image: minio/minio:latest
-    profiles: ['files', 'app']
+    profiles: ['files']
     restart: unless-stopped
     command: server /data --console-address ':9001'
     environment:
@@ -43,7 +43,7 @@ services:
 
   minio-init:
     image: minio/mc:latest
-    profiles: ['files', 'app']
+    profiles: ['files']
     depends_on:
       - minio
     restart: 'no'
@@ -69,19 +69,17 @@ services:
       NODE_ENV: production
       DB_HOST: postgres
       REDIS_HOST: redis
-      AWS_REGION: us-east-1
-      AWS_ACCESS_KEY_ID: virashops
-      AWS_SECRET_ACCESS_KEY: virashopssecret
-      AWS_S3_BUCKET: virashops
-      AWS_S3_ENDPOINT: http://minio:9000
-      AWS_S3_FORCE_PATH_STYLE: 'true'
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
-      minio-init:
-        condition: service_completed_successfully
+    healthcheck:
+      test: ['CMD', 'wget', '-qO-', 'http://localhost:3000/health']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 45s
 
 volumes:
   postgres_data:

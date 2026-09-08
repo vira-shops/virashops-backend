@@ -3,7 +3,7 @@ name: virashops-backend
 description: >-
   Implements the Virashops NestJS backend as Hexagonal Architecture + DDD Lite.
   Use when adding or changing bounded contexts, use cases, ports, adapters,
-  TypeORM persistence, tRPC/REST APIs, auth/RBAC, sellers, products, inventory,
+  Drizzle persistence, tRPC/REST APIs, auth/RBAC, sellers, products, inventory,
   carts, orders, payments, notifications, or when the user mentions hexagonal,
   domain, or backend workflow.
 ---
@@ -12,7 +12,7 @@ description: >-
 
 Next.js owns presentation. This repo owns **business truth**. tRPC owns the internal typed contract with the web app. PostgreSQL owns durable transactional state. Redis owns cache, sessions, and async coordination. S3/MinIO owns files. Hexagonal + DDD Lite keeps domain independent of all of that.
 
-NestJS is the **framework**, not the architecture. Controllers/procedures must not contain business rules. Domain must not import TypeORM, Nest HTTP, or DTOs.
+NestJS is the **framework**, not the architecture. Controllers/procedures must not contain business rules. Domain must not import Drizzle, Nest HTTP, or DTOs.
 
 ## Stack
 
@@ -20,7 +20,7 @@ NestJS is the **framework**, not the architecture. Controllers/procedures must n
 |---|---|---|
 | Host | NestJS + TypeScript | Modules, DI, guards, pipes |
 | Architecture | Hexagonal + DDD Lite | Bounded modules, entities, invariants, ports |
-| Persistence | PostgreSQL + TypeORM | Durable commerce state, migrations |
+| Persistence | PostgreSQL + Drizzle | Durable commerce state, migrations |
 | Cache / jobs | Redis + Bull | Sessions, cache, retries — not source of truth |
 | Files | MinIO / S3 | Images and uploads, never in Postgres |
 | Auth | JWT + sessions | API auth; OAuth later |
@@ -40,7 +40,7 @@ Do not replace Postgres with Redis. Do not put files in Postgres.
 **Backend does not**
 
 - UI layout, React, or frontend styling
-- Return TypeORM entities as public API
+- Return Drizzle rows as public API
 - Trust client-calculated prices, totals, or permissions
 - Mix infrastructure into domain
 
@@ -51,7 +51,7 @@ Presentation (tRPC / HTTP / webhooks)
   → Application (one use case per action)
     → Domain (model, invariants, ports)
          ▲
-Infrastructure implements ports (TypeORM, Redis, S3, payments, email)
+Infrastructure implements ports (Drizzle, Redis, S3, payments, email)
 ```
 
 Use cases inject **ports via `Symbol` tokens**, never adapters.
@@ -60,7 +60,7 @@ Cross-module: call another module’s **use case**, or emit a domain event. Neve
 
 ## Bounded modules (Postgres)
 
-Own data in the matching module. Do not reach across tables via TypeORM relations from another context.
+Own data in the matching module. Do not reach across tables via Drizzle relations from another context.
 
 ```
 users, addresses, preferences
@@ -85,7 +85,7 @@ Copy and track:
 - [ ] 3. Domain — model, value objects, state transitions, DomainError
 - [ ] 4. Use case — Command/Query + execute()
 - [ ] 5. Port + token — repository or provider interface
-- [ ] 6. Adapter — TypeORM / Redis / S3 / vendor
+- [ ] 6. Adapter — Drizzle / Redis / S3 / vendor
 - [ ] 7. API — tRPC procedure or HTTP; DTO → Command; never entities
 - [ ] 8. Tests — unit (mock ports) → integration → HTTP/E2E
 - [ ] 9. Review — security, architecture, failure paths
@@ -100,7 +100,7 @@ Folder tree, naming, and Nest wiring: [hexagonal.md](hexagonal.md).
 
 Presentation maps DTO → Command/Query, calls `useCase.execute`, maps the result. Throw `DomainError`; let `DomainExceptionFilter` render HTTP. Controllers do not catch domain errors to set status codes.
 
-Frontend consumes **contracts**, never domain models, TypeORM entities, or adapters.
+Frontend consumes **contracts**, never domain models, Drizzle rows, or adapters.
 
 ## Vertical slice — add to cart
 

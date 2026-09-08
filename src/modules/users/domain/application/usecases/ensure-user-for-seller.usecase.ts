@@ -18,11 +18,16 @@ export default class EnsureUserForSellerUseCase {
 
     if (!existing) {
       return this.users.save(
-        User.createForSeller(phone, command.fullName, command.sellerRole),
+        User.createForSeller(
+          phone,
+          command.firstName,
+          command.lastName,
+          command.sellerRole,
+        ),
       );
     }
 
-    existing.rename(command.fullName);
+    existing.rename(command.firstName, command.lastName);
     existing.addSellerRole(command.sellerRole);
     return this.users.save(existing);
   }

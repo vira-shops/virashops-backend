@@ -6,9 +6,18 @@ import {
   HttpCode,
   HttpStatus,
   Post,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { FileInterceptor } from '@nestjs/platform-express';
+import {
+  ApiBearerAuth,
+  ApiConsumes,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
+import { memoryStorage } from 'multer';
 import ApiResponse from '../../../../../common/http/api-response';
 import LogoutCommand from '../../../domain/application/commands/logout.command';
 import RequestOtpCommand from '../../../domain/application/commands/request-otp.command';
@@ -42,25 +51,53 @@ export default class AuthController {
 
   @Post('signup')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Buyer signup: name + mobile, then OTP' })
-  async signup(@Body() dto: SignupUserHttpDto) {
+  @UseInterceptors(FileInterceptor('document', { storage: memoryStorage() }))
+  @ApiConsumes('multipart/form-data', 'application/json')
+  @ApiOperation({
+    summary: 'Signup (buyer/seller/both). Sends a 6-digit OTP; no JWT yet',
+  })
+  async signup(
+    @Body() dto: SignupUserHttpDto,
+    @UploadedFile()
+    file?: { buffer: Buffer; mimetype: string; originalname: string },
+  ) {
     const data = await this.signupUser.execute(
-      new SignupUserCommand(dto.fullName, dto.phone),
+      new SignupUserCommand(
+        dto.firstName,
+        dto.lastName,
+        dto.phone,
+        dto.channel,
+        dto.accountType,
+        dto.activityType ?? null,
+        dto.guildType ?? null,
+        dto.industryType ?? null,
+        dto.category ?? dto.activityType ?? null,
+        dto.documentType ?? null,
+        file
+          ? {
+              buffer: file.buffer,
+              mimeType: file.mimetype,
+              originalName: file.originalname,
+            }
+          : null,
+      ),
     );
     return ApiResponse.of(data);
   }
 
   @Post('otp/request')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Request login OTP for an existing account' })
+  @ApiOperation({ summary: 'Request login or signup-resend OTP' })
   async requestLoginOtp(@Body() dto: RequestOtpHttpDto) {
-    const data = await this.requestOtp.execute(new RequestOtpCommand(dto.phone));
+    const data = await this.requestOtp.execute(
+      new RequestOtpCommand(dto.phone),
+    );
     return ApiResponse.of(data);
   }
 
   @Post('otp/verify')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Verify OTP and receive a JWT' })
+  @ApiOperation({ summary: 'Verify 6-digit OTP and receive a JWT' })
   async verify(@Body() dto: VerifyOtpHttpDto) {
     const session = await this.verifyOtp.execute(
       new VerifyOtpCommand(dto.phone, dto.code),

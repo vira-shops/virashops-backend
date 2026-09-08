@@ -2,13 +2,13 @@
 
 This document is the playbook for how this backend is structured. Copy it into another NestJS project and follow it as the source of truth for folders, naming, dependency rules, and how to add a new bounded context.
 
-Stack assumed: **NestJS + TypeScript + TypeORM**. The ideas apply to other frameworks; the file layout and DI tokens are Nest-specific.
+Stack assumed: **NestJS + TypeScript + Drizzle**. The ideas apply to other frameworks; the file layout and DI tokens are Nest-specific.
 
 ---
 
 ## Why this shape
 
-Business rules live in the **domain**. HTTP, TypeORM, S3, Redis, email, and third-party APIs live on the **outside**. They talk to the domain through **ports** (interfaces). **Adapters** implement those ports.
+Business rules live in the **domain**. HTTP, Drizzle, S3, Redis, email, and third-party APIs live on the **outside**. They talk to the domain through **ports** (interfaces). **Adapters** implement those ports.
 
 That split exists so you can:
 
@@ -32,7 +32,7 @@ That split exists so you can:
                                       ▼
                     ┌─────────────────────────────────────┐
                     │        driven adapters              │
-                    │  TypeORM repositories, S3, Redis,   │
+                    │  Drizzle repositories, S3, Redis,   │
                     │  email, Qonto HTTP, …               │
                     └─────────────────────────────────────┘
 ```
@@ -48,15 +48,16 @@ That split exists so you can:
 src/
   main.ts                         bootstrap, global pipes/filters
   app.module.ts                   imports feature modules only
-  config/                         TypeORM, env, swagger
-  common/                         framework-wide primitives (CoreEntity, pagination)
+  config/                         env, swagger, i18n
+  database/                       Drizzle client, schema barrel, migrate runner
+  common/                         pagination, request typings
   i18n/<lang>/errors.json         DomainError messages keyed by ErrorCode
   modules/
     shared/                       cross-cutting ports + adapters (hash, JWT, S3, email, Redis)
     <feature>/                    one bounded context (patients, schedule, payments, …)
 ```
 
-`app.module.ts` must not contain business logic. It only wires TypeORM, i18n, Redis, and feature modules.
+`app.module.ts` must not contain business logic. It only wires Drizzle, i18n, Redis, and feature modules.
 
 ---
 
@@ -74,7 +75,7 @@ src/modules/<feature>/
       mappers/<name>.mapper.ts          DTO ↔ Command / Query / HTTP response
       guards/                           HTTP auth for this module (optional)
   domain/
-    model/<name>.model.ts               rich entity, no TypeORM, no Nest HTTP
+    model/<name>.model.ts               rich entity, no Drizzle, no Nest HTTP
     model/enums/                        domain enums used by the model
     ports/<name>.repository.port.ts     outbound contract (no implementation)
     errors/<name>.error.ts              extends DomainError
@@ -86,10 +87,10 @@ src/modules/<feature>/
       usecases/<action>.usecase.spec.ts
       services/<name>.service.ts        helpers used by several use cases
   infrastructure/
-    infrastructure.module.ts            binds tokens → adapters, registers entities
-    typeorm/
-      entities/<name>.entity.ts
-      mappers/<name>.mapper.ts          Entity ↔ domain model
+    infrastructure.module.ts            binds tokens → adapters
+    drizzle/
+      schema/<name>.ts                  pgTable + relations
+      mappers/<name>.mapper.ts          row ↔ domain model
       repositories/<name>.repository.adapter.ts
     <vendor>/                           e.g. qonto/, osrm/, s3/
   shared/
@@ -107,7 +108,7 @@ Folder names that are **canonical** in this repo:
 | Inbound | `interfaces/` | Prefer plural. A few older modules use `interface/`. |
 | Domain model | `domain/model/` | Singular. |
 | Application | `domain/application/` | Use cases live *inside* domain, not next to it. |
-| Persistence | `infrastructure/typeorm/` | Never import TypeORM from `domain/`. |
+| Persistence | `infrastructure/drizzle/` | Never import Drizzle from `domain/`. |
 | Module-local shared | `<feature>/shared/` | Tokens, events, enums for *this* module only. |
 | App-wide shared | `modules/shared/` | Password hasher, token service, S3, email, Redis. |
 
@@ -126,11 +127,11 @@ interfaces  →  domain  →  ports
 
 | From | May import | Must not import |
 |---|---|---|
-| `domain/model` | other domain models, `shared/enums`, `common/enums` | TypeORM, Nest HTTP, DTOs, adapters |
-| `domain/ports` | domain models, commands, queries | adapters, entities, Nest HTTP |
-| `domain/application` | ports, models, commands, other use cases, `shared/tokens` | TypeORM entities, HTTP DTOs, controllers |
-| `infrastructure` | ports, models, TypeORM, vendor SDKs | controllers, HTTP DTOs |
-| `interfaces` | use cases, commands, DTOs, guards | TypeORM entities, repository adapters |
+| `domain/model` | other domain models, `shared/enums`, `common/enums` | Drizzle, Nest HTTP, DTOs, adapters |
+| `domain/ports` | domain models, commands, queries | adapters, schema, Nest HTTP |
+| `domain/application` | ports, models, commands, other use cases, `shared/tokens` | Drizzle schema, HTTP DTOs, controllers |
+| `infrastructure` | ports, models, Drizzle, vendor SDKs | controllers, HTTP DTOs |
+| `interfaces` | use cases, commands, DTOs, guards | Drizzle schema, repository adapters |
 | `shared/tokens` | nothing (Symbols only) | — |
 
 **Use cases inject ports, never adapters.**
@@ -143,10 +144,10 @@ private readonly patientRepo: PatientRepositoryPort
 Never:
 
 ```ts
-constructor(private readonly repo: TypeOrmPatientRepositoryAdapter) {}
+constructor(private readonly repo: DrizzlePatientRepositoryAdapter) {}
 ```
 
-Cross-module: a use case may call **another module’s use case** or listen to **domain events**. It must not reach into another module’s TypeORM entities.
+Cross-module: a use case may call **another module’s use case** or listen to **domain events**. It must not reach into another module’s Drizzle schema.
 
 ---
 
@@ -154,12 +155,12 @@ Cross-module: a use case may call **another module’s use case** or listen to *
 
 ### 1. Domain model
 
-A TypeScript class with identity, invariants, and behavior. Not a TypeORM entity.
+A TypeScript class with identity, invariants, and behavior. Not a Drizzle table.
 
 - Encapsulate mutable identity (`id`) behind `getId()` / `setId()`.
 - Put state transitions on the model (`assignDriver`, `markStarted`, `updateInfo`).
 - Prefer a static factory for creation (`Patient.create(...)`).
-- No `@Injectable()`, no `@Column()`, no `class-validator`.
+- No `@Injectable()`, no Drizzle `pgTable`, no `class-validator`.
 
 ```ts
 export default class Patient {
@@ -281,33 +282,33 @@ Then:
 
 Controllers do not catch domain errors to wrap them as HTTP. Let the filter do it.
 
-### 7. TypeORM entity + mapper (driven adapter)
+### 7. Drizzle schema + mapper (driven adapter)
 
-Entity = persistence. Mapper = the only place entity and model meet.
+Schema = persistence. Mapper = the only place row and model meet.
 
 ```
-infrastructure/typeorm/entities/<name>.entity.ts
-infrastructure/typeorm/mappers/<name>.mapper.ts
-infrastructure/typeorm/repositories/<name>.repository.adapter.ts
+infrastructure/drizzle/schema/<name>.ts
+infrastructure/drizzle/mappers/<name>.mapper.ts
+infrastructure/drizzle/repositories/<name>.repository.adapter.ts
 ```
 
-- Entity extends `CoreEntity` (`id`, `created_at`, `updated_at`, `deleted_at`).
-- Adapter **implements** the port and returns **domain models**, never entities.
-- Mapper is a static class: `toDomain(entity)`, `toEntity(domain)`.
+- Tables use shared `idColumn()` + `timestamps()` (`id`, `created_at`, `updated_at`, `deleted_at`).
+- Adapter **implements** the port and returns **domain models**, never rows.
+- Mapper is a static class: `toDomain(row)`.
+- Inject `DRIZZLE` in adapters, never in use cases.
 
 ```ts
 @Injectable()
-export default class TypeOrmPatientRepositoryAdapter
+export default class DrizzlePatientRepositoryAdapter
   implements PatientRepositoryPort
 {
-  constructor(
-    @InjectRepository(PatientEntity)
-    private readonly repo: Repository<PatientEntity>,
-  ) {}
+  constructor(@Inject(DRIZZLE) private readonly db: DrizzleDB) {}
 
   async findById(id: number, companyId: number): Promise<Patient | null> {
-    const entity = await this.repo.findOne({ where: { id, companyId } });
-    return entity ? PatientMapper.toDomain(entity) : null;
+    const row = await this.db.query.patients.findFirst({
+      where: and(eq(patients.id, id), eq(patients.companyId, companyId)),
+    });
+    return row ? PatientMapper.toDomain(row) : null;
   }
 }
 ```
@@ -348,11 +349,10 @@ Binds tokens to adapters. Exports the tokens so use cases can inject them.
 
 ```ts
 @Module({
-  imports: [TypeOrmModule.forFeature([PatientEntity])],
   providers: [
-    { provide: PATIENT_REPOSITORY, useClass: TypeOrmPatientRepositoryAdapter },
+    { provide: PATIENT_REPOSITORY, useClass: DrizzlePatientRepositoryAdapter },
   ],
-  exports: [TypeOrmModule, PATIENT_REPOSITORY],
+  exports: [PATIENT_REPOSITORY],
 })
 export default class PatientInfrastructureModule {}
 ```
@@ -392,8 +392,8 @@ HTTP DTO
   → CreatePatientUseCase.execute(cmd)
       → Patient.create(...)                            (domain)
       → PatientRepositoryPort.save(...)                (port)
-          → TypeOrmPatientRepositoryAdapter            (adapter)
-              → PatientMapper.toEntity / toDomain
+          → DrizzlePatientRepositoryAdapter            (adapter)
+              → PatientMapper.toDomain
   → HTTP mapper wraps the result
   → DomainError? → DomainExceptionFilter → i18n errors.json
 ```
@@ -432,7 +432,7 @@ Also in shared:
 - `interface/http/filters/domain-exception.filter.ts`
 - Redis (`infrastructure/redis/`)
 
-`src/common/` is thinner: `CoreEntity`, pagination helpers, gender enum, request typings. Do not put business rules there.
+`src/common/` is thinner: pagination helpers, gender enum, request typings. Do not put business rules there. Drizzle wiring lives in `src/database/`.
 
 ---
 
@@ -443,7 +443,7 @@ Also in shared:
 | Feature folder | kebab-case plural | `patients`, `shifts` |
 | Domain model | `<Name>` default export | `patient.model.ts` → `Patient` |
 | Port | `<Name>RepositoryPort` | `patient.repository.port.ts` |
-| Adapter | `TypeOrm<Name>RepositoryAdapter` | `patient.repository.adapter.ts` |
+| Adapter | `Drizzle<Name>RepositoryAdapter` | `patient.repository.adapter.ts` |
 | Use case | `<Verb><Name>UseCase` + `execute` | `create-patient.usecase.ts` |
 | Command | `<Verb><Name>Command` | `create-patient.command.ts` |
 | Query | `<Verb><Name>Query` | `find-all-patients.query.ts` |
@@ -462,7 +462,7 @@ Also in shared:
 
 Colocate unit tests next to the use case: `<action>.usecase.spec.ts`.
 
-- Mock **ports**, not TypeORM.
+- Mock **ports**, not Drizzle.
 - Build domain models with real constructors / factories.
 - Assert thrown `DomainError` subclasses.
 
@@ -489,8 +489,8 @@ Replace `widget` / `Widget` with the real name.
 5. **Errors** — `domain/errors/widget.error.ts` + `ErrorCode` + `i18n/en/errors.json`.
 6. **Command** — `domain/application/commands/create-widget.command.ts`.
 7. **Use case** — inject the token, typed as the port; `execute(cmd)`.
-8. **Entity + mapper + adapter** under `infrastructure/typeorm/`.
-9. **`infrastructure.module.ts`** — `{ provide: WIDGET_REPOSITORY, useClass: TypeOrmWidgetRepositoryAdapter }`.
+8. **Schema + mapper + adapter** under `infrastructure/drizzle/`.
+9. **`infrastructure.module.ts`** — `{ provide: WIDGET_REPOSITORY, useClass: DrizzleWidgetRepositoryAdapter }`.
 10. **HTTP** — DTO, mapper (`toCommand`), controller (guards + `useCase.execute`).
 11. **`interfaces/widget.module.ts`** — import infra, register use cases + controller.
 12. **`app.module.ts`** — `imports: [WidgetModule]`.
@@ -501,11 +501,10 @@ Skeleton for the two Nest modules:
 ```ts
 // infrastructure/infrastructure.module.ts
 @Module({
-  imports: [TypeOrmModule.forFeature([WidgetEntity])],
   providers: [
-    { provide: WIDGET_REPOSITORY, useClass: TypeOrmWidgetRepositoryAdapter },
+    { provide: WIDGET_REPOSITORY, useClass: DrizzleWidgetRepositoryAdapter },
   ],
-  exports: [TypeOrmModule, WIDGET_REPOSITORY],
+  exports: [WIDGET_REPOSITORY],
 })
 export default class WidgetInfrastructureModule {}
 
@@ -533,11 +532,11 @@ export default class WidgetModule {}
 
 **Don’t**
 
-- Inject a TypeORM `Repository<Entity>` into a use case.
-- Import `*.entity.ts` from `domain/` or `interfaces/`.
+- Inject a Drizzle `db` instance into a use case.
+- Import Drizzle schema from `domain/` or `interfaces/`.
 - Put `class-validator` on commands or models.
 - Catch domain errors in controllers to convert status codes.
-- Share TypeORM entities across modules instead of use cases or events.
+- Share Drizzle schema across modules instead of use cases or events.
 - Grow a “god” application service that is really five use cases.
 
 External HTTP clients (Qonto, OSRM, …) belong in `infrastructure/<vendor>/`. Prefer a port in `domain/ports/` so use cases stay vendor-agnostic. If a use case currently injects a concrete client, treat that as debt — wrap it with a port when you touch that code.
@@ -553,7 +552,7 @@ Copy structure from these; they match this document closely:
 | `patients/` | Smallest full slice: model, port, command, use case, adapter, HTTP mapper, two Nest modules. |
 | `schedule/` | Rich model + many use cases + domain events. |
 | `drivers/` | Auth use cases, several repositories, guards. |
-| `payments/` | Extra driven adapter (`infrastructure/qonto/`) besides TypeORM. |
+| `payments/` | Extra driven adapter (`infrastructure/qonto/`) besides Drizzle. |
 | `shared/` | App-wide ports (hash, JWT, S3, email) and `DomainError`. |
 
 Start a new feature by duplicating `patients/` and renaming.

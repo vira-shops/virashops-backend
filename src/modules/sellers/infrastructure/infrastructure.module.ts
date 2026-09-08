@@ -1,21 +1,27 @@
 import { Global, Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { CREATE_PENDING_SELLER } from '../../users/shared/tokens/port.token';
 import { SELLER_SUMMARY_QUERY } from '../../users/shared/tokens/port.token';
 import { SELLER_REPOSITORY } from '../shared/tokens/port.token';
-import SellerEntity from './typeorm/entities/seller.entity';
-import TypeOrmSellerSummaryQueryAdapter from './typeorm/repositories/seller-summary.query.adapter';
-import TypeOrmSellerRepositoryAdapter from './typeorm/repositories/seller.repository.adapter';
+import SignupSellerUseCase from '../domain/application/usecases/signup-seller.usecase';
+import SellerSummaryQueryAdapter from './drizzle/repositories/seller-summary.query.adapter';
+import DrizzleSellerRepositoryAdapter from './drizzle/repositories/seller.repository.adapter';
 
 @Global()
 @Module({
-  imports: [TypeOrmModule.forFeature([SellerEntity])],
   providers: [
-    { provide: SELLER_REPOSITORY, useClass: TypeOrmSellerRepositoryAdapter },
+    { provide: SELLER_REPOSITORY, useClass: DrizzleSellerRepositoryAdapter },
     {
       provide: SELLER_SUMMARY_QUERY,
-      useClass: TypeOrmSellerSummaryQueryAdapter,
+      useClass: SellerSummaryQueryAdapter,
     },
+    SignupSellerUseCase,
+    { provide: CREATE_PENDING_SELLER, useExisting: SignupSellerUseCase },
   ],
-  exports: [SELLER_REPOSITORY, SELLER_SUMMARY_QUERY],
+  exports: [
+    SELLER_REPOSITORY,
+    SELLER_SUMMARY_QUERY,
+    CREATE_PENDING_SELLER,
+    SignupSellerUseCase,
+  ],
 })
 export default class SellersInfrastructureModule {}

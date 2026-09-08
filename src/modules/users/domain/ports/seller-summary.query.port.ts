@@ -2,7 +2,8 @@ export type SellerSummary = {
   id: number;
   kind: string;
   status: string;
-  shopName: string;
+  shopName: string | null;
+  profileComplete: boolean;
 };
 
 export default interface SellerSummaryQueryPort {

@@ -13,5 +13,6 @@
   "ACCOUNT_NOT_FOUND": "No account found for this mobile number",
   "SELLER_ALREADY_EXISTS": "A seller profile already exists for this account",
   "SELLER_NOT_ACTIVE": "Seller account is not active",
-  "SELLER_NOT_FOUND": "Seller not found"
+  "SELLER_NOT_FOUND": "Seller not found",
+  "SELLER_PROFILE_INCOMPLETE": "Complete the shop profile before activating this seller"
 }

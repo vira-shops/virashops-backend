@@ -8,13 +8,16 @@ export type SellerProps = {
   id: number | null;
   userId: number;
   kind: SellerKind;
-  shopName: string;
+  shopName: string | null;
   workplacePhone: string | null;
-  province: string;
-  city: string;
+  province: string | null;
+  city: string | null;
   postalCode: string | null;
-  salesType: SalesType;
-  address: string;
+  salesType: SalesType | null;
+  address: string | null;
+  industryType: string;
+  category: string;
+  activityType: string;
   documentType: SellerDocumentType;
   documentKey: string;
   status: SellerStatus;
@@ -34,12 +37,15 @@ export default class Seller {
     return new Seller({
       ...input,
       id: null,
-      shopName: input.shopName.trim(),
-      province: input.province.trim(),
-      city: input.city.trim(),
-      address: input.address.trim(),
+      shopName: input.shopName?.trim() || null,
+      province: input.province?.trim() || null,
+      city: input.city?.trim() || null,
+      address: input.address?.trim() || null,
       workplacePhone: input.workplacePhone?.trim() || null,
       postalCode: input.postalCode?.trim() || null,
+      industryType: input.industryType.trim(),
+      category: input.category.trim(),
+      activityType: input.activityType.trim(),
       status: SellerStatus.PENDING,
     });
   }
@@ -67,7 +73,7 @@ export default class Seller {
     return this.props.kind;
   }
 
-  getShopName(): string {
+  getShopName(): string | null {
     return this.props.shopName;
   }
 
@@ -75,11 +81,11 @@ export default class Seller {
     return this.props.workplacePhone;
   }
 
-  getProvince(): string {
+  getProvince(): string | null {
     return this.props.province;
   }
 
-  getCity(): string {
+  getCity(): string | null {
     return this.props.city;
   }
 
@@ -87,12 +93,24 @@ export default class Seller {
     return this.props.postalCode;
   }
 
-  getSalesType(): SalesType {
+  getSalesType(): SalesType | null {
     return this.props.salesType;
   }
 
-  getAddress(): string {
+  getAddress(): string | null {
     return this.props.address;
+  }
+
+  getIndustryType(): string {
+    return this.props.industryType;
+  }
+
+  getCategory(): string {
+    return this.props.category;
+  }
+
+  getActivityType(): string {
+    return this.props.activityType;
   }
 
   getDocumentType(): SellerDocumentType {
@@ -108,9 +126,35 @@ export default class Seller {
   }
 
   isActive(): boolean {
-    return this.props.status === SellerStatus.PENDING
-      ? false
-      : this.props.status === SellerStatus.ACTIVE;
+    return this.props.status === SellerStatus.ACTIVE;
+  }
+
+  isProfileComplete(): boolean {
+    return Boolean(
+      this.props.shopName &&
+      this.props.province &&
+      this.props.city &&
+      this.props.address &&
+      this.props.salesType,
+    );
+  }
+
+  completeProfile(input: {
+    shopName: string;
+    workplacePhone: string | null;
+    province: string;
+    city: string;
+    postalCode: string | null;
+    salesType: SalesType;
+    address: string;
+  }): void {
+    this.props.shopName = input.shopName.trim();
+    this.props.workplacePhone = input.workplacePhone?.trim() || null;
+    this.props.province = input.province.trim();
+    this.props.city = input.city.trim();
+    this.props.postalCode = input.postalCode?.trim() || null;
+    this.props.salesType = input.salesType;
+    this.props.address = input.address.trim();
   }
 
   transitionTo(next: SellerStatus): void {

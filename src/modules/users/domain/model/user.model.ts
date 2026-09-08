@@ -1,54 +1,81 @@
 import ForbiddenError from '../errors/forbidden.error';
-import SellerAlreadyExistsError from '../errors/seller-already-exists.error';
 import AccountStatus from './enums/account-status.enum';
 import Role from './enums/role.enum';
 
-type UserProps = {
+export type UserProps = {
   id: number | null;
   phone: string;
-  fullName: string;
+  firstName: string;
+  lastName: string;
   status: AccountStatus;
   phoneVerifiedAt: Date | null;
   roles: Role[];
+  activityType: string | null;
+  guildType: string | null;
 };
 
 export default class User {
   private constructor(private props: UserProps) {}
 
-  static createBuyer(phone: string, fullName: string): User {
+  static createFromSignup(input: {
+    phone: string;
+    firstName: string;
+    lastName: string;
+    roles: Role[];
+    activityType: string | null;
+    guildType: string | null;
+  }): User {
     return new User({
       id: null,
-      phone,
-      fullName: fullName.trim(),
+      phone: input.phone,
+      firstName: input.firstName.trim(),
+      lastName: input.lastName.trim(),
       status: AccountStatus.ACTIVE,
       phoneVerifiedAt: new Date(),
-      roles: [Role.USER],
+      roles: [...input.roles],
+      activityType: input.activityType?.trim() || null,
+      guildType: input.guildType?.trim() || null,
+    });
+  }
+
+  static createBuyer(phone: string, firstName: string, lastName = ''): User {
+    return User.createFromSignup({
+      phone,
+      firstName,
+      lastName,
+      roles: [Role.RETAIL_BUYER],
+      activityType: null,
+      guildType: null,
     });
   }
 
   static createForSeller(
     phone: string,
-    fullName: string,
+    firstName: string,
+    lastName: string,
     sellerRole: Role.RETAIL_SELLER | Role.WHOLESALE_SELLER,
   ): User {
-    return new User({
-      id: null,
+    return User.createFromSignup({
       phone,
-      fullName: fullName.trim(),
-      status: AccountStatus.ACTIVE,
-      phoneVerifiedAt: null,
-      roles: [Role.USER, sellerRole],
+      firstName,
+      lastName,
+      roles: [Role.RETAIL_BUYER, sellerRole],
+      activityType: null,
+      guildType: null,
     });
   }
 
-  static createAdmin(phone: string, fullName: string): User {
+  static createAdmin(phone: string, firstName: string, lastName = ''): User {
     return new User({
       id: null,
       phone,
-      fullName: fullName.trim(),
+      firstName: firstName.trim(),
+      lastName: lastName.trim(),
       status: AccountStatus.ACTIVE,
       phoneVerifiedAt: new Date(),
       roles: [Role.ADMIN],
+      activityType: null,
+      guildType: null,
     });
   }
 
@@ -71,8 +98,16 @@ export default class User {
     return this.props.phone;
   }
 
+  getFirstName(): string {
+    return this.props.firstName;
+  }
+
+  getLastName(): string {
+    return this.props.lastName;
+  }
+
   getFullName(): string {
-    return this.props.fullName;
+    return `${this.props.firstName} ${this.props.lastName}`.trim();
   }
 
   getStatus(): AccountStatus {
@@ -89,6 +124,14 @@ export default class User {
 
   getRoles(): Role[] {
     return [...this.props.roles];
+  }
+
+  getActivityType(): string | null {
+    return this.props.activityType;
+  }
+
+  getGuildType(): string | null {
+    return this.props.guildType;
   }
 
   hasRole(role: Role | string): boolean {
@@ -115,10 +158,14 @@ export default class User {
     }
   }
 
-  rename(fullName: string): void {
-    const trimmed = fullName.trim();
-    if (trimmed) {
-      this.props.fullName = trimmed;
+  rename(firstName: string, lastName: string): void {
+    const first = firstName.trim();
+    const last = lastName.trim();
+    if (first) {
+      this.props.firstName = first;
+    }
+    if (last) {
+      this.props.lastName = last;
     }
   }
 
@@ -126,11 +173,14 @@ export default class User {
     if (this.hasRole(Role.ADMIN)) {
       throw new ForbiddenError();
     }
-    if (this.isSeller()) {
-      throw new SellerAlreadyExistsError();
+    if (this.hasRole(role)) {
+      return;
     }
-    if (!this.hasRole(Role.USER)) {
-      this.props.roles.push(Role.USER);
+    if (
+      !this.hasRole(Role.RETAIL_BUYER) &&
+      !this.hasRole(Role.WHOLESALE_BUYER)
+    ) {
+      this.props.roles.push(Role.RETAIL_BUYER);
     }
     this.props.roles.push(role);
   }

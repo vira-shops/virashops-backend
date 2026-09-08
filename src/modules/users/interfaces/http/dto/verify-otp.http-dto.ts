@@ -10,6 +10,6 @@ export default class VerifyOtpHttpDto {
   @ApiProperty({ example: '123456' })
   @IsString()
   @IsNotEmpty()
-  @Length(4, 8)
+  @Length(6, 6)
   code: string;
 }

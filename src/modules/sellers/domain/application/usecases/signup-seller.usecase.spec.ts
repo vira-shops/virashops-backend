@@ -1,105 +1,92 @@
-import Role from '../../../../users/domain/model/enums/role.enum';
-import User from '../../../../users/domain/model/user.model';
-import AuthSession from '../../../../users/domain/view-models/auth-session.view-model';
-import SalesType from '../../model/enums/sales-type.enum';
-import SellerDocumentType from '../../model/enums/seller-document-type.enum';
+import SellerAlreadyExistsError from '../../../../users/domain/errors/seller-already-exists.error';
 import SellerKind from '../../model/enums/seller-kind.enum';
 import SellerStatus from '../../model/enums/seller-status.enum';
 import Seller from '../../model/seller.model';
-import SignupSellerCommand from '../commands/signup-seller.command';
 import SignupSellerUseCase from './signup-seller.usecase';
 
 describe('SignupSellerUseCase', () => {
   const sellers = {
     findById: jest.fn(),
     findByUserId: jest.fn(),
-    save: jest.fn(async (seller: Seller) => {
+    save: jest.fn((seller: Seller) => {
       if (!seller.hasId()) {
         return Seller.restore({
-          ...sellerAsProps(seller),
           id: 10,
+          userId: seller.getUserId(),
+          kind: seller.getKind(),
+          shopName: seller.getShopName(),
+          workplacePhone: seller.getWorkplacePhone(),
+          province: seller.getProvince(),
+          city: seller.getCity(),
+          postalCode: seller.getPostalCode(),
+          salesType: seller.getSalesType(),
+          address: seller.getAddress(),
+          industryType: seller.getIndustryType(),
+          category: seller.getCategory(),
+          activityType: seller.getActivityType(),
+          documentType: seller.getDocumentType(),
+          documentKey: seller.getDocumentKey(),
+          status: seller.getStatus(),
         });
       }
       return seller;
     }),
   };
-  const files = { upload: jest.fn(async (key: string) => key) };
-  const ensureUser = {
-    execute: jest.fn(),
-  };
-  const issueSession = {
-    execute: jest.fn(
-      async (user: User, seller: { status: string } | null) =>
-        new AuthSession('seller-jwt', user, seller as never),
-    ),
-  };
 
-  const useCase = new SignupSellerUseCase(
-    sellers,
-    files,
-    ensureUser as never,
-    issueSession as never,
-  );
+  const useCase = new SignupSellerUseCase(sellers);
 
   beforeEach(() => jest.clearAllMocks());
 
-  it('creates a PENDING seller without OTP and issues a JWT', async () => {
-    const user = User.restore({
-      id: 5,
-      phone: '09123456789',
-      fullName: 'Ali',
-      status: 'ACTIVE' as never,
-      phoneVerifiedAt: null,
-      roles: [Role.USER, Role.RETAIL_SELLER],
-    });
-    ensureUser.execute.mockResolvedValue(user);
+  it('creates a PENDING seller without issuing a JWT', async () => {
     sellers.findByUserId.mockResolvedValue(null);
 
-    const session = await useCase.execute(
-      new SignupSellerCommand(
-        SellerKind.RETAIL,
-        'Ali',
-        '09123456789',
-        'Vira Shop',
-        null,
-        'Tehran',
-        'Tehran',
-        '1234567890',
-        SalesType.SUPERMARKET,
-        'Valiasr St',
-        SellerDocumentType.BUSINESS_LICENSE,
-        {
-          buffer: Buffer.from('pdf'),
-          mimeType: 'application/pdf',
-          originalName: 'license.pdf',
-        },
-      ),
+    const summary = await useCase.execute({
+      userId: 5,
+      kind: SellerKind.RETAIL,
+      industryType: 'FOOD',
+      category: 'CANNED',
+      activityType: 'STORE',
+      documentType: 'NATIONAL_ID',
+      documentKey: 'signup/doc.pdf',
+    });
+
+    expect(summary.status).toBe(SellerStatus.PENDING);
+    expect(summary.shopName).toBeNull();
+    expect(summary.profileComplete).toBe(false);
+  });
+
+  it('rejects a second seller profile', async () => {
+    sellers.findByUserId.mockResolvedValue(
+      Seller.restore({
+        id: 1,
+        userId: 5,
+        kind: SellerKind.RETAIL,
+        shopName: null,
+        workplacePhone: null,
+        province: null,
+        city: null,
+        postalCode: null,
+        salesType: null,
+        address: null,
+        industryType: 'FOOD',
+        category: 'CANNED',
+        activityType: 'STORE',
+        documentType: 'NATIONAL_ID' as never,
+        documentKey: 'key',
+        status: SellerStatus.PENDING,
+      }),
     );
 
-    expect(session.accessToken).toBe('seller-jwt');
-    expect(session.user.getRoles()).toEqual([
-      Role.USER,
-      Role.RETAIL_SELLER,
-    ]);
-    expect(files.upload).toHaveBeenCalled();
-    const saved: Seller = await sellers.save.mock.results[0].value;
-    expect(saved.getStatus()).toBe(SellerStatus.PENDING);
+    await expect(
+      useCase.execute({
+        userId: 5,
+        kind: SellerKind.BOTH,
+        industryType: 'FOOD',
+        category: 'CANNED',
+        activityType: 'STORE',
+        documentType: 'NATIONAL_ID',
+        documentKey: 'key',
+      }),
+    ).rejects.toBeInstanceOf(SellerAlreadyExistsError);
   });
 });
-
-function sellerAsProps(seller: Seller) {
-  return {
-    userId: seller.getUserId(),
-    kind: seller.getKind(),
-    shopName: seller.getShopName(),
-    workplacePhone: seller.getWorkplacePhone(),
-    province: seller.getProvince(),
-    city: seller.getCity(),
-    postalCode: seller.getPostalCode(),
-    salesType: seller.getSalesType(),
-    address: seller.getAddress(),
-    documentType: seller.getDocumentType(),
-    documentKey: seller.getDocumentKey(),
-    status: seller.getStatus(),
-  };
-}

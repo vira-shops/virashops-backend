@@ -5,15 +5,20 @@ import AuthSession from '../../../domain/view-models/auth-session.view-model';
 export type AuthUserHttpView = {
   id: number;
   phone: string;
+  firstName: string;
+  lastName: string;
   fullName: string;
   roles: string[];
   accountStatus: string;
   phoneVerified: boolean;
+  activityType: string | null;
+  guildType: string | null;
   seller: {
     id: number;
     kind: string;
     status: string;
-    shopName: string;
+    shopName: string | null;
+    profileComplete: boolean;
   } | null;
 };
 
@@ -25,16 +30,21 @@ export default class AuthHttpMapper {
     return {
       id: user.getId(),
       phone: user.getPhone(),
+      firstName: user.getFirstName(),
+      lastName: user.getLastName(),
       fullName: user.getFullName(),
       roles: user.getRoles(),
       accountStatus: user.getStatus(),
       phoneVerified: user.isPhoneVerified(),
+      activityType: user.getActivityType(),
+      guildType: user.getGuildType(),
       seller: seller
         ? {
             id: seller.id,
             kind: seller.kind,
             status: seller.status,
             shopName: seller.shopName,
+            profileComplete: seller.profileComplete,
           }
         : null,
     };

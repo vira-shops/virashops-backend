@@ -24,10 +24,10 @@ src/modules/<feature>/
       usecases/<action>.usecase.spec.ts
       services/                      shared by several use cases only
   infrastructure/
-    infrastructure.module.ts         token → adapter, TypeOrmModule.forFeature
-    typeorm/
-      entities/<name>.entity.ts      extends CoreEntity
-      mappers/<name>.mapper.ts       toDomain / toEntity
+    infrastructure.module.ts         token → adapter
+    drizzle/
+      schema/<name>.ts               pgTable + relations
+      mappers/<name>.mapper.ts       toDomain
       repositories/<name>.repository.adapter.ts
     <vendor>/
   shared/
@@ -35,9 +35,9 @@ src/modules/<feature>/
     events/                          <module>.<thing>-<happened>
 ```
 
-App-wide: `src/modules/shared/` (hasher, JWT, S3, email, Redis, `DomainError`). `src/common/` is CoreEntity, pagination, request typings — no business rules.
+App-wide: `src/modules/shared/` (hasher, JWT, S3, email, Redis, `DomainError`). `src/database/` is the Drizzle client, schema barrel, and migrations runner. `src/common/` is pagination and request typings — no business rules.
 
-`app.module.ts` only wires Config, TypeORM, i18n, EventEmitter, `CoreInfrastructureModule`, and feature modules.
+`app.module.ts` only wires Config, Drizzle, i18n, EventEmitter, `CoreInfrastructureModule`, and feature modules.
 
 ## Naming
 
@@ -45,7 +45,7 @@ App-wide: `src/modules/shared/` (hasher, JWT, S3, email, Redis, `DomainError`). 
 |---|---|
 | Feature folder | kebab-case plural (`carts`, `orders`) |
 | Port | `<Name>RepositoryPort` |
-| Adapter | `TypeOrm<Name>RepositoryAdapter` |
+| Adapter | `Drizzle<Name>RepositoryAdapter` |
 | Use case | `<Verb><Name>UseCase` + `execute` |
 | Command / Query | `<Verb><Name>Command` / `Query` |
 | HTTP DTO | `<Verb><Name>HttpDto` |
@@ -57,7 +57,7 @@ App-wide: `src/modules/shared/` (hasher, JWT, S3, email, Redis, `DomainError`). 
 Infrastructure binds tokens and exports them. Interface module imports infrastructure, registers controllers and use cases, exports a use case only if another module must call it.
 
 ```ts
-{ provide: CART_REPOSITORY, useClass: TypeOrmCartRepositoryAdapter }
+{ provide: CART_REPOSITORY, useClass: DrizzleCartRepositoryAdapter }
 ```
 
 ```ts
@@ -69,9 +69,9 @@ private readonly cartRepo: CartRepositoryPort
 
 | From | May import | Must not |
 |---|---|---|
-| `domain/model` | domain, module `shared/enums`, `common/enums` | TypeORM, Nest HTTP, DTOs |
-| `domain/application` | ports, models, commands, tokens | entities, HTTP DTOs |
-| `infrastructure` | ports, models, TypeORM, vendor SDKs | controllers, HTTP DTOs |
-| `interfaces` | use cases, commands, DTOs, guards | entities, repository adapters |
+| `domain/model` | domain, module `shared/enums`, `common/enums` | Drizzle, Nest HTTP, DTOs |
+| `domain/application` | ports, models, commands, tokens | schema, HTTP DTOs |
+| `infrastructure` | ports, models, Drizzle, vendor SDKs | controllers, HTTP DTOs |
+| `interfaces` | use cases, commands, DTOs, guards | schema, repository adapters |
 
 Add `ErrorCode` + i18n string whenever you add a `DomainError`.

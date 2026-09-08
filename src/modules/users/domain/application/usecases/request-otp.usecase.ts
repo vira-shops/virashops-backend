@@ -1,14 +1,21 @@
 import { Inject, Injectable } from '@nestjs/common';
 import type OtpServicePort from '../../../../shared/application/ports/otp.service.port';
 import type SmsServicePort from '../../../../shared/application/ports/sms.service.port';
-import { OTP_SERVICE, SMS_SERVICE } from '../../../../shared/tokens/port.tokens';
+import {
+  OTP_SERVICE,
+  SMS_SERVICE,
+} from '../../../../shared/tokens/port.tokens';
 import RequestOtpCommand from '../commands/request-otp.command';
 import AccountInactiveError from '../../errors/account-inactive.error';
 import AccountNotFoundError from '../../errors/account-not-found.error';
 import OtpRateLimitedError from '../../errors/otp-rate-limited.error';
 import Phone from '../../model/phone';
+import type PendingSignupRepositoryPort from '../../ports/pending-signup.repository.port';
 import type UserRepositoryPort from '../../ports/user.repository.port';
-import { USER_REPOSITORY } from '../../../shared/tokens/port.token';
+import {
+  PENDING_SIGNUP_REPOSITORY,
+  USER_REPOSITORY,
+} from '../../../shared/tokens/port.token';
 
 @Injectable()
 export default class RequestOtpUseCase {
@@ -19,16 +26,22 @@ export default class RequestOtpUseCase {
     private readonly otp: OtpServicePort,
     @Inject(SMS_SERVICE)
     private readonly sms: SmsServicePort,
+    @Inject(PENDING_SIGNUP_REPOSITORY)
+    private readonly pending: PendingSignupRepositoryPort,
   ) {}
 
   async execute(command: RequestOtpCommand): Promise<{ otpSent: true }> {
     const phone = Phone.parse(command.phone).toString();
     const user = await this.users.findByPhone(phone);
-    if (!user) {
-      throw new AccountNotFoundError();
-    }
-    if (!user.isActive()) {
-      throw new AccountInactiveError();
+    if (user) {
+      if (!user.isActive()) {
+        throw new AccountInactiveError();
+      }
+    } else {
+      const signup = await this.pending.find(phone);
+      if (!signup) {
+        throw new AccountNotFoundError();
+      }
     }
 
     const issued = await this.otp.issue(phone);

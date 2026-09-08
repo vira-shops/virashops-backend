@@ -4,7 +4,7 @@ NestJS API structured as hexagonal architecture (ports and adapters). Layout, na
 
 ## Stack
 
-NestJS, TypeScript, TypeORM (PostgreSQL), Redis, nestjs-i18n, Swagger.
+NestJS, TypeScript, Drizzle (PostgreSQL), Redis, nestjs-i18n, Swagger.
 
 ## Setup
 
@@ -29,16 +29,36 @@ docker compose --profile files up -d          # MinIO at :9000, console :9001
 docker compose --profile app up -d --build --wait   # API in Docker too
 ```
 
+`--profile app` starts Postgres, Redis, and the API. It does not start MinIO; seller uploads then use local `uploads/` unless `AWS_S3_BUCKET` is set. Combine `--profile app --profile files` when the API should talk to MinIO.
+
+## Live API contract check (Docker)
+
+Black-box HTTP checks against a running API (not Jest). Playbook: [docs/API-CHECK.md](docs/API-CHECK.md).
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.test.yml up -d postgres redis api --wait
+docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm auth-api-check
+```
+
+Host fallback if the API is already on `:3000`:
+
+```bash
+npm run auth-api-check
+```
+
 ## Scripts
 
 ```bash
 npm run start:dev          # watch mode
 npm run test               # unit tests (use-case specs, no Nest boot)
 npm run test:e2e
-npm run migration:generate -- src/migrations/Name
+npm run auth-api-check      # live HTTP contract vs a running API
+npm run migration:generate
 npm run migration:run
-npm run migration:revert
+npm run db:studio
 ```
+
+Git hooks (Husky + lint-staged) run ESLint and Prettier on staged TypeScript files before each commit. They are installed automatically via `npm install` (`prepare` script).
 
 ## Adding a feature
 

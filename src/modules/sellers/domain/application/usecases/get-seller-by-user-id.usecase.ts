@@ -21,6 +21,7 @@ export default class GetSellerByUserIdUseCase {
       kind: seller.getKind(),
       status: seller.getStatus(),
       shopName: seller.getShopName(),
+      profileComplete: seller.isProfileComplete(),
     };
   }
 }

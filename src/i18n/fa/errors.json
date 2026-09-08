@@ -13,5 +13,6 @@
   "ACCOUNT_NOT_FOUND": "حسابی با این شماره موبایل پیدا نشد",
   "SELLER_ALREADY_EXISTS": "پروفایل فروشنده برای این حساب وجود دارد",
   "SELLER_NOT_ACTIVE": "حساب فروشنده فعال نیست",
-  "SELLER_NOT_FOUND": "فروشنده پیدا نشد"
+  "SELLER_NOT_FOUND": "فروشنده پیدا نشد",
+  "SELLER_PROFILE_INCOMPLETE": "قبل از فعال‌سازی، اطلاعات غرفه را تکمیل کنید"
 }

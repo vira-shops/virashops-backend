@@ -2,6 +2,8 @@ import { Inject, Injectable } from '@nestjs/common';
 import ForbiddenError from '../../../../users/domain/errors/forbidden.error';
 import Role from '../../../../users/domain/model/enums/role.enum';
 import SellerNotFoundError from '../../errors/seller-not-found.error';
+import SellerProfileIncompleteError from '../../errors/seller-profile-incomplete.error';
+import SellerStatus from '../../model/enums/seller-status.enum';
 import Seller from '../../model/seller.model';
 import type SellerRepositoryPort from '../../ports/seller.repository.port';
 import { SELLER_REPOSITORY } from '../../../shared/tokens/port.token';
@@ -22,6 +24,10 @@ export default class UpdateSellerStatusUseCase {
     const seller = await this.sellers.findById(command.sellerId);
     if (!seller) {
       throw new SellerNotFoundError();
+    }
+
+    if (command.status === SellerStatus.ACTIVE && !seller.isProfileComplete()) {
+      throw new SellerProfileIncompleteError();
     }
 
     seller.transitionTo(command.status);
