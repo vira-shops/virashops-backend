@@ -7,6 +7,9 @@ import DrizzleModule from './database/drizzle.module';
 import { validate } from './config/env.validation';
 import { i18nConfig } from './config/i18n.config';
 import HealthModule from './modules/health/health.module';
+import CategoriesModule from './modules/categories/interfaces/categories.module';
+import ProductsModule from './modules/products/interfaces/products.module';
+import SearchModule from './modules/search/interfaces/search.module';
 import SellersModule from './modules/sellers/interfaces/sellers.module';
 import CoreInfrastructureModule from './modules/shared/infrastructure/infrastructure.module';
 import DomainExceptionFilter from './modules/shared/interface/http/filters/domain-exception.filter';
@@ -27,6 +30,9 @@ import UsersModule from './modules/users/interfaces/users.module';
     HealthModule,
     UsersModule,
     SellersModule,
+    ProductsModule,
+    CategoriesModule,
+    SearchModule,
   ],
   providers: [
     {
