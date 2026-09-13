@@ -493,7 +493,7 @@ This service uses **npm**. The API Compose service is **`api`**. There is **no**
 
 | npm / Compose service | Script | Notes |
 | --- | --- | --- |
-| `auth-api-check` | `scripts/auth-api-check.ts` | Covers every current HTTP route: health envelope; buyer / wholesale-buyer / seller / both signup; OTP request / verify / resend; `GET /auth/me`; logout + denylist; `PATCH /auth/sellers/me`; admin `PATCH /admin/sellers/:id/status`; errors `400 VALIDATION`, `401`, `403`, `404 ACCOUNT_NOT_FOUND` / `SELLER_NOT_FOUND`, `409 PHONE_ALREADY_REGISTERED`, `400 SELLER_PROFILE_INCOMPLETE`. |
+| `auth-api-check` | `scripts/auth-api-check.ts` | Covers every current HTTP route: health envelope; signup `step1` (name+phone) → OTP (`needsStep2`) → `step2` (role/channel); login phone+OTP; buyer / wholesale-buyer / seller / both; legacy signup; `GET /auth/me`; logout + denylist; `PATCH /auth/sellers/me`; admin `PATCH /admin/sellers/:id/status`; errors `400 VALIDATION`, `401`, `403`, `404 ACCOUNT_NOT_FOUND` / `SELLER_NOT_FOUND`, `409 PHONE_ALREADY_REGISTERED`, `400 SELLER_PROFILE_INCOMPLETE`. |
 | `catalog-api-check` | `scripts/catalog-api-check.ts` | Covers catalog HTTP: `/categories/tree`, `/categories/home`, `/categories/:slug` (+ `CATEGORY_NOT_FOUND`); `/products` list filters/pagination/sort/channel; `/products/:slug` retail vs wholesale + related (+ `PRODUCT_NOT_FOUND`); `/search/suggestions` (category + product terms); `/search` product/category hits and filter passthrough; asserts category `productCount` matches product list totals. Requires product seed from migration `0003_products`. |
 
 Bring-up and run (needs a gitignored `.env` copied from `.env.example`):

@@ -47,7 +47,9 @@ export default class RedisOtpAdapter implements OtpServicePort {
     pipeline.del(`${ATTEMPTS_PREFIX}${phone}`);
     await pipeline.exec();
 
-    const sentCount = Number((await this.redis.get(`${RATE_PREFIX}${phone}`)) ?? 0);
+    const sentCount = Number(
+      (await this.redis.get(`${RATE_PREFIX}${phone}`)) ?? 0,
+    );
     if (sentCount === 1) {
       await this.redis.expire(`${RATE_PREFIX}${phone}`, RATE_WINDOW_SECONDS);
     }

@@ -1,6 +1,9 @@
 import User from '../../../domain/model/user.model';
 import { SellerSummary } from '../../../domain/ports/seller-summary.query.port';
-import AuthSession from '../../../domain/view-models/auth-session.view-model';
+import AuthSession, {
+  AuthOrStep2,
+  SignupStep2Required,
+} from '../../../domain/view-models/auth-session.view-model';
 
 export type AuthUserHttpView = {
   id: number;
@@ -21,6 +24,16 @@ export type AuthUserHttpView = {
     profileComplete: boolean;
   } | null;
 };
+
+export type SignupStep2RequiredHttpView = {
+  needsStep2: true;
+  phone: string;
+  firstName: string;
+  lastName: string;
+};
+
+export type VerifyOtpResponse =
+  { accessToken: string; user: AuthUserHttpView } | SignupStep2RequiredHttpView;
 
 export default class AuthHttpMapper {
   static toUser(
@@ -58,5 +71,17 @@ export default class AuthHttpMapper {
       accessToken: session.accessToken,
       user: AuthHttpMapper.toUser(session.user, session.seller),
     };
+  }
+
+  static toVerifyOtpResponse(result: AuthOrStep2): VerifyOtpResponse {
+    if (result instanceof SignupStep2Required) {
+      return {
+        needsStep2: true,
+        phone: result.phone,
+        firstName: result.firstName,
+        lastName: result.lastName,
+      };
+    }
+    return AuthHttpMapper.toSession(result);
   }
 }

@@ -5,6 +5,8 @@ import GetMeUseCase from '../domain/application/usecases/get-me.usecase';
 import IssueSessionUseCase from '../domain/application/usecases/issue-session.usecase';
 import LogoutUseCase from '../domain/application/usecases/logout.usecase';
 import RequestOtpUseCase from '../domain/application/usecases/request-otp.usecase';
+import SignupStep1UseCase from '../domain/application/usecases/signup-step1.usecase';
+import SignupStep2UseCase from '../domain/application/usecases/signup-step2.usecase';
 import SignupUserUseCase from '../domain/application/usecases/signup-user.usecase';
 import VerifyOtpUseCase from '../domain/application/usecases/verify-otp.usecase';
 import UsersInfrastructureModule from '../infrastructure/infrastructure.module';
@@ -18,6 +20,8 @@ import RolesGuard from './http/guards/roles.guard';
   controllers: [AuthController],
   providers: [
     SignupUserUseCase,
+    SignupStep1UseCase,
+    SignupStep2UseCase,
     RequestOtpUseCase,
     VerifyOtpUseCase,
     LogoutUseCase,

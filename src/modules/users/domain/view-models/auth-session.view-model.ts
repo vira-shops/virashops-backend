@@ -8,3 +8,13 @@ export default class AuthSession {
     readonly seller: SellerSummary | null,
   ) {}
 }
+
+export class SignupStep2Required {
+  constructor(
+    readonly phone: string,
+    readonly firstName: string,
+    readonly lastName: string,
+  ) {}
+}
+
+export type AuthOrStep2 = AuthSession | SignupStep2Required;
