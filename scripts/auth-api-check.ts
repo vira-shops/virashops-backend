@@ -1,13 +1,17 @@
 /**
- * Auth API contract check (covers every current HTTP endpoint).
+ * Auth API contract check (signup step1→OTP→step2, login OTP, me, logout).
  *
- * Verifies:
- *   - GET /health envelope
- *   - Buyer / wholesale-buyer / seller / both signup + 6-digit OTP
- *   - Login, resend, GET /auth/me, logout + denylist
- *   - Seller profile completion
- *   - Admin OTP login and PATCH /admin/sellers/:id/status
- *   - Error contracts: 400 VALIDATION, 401, 403, 404, 409 + { status, data }
+ * Flow under test:
+ *   Login:  phone + OTP → JWT
+ *   Signup: step1 (name + phone) → OTP → step2 (channel/accountType/role) → JWT
+ *
+ * Also covers:
+ *   - Health envelope
+ *   - Buyer / wholesale-buyer / seller / both
+ *   - OTP resend, GET /auth/me, logout + denylist
+ *   - PATCH /auth/sellers/me + admin seller status
+ *   - Legacy POST /auth/signup (deprecated)
+ *   - Errors: 400 VALIDATION, 401, 403, 404, 409, SELLER_PROFILE_INCOMPLETE
  *
  * Run:
  *   npm run auth-api-check
@@ -77,6 +81,8 @@ const report: Report = {
   steps: [],
   endpointsChecklist: [
     { method: 'GET', path: '/health', auth: false, covered: true },
+    { method: 'POST', path: '/auth/signup/step1', auth: false, covered: true },
+    { method: 'POST', path: '/auth/signup/step2', auth: false, covered: true },
     { method: 'POST', path: '/auth/signup', auth: false, covered: true },
     { method: 'POST', path: '/auth/otp/request', auth: false, covered: true },
     { method: 'POST', path: '/auth/otp/verify', auth: false, covered: true },
@@ -208,7 +214,8 @@ function saveReport(): string {
   return OUTPUT_FILE;
 }
 
-function sellerForm(fields: Record<string, string>): FormData {
+/** Step2 seller/both multipart — no firstName/lastName (forbidNonWhitelisted). */
+function sellerStep2Form(fields: Record<string, string>): FormData {
   const form = new FormData();
   for (const [key, value] of Object.entries(fields)) {
     form.append(key, value);
@@ -220,6 +227,57 @@ function sellerForm(fields: Record<string, string>): FormData {
   return form;
 }
 
+async function signupStep1(
+  stepNum: number,
+  name: string,
+  firstName: string,
+  lastName: string,
+  phone: string,
+): Promise<void> {
+  await api(stepNum, name, 'POST', '/auth/signup/step1', {
+    body: { firstName, lastName, phone },
+    checks: (status, body) => {
+      const data = unwrapApiData<{ otpSent?: boolean; accessToken?: string }>(
+        body,
+      );
+      return {
+        ...envelopeOk(status, body, 200),
+        otpSent: data?.otpSent === true,
+        noToken: data?.accessToken === undefined,
+      };
+    },
+  });
+}
+
+async function verifyNeedsStep2(
+  stepNum: number,
+  name: string,
+  phone: string,
+  firstName: string,
+  lastName: string,
+): Promise<void> {
+  await api(stepNum, name, 'POST', '/auth/otp/verify', {
+    body: { phone, code: OTP },
+    checks: (status, body) => {
+      const data = unwrapApiData<{
+        needsStep2?: boolean;
+        phone?: string;
+        firstName?: string;
+        lastName?: string;
+        accessToken?: string;
+      }>(body);
+      return {
+        ...envelopeOk(status, body, 200),
+        needsStep2: data?.needsStep2 === true,
+        phone: data?.phone === phone,
+        firstName: data?.firstName === firstName,
+        lastName: data?.lastName === lastName,
+        noToken: data?.accessToken === undefined,
+      };
+    },
+  });
+}
+
 async function main(): Promise<void> {
   console.log(`\nAuth API check → ${BASE_URL} (run ${RUN_ID})\n`);
   let step = 0;
@@ -228,6 +286,7 @@ async function main(): Promise<void> {
   const wholesalePhone = uniquePhone(2);
   const sellerPhone = uniquePhone(3);
   const bothPhone = uniquePhone(4);
+  const legacyPhone = uniquePhone(5);
 
   await api(++step, 'Health', 'GET', '/health', {
     checks: (status, body) => {
@@ -239,7 +298,7 @@ async function main(): Promise<void> {
     },
   });
 
-  await api(++step, 'Signup validation error', 'POST', '/auth/signup', {
+  await api(++step, 'Step1 validation error', 'POST', '/auth/signup/step1', {
     body: { phone: '0912' },
     expectStatus: 400,
     checks: (status, body) => errorOk(status, body, 400, 'VALIDATION'),
@@ -262,27 +321,8 @@ async function main(): Promise<void> {
     checks: (status, body) => errorOk(status, body, 400, 'VALIDATION'),
   });
 
-  await api(++step, 'Retail buyer signup', 'POST', '/auth/signup', {
-    body: {
-      firstName: 'Ali',
-      lastName: 'Buyer',
-      phone: buyerPhone,
-      channel: 'RETAIL',
-      accountType: 'BUYER',
-      activityType: 'STORE',
-      guildType: 'FOOD',
-    },
-    checks: (status, body) => {
-      const data = unwrapApiData<{ otpSent?: boolean; accessToken?: string }>(
-        body,
-      );
-      return {
-        ...envelopeOk(status, body, 200),
-        otpSent: data?.otpSent === true,
-        noToken: data?.accessToken === undefined,
-      };
-    },
-  });
+  // --- Retail buyer: step1 → OTP → step2 (role after OTP) ---
+  await signupStep1(++step, 'Retail buyer step1', 'Ali', 'Buyer', buyerPhone);
 
   await sleep(1200);
   await api(++step, 'Signup OTP resend', 'POST', '/auth/otp/request', {
@@ -295,13 +335,39 @@ async function main(): Promise<void> {
     checks: (status, body) => errorOk(status, body, 401, 'INVALID_OTP'),
   });
 
-  const buyerVerify = await api(
+  await verifyNeedsStep2(
     ++step,
-    'Verify retail buyer OTP',
+    'Verify buyer OTP → needsStep2',
+    buyerPhone,
+    'Ali',
+    'Buyer',
+  );
+
+  await api(++step, 'Step2 before OTP rejected', 'POST', '/auth/signup/step2', {
+    body: {
+      phone: uniquePhone(8),
+      channel: 'RETAIL',
+      accountType: 'BUYER',
+      activityType: 'STORE',
+      guildType: 'FOOD',
+    },
+    expectStatus: 400,
+    checks: (status, body) => errorOk(status, body, 400, 'VALIDATION'),
+  });
+
+  const buyerStep2 = await api(
+    ++step,
+    'Retail buyer step2 (role)',
     'POST',
-    '/auth/otp/verify',
+    '/auth/signup/step2',
     {
-      body: { phone: buyerPhone, code: OTP },
+      body: {
+        phone: buyerPhone,
+        channel: 'RETAIL',
+        accountType: 'BUYER',
+        activityType: 'STORE',
+        guildType: 'FOOD',
+      },
       checks: (status, body) => {
         const data = unwrapApiData<{
           accessToken?: string;
@@ -315,9 +381,9 @@ async function main(): Promise<void> {
       },
     },
   );
-  const buyerToken = authLoginTokens(buyerVerify.body).accessToken;
+  const buyerToken = authLoginTokens(buyerStep2.body).accessToken;
   if (!buyerToken) {
-    throw new Error('Buyer verify did not return an access token');
+    throw new Error('Buyer step2 did not return an access token');
   }
 
   await api(++step, 'Get buyer me', 'GET', '/auth/me', {
@@ -337,15 +403,11 @@ async function main(): Promise<void> {
     },
   });
 
-  await api(++step, 'Duplicate buyer signup', 'POST', '/auth/signup', {
+  await api(++step, 'Duplicate buyer step1', 'POST', '/auth/signup/step1', {
     body: {
       firstName: 'Ali',
       lastName: 'Buyer',
       phone: buyerPhone,
-      channel: 'RETAIL',
-      accountType: 'BUYER',
-      activityType: 'STORE',
-      guildType: 'FOOD',
     },
     expectStatus: 409,
     checks: (status, body) =>
@@ -401,6 +463,7 @@ async function main(): Promise<void> {
     checks: (status, body) => errorOk(status, body, 401, 'UNAUTHORIZED'),
   });
 
+  // --- Login: phone + OTP ---
   await api(++step, 'Buyer login OTP request', 'POST', '/auth/otp/request', {
     body: { phone: buyerPhone },
   });
@@ -412,19 +475,29 @@ async function main(): Promise<void> {
     }),
   });
 
-  await api(++step, 'Wholesale buyer signup', 'POST', '/auth/signup', {
+  // --- Wholesale buyer ---
+  await signupStep1(
+    ++step,
+    'Wholesale buyer step1',
+    'Neda',
+    'Wholesale',
+    wholesalePhone,
+  );
+  await verifyNeedsStep2(
+    ++step,
+    'Verify wholesale OTP → needsStep2',
+    wholesalePhone,
+    'Neda',
+    'Wholesale',
+  );
+  await api(++step, 'Wholesale buyer step2', 'POST', '/auth/signup/step2', {
     body: {
-      firstName: 'Neda',
-      lastName: 'Wholesale',
       phone: wholesalePhone,
       channel: 'WHOLESALE',
       accountType: 'BUYER',
       activityType: 'STORE',
       guildType: 'FOOD',
     },
-  });
-  await api(++step, 'Verify wholesale buyer OTP', 'POST', '/auth/otp/verify', {
-    body: { phone: wholesalePhone, code: OTP },
     checks: (status, body) => {
       const data = unwrapApiData<{ user?: { roles?: string[] } }>(body);
       return {
@@ -434,11 +507,19 @@ async function main(): Promise<void> {
     },
   });
 
-  await api(++step, 'Seller signup without document', 'POST', '/auth/signup', {
+  // --- Seller: step1 → OTP → step2 multipart ---
+  await signupStep1(++step, 'Retail seller step1', 'Sara', 'Seller', sellerPhone);
+  await verifyNeedsStep2(
+    ++step,
+    'Verify seller OTP → needsStep2',
+    sellerPhone,
+    'Sara',
+    'Seller',
+  );
+
+  await api(++step, 'Seller step2 without document', 'POST', '/auth/signup/step2', {
     formData: (() => {
       const form = new FormData();
-      form.append('firstName', 'Sara');
-      form.append('lastName', 'Seller');
       form.append('phone', sellerPhone);
       form.append('channel', 'RETAIL');
       form.append('accountType', 'SELLER');
@@ -451,36 +532,24 @@ async function main(): Promise<void> {
     checks: (status, body) => errorOk(status, body, 400, 'VALIDATION'),
   });
 
-  await api(++step, 'Retail seller signup', 'POST', '/auth/signup', {
-    formData: sellerForm({
-      firstName: 'Sara',
-      lastName: 'Seller',
-      phone: sellerPhone,
-      channel: 'RETAIL',
-      accountType: 'SELLER',
-      activityType: 'STORE',
-      industryType: 'FOOD',
-      category: 'CANNED',
-      documentType: 'NATIONAL_ID',
-    }),
-    checks: (status, body) => {
-      const data = unwrapApiData<{ otpSent?: boolean }>(body);
-      return {
-        ...envelopeOk(status, body, 200),
-        otpSent: data?.otpSent === true,
-      };
-    },
-  });
-
-  const sellerVerify = await api(
+  const sellerStep2 = await api(
     ++step,
-    'Verify retail seller OTP',
+    'Retail seller step2',
     'POST',
-    '/auth/otp/verify',
+    '/auth/signup/step2',
     {
-      body: { phone: sellerPhone, code: OTP },
+      formData: sellerStep2Form({
+        phone: sellerPhone,
+        channel: 'RETAIL',
+        accountType: 'SELLER',
+        activityType: 'STORE',
+        industryType: 'FOOD',
+        category: 'CANNED',
+        documentType: 'NATIONAL_ID',
+      }),
       checks: (status, body) => {
         const data = unwrapApiData<{
+          accessToken?: string;
           user?: {
             roles?: string[];
             seller?: {
@@ -492,6 +561,7 @@ async function main(): Promise<void> {
         }>(body);
         return {
           ...envelopeOk(status, body, 200),
+          hasToken: Boolean(data?.accessToken),
           retailSeller: data?.user?.roles?.includes('RETAIL_SELLER') === true,
           pending: data?.user?.seller?.status === 'PENDING',
           incomplete: data?.user?.seller?.profileComplete === false,
@@ -499,12 +569,12 @@ async function main(): Promise<void> {
       },
     },
   );
-  const sellerToken = authLoginTokens(sellerVerify.body).accessToken;
+  const sellerToken = authLoginTokens(sellerStep2.body).accessToken;
   const sellerId = unwrapApiData<{
     user?: { seller?: { id?: number } };
-  }>(sellerVerify.body)?.user?.seller?.id;
+  }>(sellerStep2.body)?.user?.seller?.id;
   if (!sellerToken || !sellerId) {
-    throw new Error('Seller verify did not return token and seller id');
+    throw new Error('Seller step2 did not return token and seller id');
   }
 
   const adminLogin = await api(
@@ -594,10 +664,17 @@ async function main(): Promise<void> {
     },
   );
 
-  await api(++step, 'Both-account signup', 'POST', '/auth/signup', {
-    formData: sellerForm({
-      firstName: 'Both',
-      lastName: 'User',
+  // --- Both (buyer + seller): role after OTP at step2 ---
+  await signupStep1(++step, 'Both-account step1', 'Both', 'User', bothPhone);
+  await verifyNeedsStep2(
+    ++step,
+    'Verify both OTP → needsStep2',
+    bothPhone,
+    'Both',
+    'User',
+  );
+  await api(++step, 'Both-account step2', 'POST', '/auth/signup/step2', {
+    formData: sellerStep2Form({
       phone: bothPhone,
       channel: 'WHOLESALE',
       accountType: 'BOTH',
@@ -606,9 +683,6 @@ async function main(): Promise<void> {
       category: 'CANNED',
       documentType: 'BUSINESS_LICENSE',
     }),
-  });
-  await api(++step, 'Verify both-account OTP', 'POST', '/auth/otp/verify', {
-    body: { phone: bothPhone, code: OTP },
     checks: (status, body) => {
       const roles =
         unwrapApiData<{ user?: { roles?: string[] } }>(body)?.user?.roles ?? [];
@@ -619,6 +693,33 @@ async function main(): Promise<void> {
         wholesaleSeller: roles.includes('WHOLESALE_SELLER'),
       };
     },
+  });
+
+  // --- Legacy signup (deprecated, still works) ---
+  await api(++step, 'Legacy signup', 'POST', '/auth/signup', {
+    body: {
+      firstName: 'Legacy',
+      lastName: 'User',
+      phone: legacyPhone,
+      channel: 'RETAIL',
+      accountType: 'BUYER',
+      activityType: 'STORE',
+      guildType: 'FOOD',
+    },
+    checks: (status, body) => {
+      const data = unwrapApiData<{ otpSent?: boolean }>(body);
+      return {
+        ...envelopeOk(status, body, 200),
+        otpSent: data?.otpSent === true,
+      };
+    },
+  });
+  await api(++step, 'Legacy OTP verify → JWT', 'POST', '/auth/otp/verify', {
+    body: { phone: legacyPhone, code: OTP },
+    checks: (status, body) => ({
+      ...envelopeOk(status, body, 200),
+      hasToken: Boolean(authLoginTokens(body).accessToken),
+    }),
   });
 
   const out = saveReport();

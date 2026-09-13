@@ -28,16 +28,14 @@ export default class RedisPendingSignupAdapter implements PendingSignupRepositor
       return null;
     }
     const parsed = JSON.parse(raw) as Partial<PendingSignupDraft>;
-    if (
-      !parsed.firstName ||
-      !parsed.lastName ||
-      !parsed.channel ||
-      !parsed.accountType
-    ) {
+    if (!parsed.firstName || !parsed.lastName) {
+      return null;
+    }
+    if (parsed.channel && !Object.values(Channel).includes(parsed.channel)) {
       return null;
     }
     if (
-      !Object.values(Channel).includes(parsed.channel) ||
+      parsed.accountType &&
       !Object.values(AccountType).includes(parsed.accountType)
     ) {
       return null;
@@ -45,14 +43,15 @@ export default class RedisPendingSignupAdapter implements PendingSignupRepositor
     return {
       firstName: parsed.firstName,
       lastName: parsed.lastName,
-      channel: parsed.channel,
-      accountType: parsed.accountType,
+      channel: parsed.channel ?? null,
+      accountType: parsed.accountType ?? null,
       activityType: parsed.activityType ?? null,
       guildType: parsed.guildType ?? null,
       industryType: parsed.industryType ?? null,
       category: parsed.category ?? null,
       documentType: parsed.documentType ?? null,
       documentKey: parsed.documentKey ?? null,
+      step: parsed.step ?? null,
     };
   }
 

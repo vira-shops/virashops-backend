@@ -4,24 +4,25 @@ import RedisOtpAdapter from './redis-otp.adapter';
 describe('RedisOtpAdapter', () => {
   const store = new Map<string, { value: string; expireAt?: number }>();
   const redis = {
-    get: async (key: string) => store.get(key)?.value ?? null,
-    set: async (key: string, value: string, _ex?: string, ttl?: number) => {
+    get: (key: string) => Promise.resolve(store.get(key)?.value ?? null),
+    set: (key: string, value: string, _ex?: string, ttl?: number) => {
       store.set(key, {
         value,
         expireAt: ttl ? Date.now() + ttl * 1000 : undefined,
       });
+      return Promise.resolve();
     },
-    incr: async (key: string) => {
+    incr: (key: string) => {
       const next = Number(store.get(key)?.value ?? 0) + 1;
       store.set(key, { value: String(next) });
-      return next;
+      return Promise.resolve(next);
     },
-    expire: async () => 1,
-    del: async (...keys: string[]) => {
+    expire: () => Promise.resolve(1),
+    del: (...keys: string[]) => {
       keys.forEach((key) => store.delete(key));
-      return keys.length;
+      return Promise.resolve(keys.length);
     },
-    ttl: async () => 60,
+    ttl: () => Promise.resolve(60),
     multi: () => {
       const ops: Array<() => Promise<unknown>> = [];
       const chain = {
@@ -34,7 +35,7 @@ describe('RedisOtpAdapter', () => {
           return chain;
         },
         expire: () => {
-          ops.push(async () => 1);
+          ops.push(() => Promise.resolve(1));
           return chain;
         },
         del: (key: string) => {
@@ -51,18 +52,21 @@ describe('RedisOtpAdapter', () => {
     },
   };
 
-  const adapter = new RedisOtpAdapter(redis as never, {
-    get: (key: string) => {
-      const values: Record<string, unknown> = {
-        OTP_TTL_SECONDS: 120,
-        OTP_RESEND_SECONDS: 60,
-        OTP_LENGTH: 6,
-        OTP_DEV_CODE: '123456',
-      };
-      return values[key];
-    },
-    getOrThrow: () => 'secret',
-  } as never);
+  const adapter = new RedisOtpAdapter(
+    redis as never,
+    {
+      get: (key: string) => {
+        const values: Record<string, unknown> = {
+          OTP_TTL_SECONDS: 120,
+          OTP_RESEND_SECONDS: 60,
+          OTP_LENGTH: 6,
+          OTP_DEV_CODE: '123456',
+        };
+        return values[key];
+      },
+      getOrThrow: () => 'secret',
+    } as never,
+  );
 
   beforeEach(() => store.clear());
 

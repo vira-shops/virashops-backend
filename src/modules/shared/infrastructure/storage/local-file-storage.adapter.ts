@@ -7,7 +7,12 @@ import FileStorageServicePort from '../../application/ports/s3-storage.service.p
 export default class LocalFileStorageAdapter implements FileStorageServicePort {
   private readonly root = join(process.cwd(), 'uploads');
 
-  async upload(key: string, body: Buffer, _contentType: string): Promise<string> {
+  async upload(
+    key: string,
+    body: Buffer,
+    contentType: string,
+  ): Promise<string> {
+    void contentType;
     const path = join(this.root, key);
     await mkdir(dirname(path), { recursive: true });
     await writeFile(path, body);
@@ -22,7 +27,8 @@ export default class LocalFileStorageAdapter implements FileStorageServicePort {
     }
   }
 
-  async getSignedUrl(key: string, _expiresInSeconds?: number): Promise<string> {
-    return `/uploads/${key}`;
+  getSignedUrl(key: string, expiresInSeconds?: number): Promise<string> {
+    void expiresInSeconds;
+    return Promise.resolve(`/uploads/${key}`);
   }
 }

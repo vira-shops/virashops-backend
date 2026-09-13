@@ -22,17 +22,25 @@ import ApiResponse from '../../../../../common/http/api-response';
 import LogoutCommand from '../../../domain/application/commands/logout.command';
 import RequestOtpCommand from '../../../domain/application/commands/request-otp.command';
 import SignupUserCommand from '../../../domain/application/commands/signup-user.command';
+import {
+  SignupStep1Command,
+  SignupStep2Command,
+} from '../../../domain/application/commands/signup-user.command';
 import VerifyOtpCommand from '../../../domain/application/commands/verify-otp.command';
 import GetMeQuery from '../../../domain/application/queries/get-me.query';
 import GetMeUseCase from '../../../domain/application/usecases/get-me.usecase';
 import LogoutUseCase from '../../../domain/application/usecases/logout.usecase';
 import RequestOtpUseCase from '../../../domain/application/usecases/request-otp.usecase';
 import SignupUserUseCase from '../../../domain/application/usecases/signup-user.usecase';
+import SignupStep1UseCase from '../../../domain/application/usecases/signup-step1.usecase';
+import SignupStep2UseCase from '../../../domain/application/usecases/signup-step2.usecase';
 import VerifyOtpUseCase from '../../../domain/application/usecases/verify-otp.usecase';
 import UnauthorizedError from '../../../domain/errors/unauthorized.error';
 import User from '../../../domain/model/user.model';
 import CurrentUser from '../decorators/current-user.decorator';
 import RequestOtpHttpDto from '../dto/request-otp.http-dto';
+import SignupStep1HttpDto from '../dto/signup-step1.http-dto';
+import SignupStep2HttpDto from '../dto/signup-step2.http-dto';
 import SignupUserHttpDto from '../dto/signup-user.http-dto';
 import VerifyOtpHttpDto from '../dto/verify-otp.http-dto';
 import JwtAuthGuard from '../guards/jwt-auth.guard';
@@ -43,6 +51,8 @@ import AuthHttpMapper from '../mappers/auth-http.mapper';
 export default class AuthController {
   constructor(
     private readonly signupUser: SignupUserUseCase,
+    private readonly step1Service: SignupStep1UseCase,
+    private readonly step2Service: SignupStep2UseCase,
     private readonly requestOtp: RequestOtpUseCase,
     private readonly verifyOtp: VerifyOtpUseCase,
     private readonly logout: LogoutUseCase,
@@ -55,6 +65,7 @@ export default class AuthController {
   @ApiConsumes('multipart/form-data', 'application/json')
   @ApiOperation({
     summary: 'Signup (buyer/seller/both). Sends a 6-digit OTP; no JWT yet',
+    deprecated: true,
   })
   async signup(
     @Body() dto: SignupUserHttpDto,
@@ -85,6 +96,53 @@ export default class AuthController {
     return ApiResponse.of(data);
   }
 
+  @Post('signup/step1')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Signup Step 1: Submit firstName, lastName, phone. Sends OTP.',
+  })
+  async step1Signup(@Body() dto: SignupStep1HttpDto) {
+    const data = await this.step1Service.execute(
+      new SignupStep1Command(dto.firstName, dto.lastName, dto.phone),
+    );
+    return ApiResponse.of(data);
+  }
+
+  @Post('signup/step2')
+  @HttpCode(HttpStatus.OK)
+  @UseInterceptors(FileInterceptor('document', { storage: memoryStorage() }))
+  @ApiConsumes('multipart/form-data', 'application/json')
+  @ApiOperation({
+    summary:
+      'Signup Step 2: Submit account details after OTP verification. Returns JWT.',
+  })
+  async step2Signup(
+    @Body() dto: SignupStep2HttpDto,
+    @UploadedFile()
+    file?: { buffer: Buffer; mimetype: string; originalname: string },
+  ) {
+    const session = await this.step2Service.execute(
+      new SignupStep2Command(
+        dto.phone,
+        dto.channel,
+        dto.accountType,
+        dto.activityType ?? null,
+        dto.guildType ?? null,
+        dto.industryType ?? null,
+        dto.category ?? null,
+        dto.documentType ?? null,
+        file
+          ? {
+              buffer: file.buffer,
+              mimeType: file.mimetype,
+              originalName: file.originalname,
+            }
+          : null,
+      ),
+    );
+    return ApiResponse.of(AuthHttpMapper.toSession(session));
+  }
+
   @Post('otp/request')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Request login or signup-resend OTP' })
@@ -97,12 +155,14 @@ export default class AuthController {
 
   @Post('otp/verify')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Verify 6-digit OTP and receive a JWT' })
+  @ApiOperation({
+    summary: 'Verify 6-digit OTP. Returns JWT or indicates Step 2 is required.',
+  })
   async verify(@Body() dto: VerifyOtpHttpDto) {
-    const session = await this.verifyOtp.execute(
+    const result = await this.verifyOtp.execute(
       new VerifyOtpCommand(dto.phone, dto.code),
     );
-    return ApiResponse.of(AuthHttpMapper.toSession(session));
+    return ApiResponse.of(AuthHttpMapper.toVerifyOtpResponse(result));
   }
 
   @Post('logout')

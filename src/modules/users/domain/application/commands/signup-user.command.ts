@@ -22,3 +22,25 @@ export default class SignupUserCommand {
     readonly document: SignupDocumentPayload | null,
   ) {}
 }
+
+export class SignupStep1Command {
+  constructor(
+    readonly firstName: string,
+    readonly lastName: string,
+    readonly phone: string,
+  ) {}
+}
+
+export class SignupStep2Command {
+  constructor(
+    readonly phone: string,
+    readonly channel: Channel,
+    readonly accountType: AccountType,
+    readonly activityType: string | null,
+    readonly guildType: string | null,
+    readonly industryType: string | null,
+    readonly category: string | null,
+    readonly documentType: string | null,
+    readonly document: SignupDocumentPayload | null,
+  ) {}
+}

@@ -16,7 +16,10 @@ import User from '../../model/user.model';
 import type CreatePendingSellerPort from '../../ports/create-pending-seller.port';
 import type PendingSignupRepositoryPort from '../../ports/pending-signup.repository.port';
 import type UserRepositoryPort from '../../ports/user.repository.port';
-import AuthSession from '../../view-models/auth-session.view-model';
+import {
+  AuthOrStep2,
+  SignupStep2Required,
+} from '../../view-models/auth-session.view-model';
 import {
   CREATE_PENDING_SELLER,
   PENDING_SIGNUP_REPOSITORY,
@@ -39,7 +42,7 @@ export default class VerifyOtpUseCase {
     private readonly createSeller?: CreatePendingSellerPort,
   ) {}
 
-  async execute(command: VerifyOtpCommand): Promise<AuthSession> {
+  async execute(command: VerifyOtpCommand): Promise<AuthOrStep2> {
     const phone = Phone.parse(command.phone).toString();
     const verified = await this.otp.verify(phone, command.code.trim());
     if (!verified.ok) {
@@ -56,14 +59,30 @@ export default class VerifyOtpUseCase {
         throw new AccountNotFoundError();
       }
 
+      if (signup.step === 1) {
+        await this.pending.save(phone, {
+          ...signup,
+          step: 2,
+        });
+        return new SignupStep2Required(
+          phone,
+          signup.firstName,
+          signup.lastName,
+        );
+      }
+
+      if (!signup.channel || !signup.accountType) {
+        throw new InvalidSignupFieldError('Step 2 data is incomplete');
+      }
+
       user = await this.users.save(
         User.createFromSignup({
           phone,
           firstName: signup.firstName,
           lastName: signup.lastName,
           roles: rolesFromSignup(signup.channel, signup.accountType),
-          activityType: signup.activityType,
-          guildType: signup.guildType,
+          activityType: signup.activityType || null,
+          guildType: signup.guildType || null,
         }),
       );
 
