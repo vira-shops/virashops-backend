@@ -212,6 +212,42 @@ export default class Product {
     return this.getImages()[0]?.imageKey ?? null;
   }
 
+  replaceImages(images: ProductImageProps[]): void {
+    if (images.length < 1) {
+      throw new InvalidProductFieldError(
+        'At least one product image is required',
+      );
+    }
+    const normalized = images.map((image, index) => {
+      const imageKey = image.imageKey.trim();
+      if (!imageKey) {
+        throw new InvalidProductFieldError('Image key is required');
+      }
+      return {
+        imageKey,
+        altFa: image.altFa?.trim() || null,
+        altEn: image.altEn?.trim() || null,
+        isPrimary: image.isPrimary,
+        sortOrder: image.sortOrder ?? index,
+      };
+    });
+    const primaryCount = normalized.filter((image) => image.isPrimary).length;
+    if (primaryCount === 0) {
+      normalized[0].isPrimary = true;
+    } else if (primaryCount > 1) {
+      let seenPrimary = false;
+      for (const image of normalized) {
+        if (image.isPrimary && seenPrimary) {
+          image.isPrimary = false;
+        } else if (image.isPrimary) {
+          seenPrimary = true;
+        }
+      }
+    }
+    this.props.images = normalized;
+    this.props.updatedAt = new Date();
+  }
+
   getProductionDate(): string | null {
     return this.props.productionDate;
   }

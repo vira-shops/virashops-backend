@@ -23,6 +23,7 @@ import type {
   ListPublishedProductsFilter,
   PublishedProductPage,
 } from '../../../domain/ports/product.repository.port';
+import type { ProductImageProps } from '../../../domain/model/product.types';
 import ProductMapper from '../mappers/product.mapper';
 import {
   productImages,
@@ -75,6 +76,52 @@ export default class DrizzleProductRepositoryAdapter implements ProductRepositor
     }
     const [product] = await this.hydrate([row]);
     return product ?? null;
+  }
+
+  async findById(id: number): Promise<Product | null> {
+    const row = await this.db.query.products.findFirst({
+      where: and(eq(products.id, id), isNull(products.deletedAt)),
+    });
+    if (!row) {
+      return null;
+    }
+    const [product] = await this.hydrate([row]);
+    return product ?? null;
+  }
+
+  async replaceImages(
+    productId: number,
+    images: ProductImageProps[],
+  ): Promise<void> {
+    await this.db.transaction(async (tx) => {
+      await tx
+        .update(productImages)
+        .set({ deletedAt: new Date() })
+        .where(
+          and(
+            eq(productImages.productId, productId),
+            isNull(productImages.deletedAt),
+          ),
+        );
+
+      if (images.length > 0) {
+        await tx.insert(productImages).values(
+          images.map((image) => ({
+            productId,
+            imageKey: image.imageKey,
+            altFa: image.altFa,
+            altEn: image.altEn,
+            isPrimary: image.isPrimary,
+            sortOrder: image.sortOrder,
+          })),
+        );
+      }
+
+      await tx
+        .update(products)
+        .set({ updatedAt: new Date() })
+        .where(eq(products.id, productId));
+    });
   }
 
   async findPublishedRelated(

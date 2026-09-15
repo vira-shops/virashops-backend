@@ -1,11 +1,28 @@
 import CatalogChannel from '../../model/enums/catalog-channel.enum';
 import ProductSort from '../../model/enums/product-sort.enum';
 import ListProductsQuery from '../queries/list-products.query';
+import ProductMediaPresenter from '../services/product-media.presenter';
 import InMemoryProductRepository from './in-memory-product.repository';
 import ListProductsUseCase from './list-products.usecase';
+import type FileStorageServicePort from '../../../../shared/application/ports/s3-storage.service.port';
+
+function mediaPresenter(
+  storage: Partial<FileStorageServicePort> = {},
+): ProductMediaPresenter {
+  const files: FileStorageServicePort = {
+    upload: jest.fn(),
+    delete: jest.fn(),
+    getSignedUrl: jest.fn((key: string) => Promise.resolve(`/uploads/${key}`)),
+    ...storage,
+  };
+  return new ProductMediaPresenter(files);
+}
 
 describe('ListProductsUseCase', () => {
-  const useCase = new ListProductsUseCase(new InMemoryProductRepository());
+  const useCase = new ListProductsUseCase(
+    new InMemoryProductRepository(),
+    mediaPresenter(),
+  );
 
   it('lists published products with pagination', async () => {
     const page = await useCase.execute(
@@ -16,6 +33,7 @@ describe('ListProductsUseCase', () => {
     expect(page.page).toBe(1);
     expect(page.limit).toBe(2);
     expect(page.items[0].slug).toBe('pepsi-cola-6pk');
+    expect(page.items[0].imageUrl).toBeNull();
   });
 
   it('filters by category slug and hides drafts', async () => {

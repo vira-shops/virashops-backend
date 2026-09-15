@@ -4,6 +4,7 @@ import ProductViewFactory from '../../view-models/product-view.factory';
 import type { ProductPageView } from '../../view-models/product.view-model';
 import { PRODUCT_REPOSITORY } from '../../../shared/tokens/port.token';
 import ListProductsQuery from '../queries/list-products.query';
+import ProductMediaPresenter from '../services/product-media.presenter';
 
 const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 50;
@@ -13,6 +14,7 @@ export default class ListProductsUseCase {
   constructor(
     @Inject(PRODUCT_REPOSITORY)
     private readonly products: ProductRepositoryPort,
+    private readonly media: ProductMediaPresenter,
   ) {}
 
   async execute(query: ListProductsQuery): Promise<ProductPageView> {
@@ -32,13 +34,13 @@ export default class ListProductsUseCase {
       limit,
     });
 
-    return {
+    return this.media.enrichPage({
       items: result.items.map((product) =>
         ProductViewFactory.card(product, query.lang, query.channel),
       ),
       total: result.total,
       page,
       limit,
-    };
+    });
   }
 }

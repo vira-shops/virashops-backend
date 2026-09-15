@@ -82,7 +82,7 @@ export const productImages = pgTable(
     productId: integer('product_id')
       .notNull()
       .references(() => products.id, { onDelete: 'cascade' }),
-    imageKey: varchar('image_key', { length: 120 }).notNull(),
+    imageKey: varchar('image_key', { length: 255 }).notNull(),
     altFa: varchar('alt_fa', { length: 160 }),
     altEn: varchar('alt_en', { length: 160 }),
     isPrimary: boolean('is_primary').notNull().default(false),

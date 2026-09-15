@@ -9,6 +9,7 @@ export type ProductSellerView = {
   id: number;
   shopName: string;
   logoKey: string | null;
+  logoUrl: string | null;
 };
 
 export type ProductCategoryView = {
@@ -25,6 +26,7 @@ export type ProductSpecView = {
 
 export type ProductImageView = {
   imageKey: string;
+  url: string | null;
   alt: string | null;
   isPrimary: boolean;
   sortOrder: number;
@@ -45,6 +47,7 @@ export type ProductCardView = {
   slug: string;
   name: string;
   imageKey: string | null;
+  imageUrl: string | null;
   price: number;
   compareAtPrice: number | null;
   discountPercent: number;

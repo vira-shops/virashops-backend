@@ -8,6 +8,7 @@ import { validate } from './config/env.validation';
 import { i18nConfig } from './config/i18n.config';
 import HealthModule from './modules/health/health.module';
 import CategoriesModule from './modules/categories/interfaces/categories.module';
+import FilesModule from './modules/files/interfaces/files.module';
 import ProductsModule from './modules/products/interfaces/products.module';
 import SearchModule from './modules/search/interfaces/search.module';
 import SellersModule from './modules/sellers/interfaces/sellers.module';
@@ -33,6 +34,7 @@ import UsersModule from './modules/users/interfaces/users.module';
     ProductsModule,
     CategoriesModule,
     SearchModule,
+    FilesModule,
   ],
   providers: [
     {

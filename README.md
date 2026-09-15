@@ -39,6 +39,7 @@ Black-box HTTP checks against a running API (not Jest). Playbook: [docs/API-CHEC
 docker compose -f docker-compose.yml -f docker-compose.test.yml up -d postgres redis api --wait
 docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm auth-api-check
 docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm catalog-api-check
+docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm files-api-check
 ```
 
 Host fallback if the API is already on `:3000`:
@@ -46,6 +47,7 @@ Host fallback if the API is already on `:3000`:
 ```bash
 npm run auth-api-check
 npm run catalog-api-check
+npm run files-api-check
 ```
 
 ## Scripts
@@ -56,6 +58,7 @@ npm run test                # unit tests (use-case specs, no Nest boot)
 npm run test:e2e
 npm run auth-api-check      # live HTTP auth contract vs a running API
 npm run catalog-api-check   # live HTTP catalog/search contract vs a running API
+npm run files-api-check     # live HTTP files + product images contract
 npm run migration:generate
 npm run migration:run
 npm run db:studio
