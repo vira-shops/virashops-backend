@@ -6,6 +6,7 @@ import type {
   ListPublishedProductsFilter,
   PublishedProductPage,
 } from '../../ports/product.repository.port';
+import type { ProductImageProps } from '../../model/product.types';
 import { DEFAULT_LOW_STOCK_THRESHOLD } from '../../model/product.model';
 
 export function seedProducts(): Product[] {
@@ -384,6 +385,24 @@ export default class InMemoryProductRepository implements ProductRepositoryPort 
     return Promise.resolve(
       this.publicItems().find((product) => product.getSlug() === slug) ?? null,
     );
+  }
+
+  findById(id: number): Promise<Product | null> {
+    return Promise.resolve(
+      this.items.find((product) => product.hasId() && product.getId() === id) ??
+        null,
+    );
+  }
+
+  replaceImages(productId: number, images: ProductImageProps[]): Promise<void> {
+    const product = this.items.find(
+      (item) => item.hasId() && item.getId() === productId,
+    );
+    if (!product) {
+      return Promise.resolve();
+    }
+    product.replaceImages(images);
+    return Promise.resolve();
   }
 
   findPublishedRelated(product: Product, limit: number): Promise<Product[]> {

@@ -3,10 +3,21 @@ import InMemoryCategoryRepository from '../../../../categories/domain/applicatio
 import CountPublishedProductsUseCase from '../../../../products/domain/application/usecases/count-published-products.usecase';
 import InMemoryProductRepository from '../../../../products/domain/application/usecases/in-memory-product.repository';
 import ListProductsUseCase from '../../../../products/domain/application/usecases/list-products.usecase';
+import ProductMediaPresenter from '../../../../products/domain/application/services/product-media.presenter';
 import CatalogChannel from '../../../../products/domain/model/enums/catalog-channel.enum';
 import ProductSort from '../../../../products/domain/model/enums/product-sort.enum';
+import type FileStorageServicePort from '../../../../shared/application/ports/s3-storage.service.port';
 import SearchCatalogQuery from '../queries/search-catalog.query';
 import SearchCatalogUseCase from './search-catalog.usecase';
+
+function media(): ProductMediaPresenter {
+  const files: FileStorageServicePort = {
+    upload: jest.fn(),
+    delete: jest.fn(),
+    getSignedUrl: jest.fn(() => Promise.resolve('/uploads/x')),
+  };
+  return new ProductMediaPresenter(files);
+}
 
 describe('SearchCatalogUseCase', () => {
   const products = new InMemoryProductRepository();
@@ -15,7 +26,7 @@ describe('SearchCatalogUseCase', () => {
       new InMemoryCategoryRepository(),
       new CountPublishedProductsUseCase(products),
     ),
-    new ListProductsUseCase(products),
+    new ListProductsUseCase(products, media()),
   );
 
   it('returns category hits and matching product cards', async () => {

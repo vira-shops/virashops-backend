@@ -24,6 +24,7 @@ export default class ProductViewFactory {
       slug: product.getSlug(),
       name: product.getName(lang),
       imageKey: product.getPrimaryImageKey(),
+      imageUrl: null,
       price: product.getUnitPrice(channel),
       compareAtPrice: product.getCompareAtPrice(),
       discountPercent: product.getDiscountPercent(),
@@ -33,6 +34,7 @@ export default class ProductViewFactory {
         id: product.getSeller().id,
         shopName: product.getSeller().shopName,
         logoKey: product.getSeller().logoKey,
+        logoUrl: null,
       },
       storeCount: 1,
       channel,
@@ -56,6 +58,7 @@ export default class ProductViewFactory {
       sku: product.getSku(),
       gallery: product.getImages().map((image): ProductImageView => ({
         imageKey: image.imageKey,
+        url: null,
         alt: isFa ? image.altFa : image.altEn,
         isPrimary: image.isPrimary,
         sortOrder: image.sortOrder,

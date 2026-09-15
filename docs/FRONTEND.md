@@ -3,7 +3,10 @@
 How the Next.js app talks to this Nest API **today**. tRPC is planned; it is not wired yet. All product HTTP is REST.
 
 **Base URL (local):** `http://localhost:3000`  
-**There is no `/api` prefix.** Paths are `/health`, `/auth/...`, `/admin/...`, `/categories/...`, `/products/...`, `/search...`.
+**There is no `/api` prefix.** Paths are `/health`, `/auth/...`, `/admin/...`, `/categories/...`, `/products/...`, `/search...`, `/files/...`, `/seller/products/...`.
+
+Auth details: [FRONTEND-AUTH.md](./FRONTEND-AUTH.md).  
+Files & product images: [FRONTEND-FILES.md](./FRONTEND-FILES.md).
 
 `API_PREFIX` exists in env but is **not** applied. Do not call `/api/auth/...`.
 
@@ -181,19 +184,35 @@ type ProductCard = {
   id: number;
   slug: string;
   name: string;
-  imageKey: string | null; // frontend maps key → asset URL
+  imageKey: string | null; // asset slug OR storage key `uploads/...`
+  imageUrl: string | null; // short-lived URL when imageKey is under uploads/; else null (map imageKey → static asset)
   price: number; // tomans; retail or wholesale unit price by channel
   compareAtPrice: number | null;
   discountPercent: number;
   badges: string[]; // e.g. ["20%"]
   stockStatus: 'IN_STOCK' | 'LOW_STOCK' | 'OUT_OF_STOCK';
-  seller: { id: number; shopName: string; logoKey: string | null };
+  seller: {
+    id: number;
+    shopName: string;
+    logoKey: string | null;
+    logoUrl: string | null; // same rule as imageUrl
+  };
   storeCount: number; // always 1 in this slice
   channel: 'RETAIL' | 'WHOLESALE';
 };
 ```
 
 Out-of-stock products stay visible. Unpublished / draft products are not returned (`404 PRODUCT_NOT_FOUND` on detail).
+
+### Seller product images (auth)
+
+Full frontend walkthrough (upload → attach → display, with copy-paste examples): **[FRONTEND-FILES.md](./FRONTEND-FILES.md)**.
+
+1. `POST /files/upload` with multipart field `file` (JPEG/PNG/WebP/GIF/PDF, max 10 MB) → `{ key, url, ... }`
+2. `PUT /seller/products/:id/images` with `{ images: [{ key, altFa?, altEn?, isPrimary?, sortOrder? }] }` (seller must own the product; must be ACTIVE)
+3. Public catalog reads return `imageUrl` / gallery `url` for keys under `uploads/`
+
+Admin override: `PUT /admin/products/:id/images` (same body).
 
 ### `GET /products`
 
@@ -223,7 +242,13 @@ Query: `channel=RETAIL|WHOLESALE` (default `RETAIL`).
   description: string | null;
   brand: string | null;
   sku: string | null;
-  gallery: Array<{ imageKey: string; alt: string | null; isPrimary: boolean; sortOrder: number }>;
+  gallery: Array<{
+    imageKey: string;
+    url: string | null; // short-lived when imageKey is uploads/...
+    alt: string | null;
+    isPrimary: boolean;
+    sortOrder: number;
+  }>;
   specs: Array<{ key: string; label: string; value: string }>;
   productionDate: string | null;
   expiryDate: string | null;

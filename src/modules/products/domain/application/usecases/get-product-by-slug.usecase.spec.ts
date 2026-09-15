@@ -1,11 +1,25 @@
 import CatalogChannel from '../../model/enums/catalog-channel.enum';
 import ProductNotFoundError from '../../errors/product-not-found.error';
 import GetProductBySlugQuery from '../queries/get-product-by-slug.query';
+import ProductMediaPresenter from '../services/product-media.presenter';
 import GetProductBySlugUseCase from './get-product-by-slug.usecase';
 import InMemoryProductRepository from './in-memory-product.repository';
+import type FileStorageServicePort from '../../../../shared/application/ports/s3-storage.service.port';
+
+function mediaPresenter(): ProductMediaPresenter {
+  const files: FileStorageServicePort = {
+    upload: jest.fn(),
+    delete: jest.fn(),
+    getSignedUrl: jest.fn((key: string) => Promise.resolve(`/signed/${key}`)),
+  };
+  return new ProductMediaPresenter(files);
+}
 
 describe('GetProductBySlugUseCase', () => {
-  const useCase = new GetProductBySlugUseCase(new InMemoryProductRepository());
+  const useCase = new GetProductBySlugUseCase(
+    new InMemoryProductRepository(),
+    mediaPresenter(),
+  );
 
   it('returns detail with related products from the same category', async () => {
     const detail = await useCase.execute(

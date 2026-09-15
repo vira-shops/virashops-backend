@@ -50,3 +50,25 @@ services:
       - /app/node_modules
       - ./test-results:/app/test-results
     command: ['npm', 'run', 'catalog-api-check']
+
+  files-api-check:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: test
+    image: virashops-back:test
+    depends_on:
+      api:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      BASE_URL: http://api:3000
+      OTP_DEV_CODE: '123456'
+      ADMIN_PHONE: '09000000001'
+      FILES_API_CHECK_OUTPUT: /app/test-results/files-api-check.json
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - ./test-results:/app/test-results
+    command: ['npm', 'run', 'files-api-check']

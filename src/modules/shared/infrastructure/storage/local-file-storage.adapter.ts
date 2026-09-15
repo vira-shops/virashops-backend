@@ -29,6 +29,10 @@ export default class LocalFileStorageAdapter implements FileStorageServicePort {
 
   getSignedUrl(key: string, expiresInSeconds?: number): Promise<string> {
     void expiresInSeconds;
+    // Avoid `/uploads/uploads/...` when the key already includes the folder.
+    if (key.startsWith('uploads/')) {
+      return Promise.resolve(`/${key}`);
+    }
     return Promise.resolve(`/uploads/${key}`);
   }
 }

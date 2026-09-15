@@ -5,6 +5,7 @@ import ProductViewFactory from '../../view-models/product-view.factory';
 import type { ProductDetailView } from '../../view-models/product.view-model';
 import { PRODUCT_REPOSITORY } from '../../../shared/tokens/port.token';
 import GetProductBySlugQuery from '../queries/get-product-by-slug.query';
+import ProductMediaPresenter from '../services/product-media.presenter';
 
 const RELATED_LIMIT = 8;
 
@@ -13,6 +14,7 @@ export default class GetProductBySlugUseCase {
   constructor(
     @Inject(PRODUCT_REPOSITORY)
     private readonly products: ProductRepositoryPort,
+    private readonly media: ProductMediaPresenter,
   ) {}
 
   async execute(query: GetProductBySlugQuery): Promise<ProductDetailView> {
@@ -27,11 +29,8 @@ export default class GetProductBySlugUseCase {
       RELATED_LIMIT,
     );
 
-    return ProductViewFactory.detail(
-      product,
-      query.lang,
-      query.channel,
-      related,
+    return this.media.enrichDetail(
+      ProductViewFactory.detail(product, query.lang, query.channel, related),
     );
   }
 }
