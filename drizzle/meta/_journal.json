@@ -36,6 +36,34 @@
       "when": 1789210000000,
       "tag": "0004_product_image_key_length",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1789530000000,
+      "tag": "0005_cart_checkout_payments",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1789610000000,
+      "tag": "0006_cheque_submissions",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1789690000000,
+      "tag": "0007_cheque_rejection_reasons",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1789770000000,
+      "tag": "0008_bank_account_validations",
+      "breakpoints": true
     }
   ]
 }

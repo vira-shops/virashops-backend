@@ -1,0 +1,1 @@
+export const SHIPPING_METHODS = Symbol('SHIPPING_METHODS');

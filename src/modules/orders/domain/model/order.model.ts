@@ -1,0 +1,177 @@
+import type {
+  CheckoutAddressSnapshot,
+  CheckoutLineSnapshot,
+} from './checkout-line.snapshot';
+import OrderPaymentStatus from './enums/order-payment-status.enum';
+import OrderStatus from './enums/order-status.enum';
+import ShippingMethodName from '../../../shipping/domain/model/enums/shipping-method.enum';
+
+export type OrderItemProps = {
+  id: number | null;
+  productId: number;
+  productNameFa: string;
+  productNameEn: string;
+  imageKey: string | null;
+  packQty: number;
+  pieceQty: number;
+  packMultiple: number;
+  unitPrice: number;
+  packPrice: number;
+  commissionPercent: number;
+  commissionAmount: number;
+  prepaymentAmount: number;
+  goodsAmount: number;
+  lineTotal: number;
+  totalUnits: number;
+};
+
+export type OrderProps = {
+  id: number | null;
+  orderNumber: string;
+  userId: number;
+  sellerId: number;
+  sellerShopName: string;
+  checkoutSessionId: number;
+  status: OrderStatus;
+  paymentStatus: OrderPaymentStatus;
+  address: CheckoutAddressSnapshot;
+  shippingMethod: ShippingMethodName;
+  shippingFee: number;
+  deliveryDate: string;
+  windowStartHour: number;
+  windowEndHour: number;
+  note: string | null;
+  goodsTotal: number;
+  commissionTotal: number;
+  prepaymentTotal: number;
+  grandTotal: number;
+  items: OrderItemProps[];
+};
+
+export default class Order {
+  private constructor(private props: OrderProps) {}
+
+  static create(input: Omit<OrderProps, 'id'> & { id?: number | null }): Order {
+    return new Order({ ...input, id: input.id ?? null });
+  }
+
+  static restore(props: OrderProps): Order {
+    return new Order(props);
+  }
+
+  static fromCheckoutLines(lines: CheckoutLineSnapshot[]): OrderItemProps[] {
+    return lines.map((line) => ({
+      id: null,
+      productId: line.productId,
+      productNameFa: line.productNameFa,
+      productNameEn: line.productNameEn,
+      imageKey: line.imageKey,
+      packQty: line.packQty,
+      pieceQty: line.pieceQty,
+      packMultiple: line.packMultiple,
+      unitPrice: line.unitPrice,
+      packPrice: line.packPrice,
+      commissionPercent: line.commissionPercent,
+      commissionAmount: line.commissionAmount,
+      prepaymentAmount: line.prepaymentAmount,
+      goodsAmount: line.goodsAmount,
+      lineTotal: line.lineTotal,
+      totalUnits: line.totalUnits,
+    }));
+  }
+
+  getId(): number {
+    if (this.props.id === null) {
+      throw new Error('Order has not been persisted');
+    }
+    return this.props.id;
+  }
+
+  hasId(): boolean {
+    return this.props.id !== null;
+  }
+
+  getOrderNumber(): string {
+    return this.props.orderNumber;
+  }
+
+  getUserId(): number {
+    return this.props.userId;
+  }
+
+  getSellerId(): number {
+    return this.props.sellerId;
+  }
+
+  getSellerShopName(): string {
+    return this.props.sellerShopName;
+  }
+
+  getCheckoutSessionId(): number {
+    return this.props.checkoutSessionId;
+  }
+
+  getStatus(): OrderStatus {
+    return this.props.status;
+  }
+
+  getPaymentStatus(): OrderPaymentStatus {
+    return this.props.paymentStatus;
+  }
+
+  getAddress(): CheckoutAddressSnapshot {
+    return this.props.address;
+  }
+
+  getShippingMethod(): ShippingMethodName {
+    return this.props.shippingMethod;
+  }
+
+  getShippingFee(): number {
+    return this.props.shippingFee;
+  }
+
+  getDeliveryDate(): string {
+    return this.props.deliveryDate;
+  }
+
+  getWindowStartHour(): number {
+    return this.props.windowStartHour;
+  }
+
+  getWindowEndHour(): number {
+    return this.props.windowEndHour;
+  }
+
+  getNote(): string | null {
+    return this.props.note;
+  }
+
+  getGoodsTotal(): number {
+    return this.props.goodsTotal;
+  }
+
+  getCommissionTotal(): number {
+    return this.props.commissionTotal;
+  }
+
+  getPrepaymentTotal(): number {
+    return this.props.prepaymentTotal;
+  }
+
+  getGrandTotal(): number {
+    return this.props.grandTotal;
+  }
+
+  getItems(): OrderItemProps[] {
+    return this.props.items.map((item) => ({ ...item }));
+  }
+
+  toSnapshot(): OrderProps {
+    return {
+      ...this.props,
+      address: { ...this.props.address },
+      items: this.getItems(),
+    };
+  }
+}

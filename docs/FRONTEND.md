@@ -381,8 +381,146 @@ Product hits use the same `ProductCard` shape as `GET /products`. Empty `q` stil
 
 ## Not available yet
 
-Seller product CRUD, inventory mutations, cart, orders, payments, notifications, tRPC, multi-seller comparison rows, external marketplace price feeds.
+Seller product CRUD, inventory mutations, notifications, tRPC, multi-seller comparison rows, external marketplace price feeds, real payment gateway / cheque validation.
 
 `GET /` is a leftover Nest hello-world, not a product API.
 
 Swagger is configured in env (`SWAGGER_PATH=docs`) but **not mounted** in bootstrap yet — this file is the contract.
+
+---
+
+## Cart, checkout, shipping, payments (MVP)
+
+Auth: buyer JWT (`RETAIL_BUYER` or `WHOLESALE_BUYER`). Envelope `{ status, data }` as usual.
+
+### Cart / invoices
+
+Invoices are **cart lines grouped by seller** (not a separate resource).
+
+| Method | Path | Notes |
+| ------ | ---- | ----- |
+| `GET` | `/cart` | Active cart + `invoices[]` + summaries |
+| `POST` | `/cart/items` | `{ productId, packQty, pieceQty, prepaymentAmount?, channel? }` |
+| `PATCH` | `/cart/items/:itemId` | `{ packQty, pieceQty, prepaymentAmount? }` |
+| `DELETE` | `/cart/items/:itemId` | Remove line |
+| `DELETE` | `/cart` | Clear cart |
+
+Line money is server-authoritative. Commission % comes from `PLATFORM_COMMISSION_PERCENT` (default 5). Prepayment is amount due now (`0 ≤ prepayment ≤ lineTotal`).
+
+### Addresses
+
+| Method | Path |
+| ------ | ---- |
+| `GET` | `/addresses` |
+| `POST` | `/addresses` |
+| `PUT` | `/addresses/:id` |
+| `DELETE` | `/addresses/:id` |
+
+Body: `{ label, line1, line2?, city, province, postalCode?, isDefault? }`.
+
+### Shipping (transmission)
+
+| Method | Path | Notes |
+| ------ | ---- | ----- |
+| `GET` | `/shipping/methods` | `EXPRESS_COURIER`, `IRAN_POST` |
+| `POST` | `/shipping/quote` | `{ sellerId, addressId, method }` → fee, dates, windows |
+
+Free shipping when goods subtotal ≥ `FREE_SHIPPING_THRESHOLD` (default 20_000_000).
+
+### Checkout (per seller invoice)
+
+Order is **not** created here. Shipping selection is stored on a checkout session.
+
+| Method | Path |
+| ------ | ---- |
+| `POST` | `/checkout` |
+| `GET` | `/checkout/:id` |
+
+`POST` body: `{ sellerId, addressId, shippingMethod, deliveryDate, windowStartHour, windowEndHour, note? }`.
+
+`payableAmount` = prepayment total + shipping fee.
+
+### Payments (base + cheque review)
+
+`ONLINE` can still use the stub `mark-paid`. **`CHEQUE` / `PAYROLL` / `CREDIT_LC` cannot** — cheque completes only after admin approval.
+
+**Bank account validation (اعتبارسنجی)** is required **before** `CHEQUE` initiate. Stub inquiry returns `creditGrade` + `creditCeiling` (Tomans); real bank adapter can replace the stub later.
+
+| Method | Path | Notes |
+| ------ | ---- | ----- |
+| `GET` | `/payments/methods` | Includes `payee` `{ name, nationalId }` for `CHEQUE` |
+| `POST` | `/payments/bank-account-validations` | Body `{ fullName, accountNumber, nationalId, branchCode }` → result modal payload |
+| `GET` | `/payments/bank-account-validations/latest` | Latest non-expired `SUCCEEDED` validation (or `null`) |
+| `POST` | `/payments/initiate` | **Requires** `Idempotency-Key`; CHEQUE → `kind: 'manual'`, stays `PENDING`; needs fresh validation with `creditCeiling >= payableAmount` |
+| `POST` | `/payments/:id/mark-paid` | Stub for **ONLINE only** |
+| `POST` | `/payments/:id/cheque-submission` | Buyer submits identity + photo keys from `/files/upload` |
+| `GET` | `/payments/:id/cheque-submission` | Buyer status (`AWAITING_DOCUMENTS` / `AWAITING_REVIEW` / …) |
+| `GET` | `/admin/payments/cheque-reviews` | Admin queue (`?status=AWAITING_REVIEW`) |
+| `POST` | `/admin/payments/:id/cheque-approve` | Admin approve → materialize order |
+| `POST` | `/admin/payments/:id/cheque-reject` | Body `{ reasons[], note? }` — buyer may resubmit |
+
+`POST /payments/initiate` body: `{ checkoutSessionId, method, callbackUrl }`.
+
+Bank validation response: `{ id, fullName, accountNumber, nationalId, branchCode, creditGrade, creditCeiling, status, expiresAt, provider }`. Persian digits are normalized at the boundary. Default reuse window: 24h (`BANK_VALIDATION_TTL_HOURS`).
+
+Cheque-related `errorCode`s: `BANK_VALIDATION_REQUIRED`, `BANK_CREDIT_INSUFFICIENT`, `INVALID_BANK_ACCOUNT_FIELD`.
+
+Cheque submission body: `{ fullName, accountNumber, nationalId, branchCode, chequePhotos[], cadence?, downPayment?, planItems? }`. Photos are storage keys/URLs under `uploads/`. Optional `planItems` must sum with `downPayment` to the payment amount; dates are ISO `YYYY-MM-DD`.
+
+Cheque submission / review responses include UI helpers for wholesale modals:
+
+| Field | Use |
+| --- | --- |
+| `ui.outcome` | `AWAITING_DOCUMENTS` \| `AWAITING_PHYSICAL` (mailing modal) \| `REJECTED` (fail modal) \| `APPROVED` (success modal) |
+| `ui.nextActions` | Fail: `REUPLOAD`, `CHANGE_PAYMENT_METHOD`. Success: `PAY_PREPAYMENT_ONLINE`, `NEXT_INVOICE`, `HOME` |
+| `mailing` | Present when `AWAITING_PHYSICAL` — `{ address, postalCode }` for physical Sayad cheque shipping |
+| `rejectionReasons` | Structured codes: `SAYAD_MISMATCH`, `NON_PAYMENT_OR_BLOCKED`, `IMAGE_QUALITY` |
+| `summary` | `{ payableAmount, downPayment, chequeTotal, differenceAmount }` for sidebar / مابه‌التفاوت |
+| `order` | After approve: `{ orderId, orderNumber, status }` |
+
+Admin reject body: `{ reasons: ChequeRejectionReason[], note? }` (replaces free-text-only `reason`).
+
+Idempotency (see [IDEMPOTENCY.md](./IDEMPOTENCY.md)):
+
+| Header | Rule |
+| ------ | ---- |
+| `Idempotency-Key` | 8–100 chars `[A-Za-z0-9_-]+`; one key per pay click; reuse on retry with **same** body |
+
+| `errorCode` | HTTP |
+| ----------- | ---- |
+| `IDEMPOTENCY_KEY_REQUIRED` | 400 |
+| `IDEMPOTENCY_KEY_REUSED` | 409 |
+| `IDEMPOTENCY_IN_PROGRESS` | 409 |
+
+### Orders (after paid)
+
+| Method | Path |
+| ------ | ---- |
+| `GET` | `/orders` |
+| `GET` | `/orders/:id` |
+
+Flow (online): cart → checkout → `POST /payments/initiate` → `POST /payments/:id/mark-paid` → `GET /orders/:id`.
+
+Flow (cheque): cart → checkout → `POST /payments/bank-account-validations` → initiate `CHEQUE` → upload photos → `POST /payments/:id/cheque-submission` → admin `cheque-approve` → `GET /orders/:id`.
+
+Docker contract checks:
+
+| Module | npm / Compose |
+| --- | --- |
+| End-to-end commerce | `commerce-api-check` |
+| Addresses | `addresses-api-check` |
+| Cart / invoices | `carts-api-check` |
+| Shipping | `shipping-api-check` |
+| Checkout + orders | `orders-api-check` |
+| Cheque verification | `cheque-api-check` |
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm commerce-api-check
+docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm addresses-api-check
+docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm carts-api-check
+docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm shipping-api-check
+docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm orders-api-check
+docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm cheque-api-check
+```
+
+See [API-CHECK.md](./API-CHECK.md) §11.

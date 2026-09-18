@@ -8,6 +8,13 @@ services:
       ADMIN_NAME: Api Check Admin
       AWS_S3_BUCKET: ''
       AWS_S3_ENDPOINT: ''
+      PLATFORM_COMMISSION_PERCENT: '5'
+      FREE_SHIPPING_THRESHOLD: '20000000'
+      PAYMENT_STUB_REDIRECT_URL: 'https://pay.stub.local/redirect'
+      CHEQUE_PAYEE_NAME: 'شرکت ویرا'
+      CHEQUE_PAYEE_NATIONAL_ID: '1230123025'
+      CHEQUE_MAILING_ADDRESS: 'استان یزد، شهر اردکان، خیابان شهید رجایی، کوچه ۴۷، پلاک ۳۳۱'
+      CHEQUE_MAILING_POSTAL_CODE: '1234567891'
 
   auth-api-check:
     build:
@@ -72,3 +79,130 @@ services:
       - /app/node_modules
       - ./test-results:/app/test-results
     command: ['npm', 'run', 'files-api-check']
+
+  commerce-api-check:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: test
+    image: virashops-back:test
+    depends_on:
+      api:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      BASE_URL: http://api:3000
+      OTP_DEV_CODE: '123456'
+      COMMERCE_API_CHECK_OUTPUT: /app/test-results/commerce-api-check.json
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - ./test-results:/app/test-results
+    command: ['npm', 'run', 'commerce-api-check']
+
+  addresses-api-check:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: test
+    image: virashops-back:test
+    depends_on:
+      api:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      BASE_URL: http://api:3000
+      OTP_DEV_CODE: '123456'
+      ADDRESSES_API_CHECK_OUTPUT: /app/test-results/addresses-api-check.json
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - ./test-results:/app/test-results
+    command: ['npm', 'run', 'addresses-api-check']
+
+  carts-api-check:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: test
+    image: virashops-back:test
+    depends_on:
+      api:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      BASE_URL: http://api:3000
+      OTP_DEV_CODE: '123456'
+      CARTS_API_CHECK_OUTPUT: /app/test-results/carts-api-check.json
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - ./test-results:/app/test-results
+    command: ['npm', 'run', 'carts-api-check']
+
+  shipping-api-check:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: test
+    image: virashops-back:test
+    depends_on:
+      api:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      BASE_URL: http://api:3000
+      OTP_DEV_CODE: '123456'
+      SHIPPING_API_CHECK_OUTPUT: /app/test-results/shipping-api-check.json
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - ./test-results:/app/test-results
+    command: ['npm', 'run', 'shipping-api-check']
+
+  orders-api-check:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: test
+    image: virashops-back:test
+    depends_on:
+      api:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      BASE_URL: http://api:3000
+      OTP_DEV_CODE: '123456'
+      ORDERS_API_CHECK_OUTPUT: /app/test-results/orders-api-check.json
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - ./test-results:/app/test-results
+    command: ['npm', 'run', 'orders-api-check']
+
+  cheque-api-check:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: test
+    image: virashops-back:test
+    depends_on:
+      api:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      BASE_URL: http://api:3000
+      OTP_DEV_CODE: '123456'
+      ADMIN_PHONE: '09000000001'
+      CHEQUE_API_CHECK_OUTPUT: /app/test-results/cheque-api-check.json
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - ./test-results:/app/test-results
+    command: ['npm', 'run', 'cheque-api-check']

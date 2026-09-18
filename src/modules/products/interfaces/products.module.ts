@@ -4,6 +4,7 @@ import SellersModule from '../../sellers/interfaces/sellers.module';
 import UsersModule from '../../users/interfaces/users.module';
 import ProductMediaPresenter from '../domain/application/services/product-media.presenter';
 import CountPublishedProductsUseCase from '../domain/application/usecases/count-published-products.usecase';
+import GetProductByIdUseCase from '../domain/application/usecases/get-product-by-id.usecase';
 import GetProductBySlugUseCase from '../domain/application/usecases/get-product-by-slug.usecase';
 import ListProductsUseCase from '../domain/application/usecases/list-products.usecase';
 import SetProductImagesUseCase from '../domain/application/usecases/set-product-images.usecase';
@@ -28,12 +29,14 @@ import SellerProductsController from './http/controllers/seller-products.control
     ProductMediaPresenter,
     ListProductsUseCase,
     GetProductBySlugUseCase,
+    GetProductByIdUseCase,
     CountPublishedProductsUseCase,
     SetProductImagesUseCase,
   ],
   exports: [
     ListProductsUseCase,
     GetProductBySlugUseCase,
+    GetProductByIdUseCase,
     CountPublishedProductsUseCase,
   ],
 })
