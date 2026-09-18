@@ -496,6 +496,12 @@ This service uses **npm**. The API Compose service is **`api`**. There is **no**
 | `auth-api-check` | `scripts/auth-api-check.ts` | Covers every current HTTP route: health envelope; signup `step1` (name+phone) → OTP (`needsStep2`) → `step2` (role/channel); login phone+OTP; buyer / wholesale-buyer / seller / both; legacy signup; `GET /auth/me`; logout + denylist; `PATCH /auth/sellers/me`; admin `PATCH /admin/sellers/:id/status`; errors `400 VALIDATION`, `401`, `403`, `404 ACCOUNT_NOT_FOUND` / `SELLER_NOT_FOUND`, `409 PHONE_ALREADY_REGISTERED`, `400 SELLER_PROFILE_INCOMPLETE`. |
 | `catalog-api-check` | `scripts/catalog-api-check.ts` | Covers catalog HTTP: `/categories/tree`, `/categories/home`, `/categories/:slug` (+ `CATEGORY_NOT_FOUND`); `/products` list filters/pagination/sort/channel; `/products/:slug` retail vs wholesale + related (+ `PRODUCT_NOT_FOUND`); `/search/suggestions` (category + product terms); `/search` product/category hits and filter passthrough; asserts category `productCount` matches product list totals. Requires product seed from migration `0003_products`. |
 | `files-api-check` | `scripts/files-api-check.ts` | Covers file upload + product images: catalog seller OTP (`09000000999`) → `POST /files/upload` → `PUT /seller/products/:id/images` → public `GET /products/:slug` with `imageUrl`/`gallery.url`; `GET /files/download?key=`; negatives 401/400/403; admin `PUT /admin/products/:id/images`. Uses local `uploads/` (empty `AWS_S3_BUCKET`). |
+| `commerce-api-check` | `scripts/commerce-api-check.ts` | Covers commerce flow: wholesale-buyer signup → addresses CRUD → cart/invoices (pack/piece, commission, prepayment) → shipping quote → checkout session → payments initiate + **Idempotency-Key** (replay / missing / reused body) → `mark-paid` → orders list/get → cart seller lines cleared. Uses seeded product `pepsi-cola-6pk` (id 1). Requires migration `0005_cart_checkout_payments`. |
+| `addresses-api-check` | `scripts/addresses-api-check.ts` | Covers `/addresses` CRUD + `401` / `404 ADDRESS_NOT_FOUND`. |
+| `carts-api-check` | `scripts/carts-api-check.ts` | Covers `/cart` + `/cart/items` (add/update/remove/clear), invoice grouping, commission, prepayment, qty/product negatives. Seeded product `pepsi-cola-6pk`. |
+| `shipping-api-check` | `scripts/shipping-api-check.ts` | Covers `/shipping/methods` + `/shipping/quote` (express + post), bad method / missing address. |
+| `orders-api-check` | `scripts/orders-api-check.ts` | Covers checkout → payment initiate/`mark-paid` → `/orders` list/get, plus `CART_EMPTY` / `ADDRESS_NOT_FOUND` / `ORDER_NOT_FOUND`. |
+| `cheque-api-check` | `scripts/cheque-api-check.ts` | Covers CHEQUE payee on methods, bank-account validation (gate without validation → `BANK_VALIDATION_REQUIRED`, validate + latest, then initiate `kind: manual`), `AWAITING_DOCUMENTS`, buyer `mark-paid` blocked (`PAYMENT_NOT_PAYABLE`), photo upload + submit (invalid national id / plan mismatch), admin list/reject/resubmit/approve → order `PAID`, `CHEQUE_NOT_REVIEWABLE` after approve. Requires migrations `0006_cheque_submissions` + `0008_bank_account_validations`. |
 
 Bring-up and run (needs a gitignored `.env` copied from `.env.example`):
 
@@ -504,9 +510,15 @@ docker compose -f docker-compose.yml -f docker-compose.test.yml up -d postgres r
 docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm auth-api-check
 docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm catalog-api-check
 docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm files-api-check
+docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm commerce-api-check
+docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm addresses-api-check
+docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm carts-api-check
+docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm shipping-api-check
+docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm orders-api-check
+docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm cheque-api-check
 ```
 
-The overlay sets `OTP_DEV_CODE=123456`, `OTP_RESEND_SECONDS=1`, and `ADMIN_PHONE=09000000001` on `api` so admin seed and OTP steps work. After API code changes, rebuild `api` so that overlay env is actually used:
+The overlay sets `OTP_DEV_CODE=123456`, `OTP_RESEND_SECONDS=1`, and `ADMIN_PHONE=09000000001` on `api` so admin seed and OTP steps work. Commerce also sets `PLATFORM_COMMISSION_PERCENT=5`, `FREE_SHIPPING_THRESHOLD=20000000`, and `PAYMENT_STUB_REDIRECT_URL`. After API code changes, rebuild `api` so that overlay env is actually used:
 
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.test.yml build api
@@ -517,10 +529,16 @@ docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm auth-ap
 Rebuild the check image after `package.json` / lockfile changes:
 
 ```bash
-docker compose -f docker-compose.yml -f docker-compose.test.yml build auth-api-check catalog-api-check files-api-check
+docker compose -f docker-compose.yml -f docker-compose.test.yml build auth-api-check catalog-api-check files-api-check commerce-api-check addresses-api-check carts-api-check shipping-api-check orders-api-check cheque-api-check
 docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm auth-api-check
 docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm catalog-api-check
 docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm files-api-check
+docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm commerce-api-check
+docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm addresses-api-check
+docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm carts-api-check
+docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm shipping-api-check
+docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm orders-api-check
+docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm cheque-api-check
 ```
 
 Host fallback (API already on `http://localhost:3000`, with `OTP_DEV_CODE` and `ADMIN_PHONE` set on that process; use `OTP_RESEND_SECONDS=1` so the signup-resend step is not rate-limited):
@@ -529,9 +547,15 @@ Host fallback (API already on `http://localhost:3000`, with `OTP_DEV_CODE` and `
 npm run auth-api-check
 npm run catalog-api-check
 npm run files-api-check
+npm run commerce-api-check
+npm run addresses-api-check
+npm run carts-api-check
+npm run shipping-api-check
+npm run orders-api-check
+npm run cheque-api-check
 ```
 
-Reports: `test-results/auth-api-check.json`, `test-results/catalog-api-check.json`, `test-results/files-api-check.json`. Auth uses unique `09xxxxxxxxx` phones per run so reruns do not collide. Catalog relies on seeded categories/products from migrations. Files check uses seeded catalog seller `09000000999`.
+Reports: `test-results/auth-api-check.json`, `test-results/catalog-api-check.json`, `test-results/files-api-check.json`, `test-results/commerce-api-check.json`, `test-results/addresses-api-check.json`, `test-results/carts-api-check.json`, `test-results/shipping-api-check.json`, `test-results/orders-api-check.json`, `test-results/cheque-api-check.json`. Auth uses unique `09xxxxxxxxx` phones per run so reruns do not collide. Catalog relies on seeded categories/products from migrations. Files check uses seeded catalog seller `09000000999`. Commerce / module checks create a fresh wholesale buyer each run; orders pays the seeded product seller invoice via stub `mark-paid`. Cheque check covers admin approve/reject of cheque submissions (migration `0006`).
 
 ---
 

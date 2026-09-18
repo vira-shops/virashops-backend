@@ -7,14 +7,20 @@ import DrizzleModule from './database/drizzle.module';
 import { validate } from './config/env.validation';
 import { i18nConfig } from './config/i18n.config';
 import HealthModule from './modules/health/health.module';
+import AddressesModule from './modules/addresses/interfaces/addresses.module';
+import CartsModule from './modules/carts/interfaces/carts.module';
 import CategoriesModule from './modules/categories/interfaces/categories.module';
 import FilesModule from './modules/files/interfaces/files.module';
+import OrdersModule from './modules/orders/interfaces/orders.module';
+import PaymentsModule from './modules/payments/interfaces/payments.module';
 import ProductsModule from './modules/products/interfaces/products.module';
 import SearchModule from './modules/search/interfaces/search.module';
 import SellersModule from './modules/sellers/interfaces/sellers.module';
+import ShippingModule from './modules/shipping/interfaces/shipping.module';
 import CoreInfrastructureModule from './modules/shared/infrastructure/infrastructure.module';
 import DomainExceptionFilter from './modules/shared/interface/http/filters/domain-exception.filter';
 import ApiEnvelopeInterceptor from './modules/shared/interface/http/interceptors/api-envelope.interceptor';
+import IdempotencyInterceptor from './modules/shared/interface/http/interceptors/idempotency.interceptor';
 import UsersModule from './modules/users/interfaces/users.module';
 
 @Module({
@@ -35,6 +41,11 @@ import UsersModule from './modules/users/interfaces/users.module';
     CategoriesModule,
     SearchModule,
     FilesModule,
+    AddressesModule,
+    CartsModule,
+    ShippingModule,
+    OrdersModule,
+    PaymentsModule,
   ],
   providers: [
     {
@@ -45,6 +56,10 @@ import UsersModule from './modules/users/interfaces/users.module';
         transform: true,
         transformOptions: { enableImplicitConversion: true },
       }),
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: IdempotencyInterceptor,
     },
     {
       provide: APP_INTERCEPTOR,

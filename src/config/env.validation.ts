@@ -152,6 +152,50 @@ export class EnvironmentVariables {
   @IsString()
   @IsOptional()
   ADMIN_NAME: string = 'Admin';
+
+  @IsNumber()
+  @IsOptional()
+  PLATFORM_COMMISSION_PERCENT: number = 5;
+
+  @IsNumber()
+  @IsOptional()
+  FREE_SHIPPING_THRESHOLD: number = 20_000_000;
+
+  @IsString()
+  @IsOptional()
+  PAYMENT_STUB_REDIRECT_URL: string = 'https://pay.stub.local/redirect';
+
+  @IsString()
+  @IsOptional()
+  CHEQUE_PAYEE_NAME: string = 'شرکت ویرا';
+
+  @IsString()
+  @IsOptional()
+  CHEQUE_PAYEE_NATIONAL_ID: string = '1230123025';
+
+  @IsString()
+  @IsOptional()
+  CHEQUE_MAILING_ADDRESS: string =
+    'استان یزد، شهر اردکان، خیابان شهید رجایی، کوچه ۴۷، پلاک ۳۳۱';
+
+  @IsString()
+  @IsOptional()
+  CHEQUE_MAILING_POSTAL_CODE: string = '1234567891';
+
+  /** Hours a SUCCEEDED bank-account validation stays reusable before CHEQUE initiate. */
+  @IsNumber()
+  @IsOptional()
+  BANK_VALIDATION_TTL_HOURS: number = 24;
+
+  /** Optional stub override: force credit grade (A–E) for demos/QA. */
+  @IsString()
+  @IsOptional()
+  BANK_INQUIRY_STUB_GRADE?: string;
+
+  /** Optional stub override: force credit ceiling (Tomans). Requires STUB_GRADE. */
+  @IsNumber()
+  @IsOptional()
+  BANK_INQUIRY_STUB_CEILING?: number;
 }
 
 export function validate(

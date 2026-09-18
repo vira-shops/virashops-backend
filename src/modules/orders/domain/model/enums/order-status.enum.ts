@@ -1,0 +1,11 @@
+enum OrderStatus {
+  PAID = 'PAID',
+  PROCESSING = 'PROCESSING',
+  PREPARING = 'PREPARING',
+  SHIPPED = 'SHIPPED',
+  DELIVERED = 'DELIVERED',
+  CANCELLED = 'CANCELLED',
+  FAILED = 'FAILED',
+}
+
+export default OrderStatus;
