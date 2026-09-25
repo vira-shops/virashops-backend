@@ -89,6 +89,14 @@ export default class DrizzleProductRepositoryAdapter implements ProductRepositor
     return product ?? null;
   }
 
+  async listIdsBySellerId(sellerId: number): Promise<number[]> {
+    const rows = await this.db
+      .select({ id: products.id })
+      .from(products)
+      .where(and(eq(products.sellerId, sellerId), isNull(products.deletedAt)));
+    return rows.map((row) => row.id);
+  }
+
   async replaceImages(
     productId: number,
     images: ProductImageProps[],

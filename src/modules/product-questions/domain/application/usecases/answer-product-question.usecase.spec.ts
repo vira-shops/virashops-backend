@@ -1,4 +1,6 @@
 import AnswerProductQuestionCommand from '../commands/answer-product-question.command';
+import ProductQuestionKind from '../../model/enums/product-question-kind.enum';
+import ProductQuestionStatus from '../../model/enums/product-question-status.enum';
 import ProductQuestion from '../../model/product-question.model';
 import AnswerProductQuestionUseCase from './answer-product-question.usecase';
 import ForbiddenError from '../../../../users/domain/errors/forbidden.error';
@@ -40,6 +42,8 @@ describe('AnswerProductQuestionUseCase', () => {
         id: 1,
         userId: 5,
         productId: 20,
+        kind: ProductQuestionKind.QUESTION,
+        status: ProductQuestionStatus.NOT_CONFIRMED,
         body: 'Where is it produced?',
         createdAt: new Date(),
         answers: [],
@@ -66,6 +70,8 @@ describe('AnswerProductQuestionUseCase', () => {
         id: 1,
         userId: 5,
         productId: 20,
+        kind: ProductQuestionKind.QUESTION,
+        status: ProductQuestionStatus.NOT_CONFIRMED,
         body: 'Where?',
         createdAt: new Date(),
         answers: [],

@@ -394,6 +394,16 @@ export default class InMemoryProductRepository implements ProductRepositoryPort 
     );
   }
 
+  listIdsBySellerId(sellerId: number): Promise<number[]> {
+    return Promise.resolve(
+      this.items
+        .filter(
+          (product) => product.hasId() && product.getSeller().id === sellerId,
+        )
+        .map((product) => product.getId()),
+    );
+  }
+
   replaceImages(productId: number, images: ProductImageProps[]): Promise<void> {
     const product = this.items.find(
       (item) => item.hasId() && item.getId() === productId,

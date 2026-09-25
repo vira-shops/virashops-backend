@@ -101,6 +101,7 @@ export default class ApproveChequePaymentUseCase {
 
     const payload: OrderPaidEvent = {
       userId: payment.getUserId(),
+      sellerId: order.getSellerId(),
       orderId: order.getId(),
       orderNumber: order.getOrderNumber(),
     };

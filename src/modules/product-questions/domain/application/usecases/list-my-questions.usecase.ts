@@ -17,7 +17,7 @@ export default class ListMyQuestionsUseCase {
   async execute(
     query: ListMyQuestionsQuery,
   ): Promise<ProductQuestionCardView[]> {
-    const items = await this.questions.listByUserId(query.userId);
+    const items = await this.questions.listByUserId(query.userId, query.kind);
     return this.presenter.toCards(items);
   }
 }

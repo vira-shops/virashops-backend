@@ -559,14 +559,56 @@ Extra fields (`summary`, raw `address`, seller, delivery window, …) are also r
 | `GET` | `/favorites` | Product cards |
 | `POST` | `/favorites/:productId` | Add (idempotent) |
 | `DELETE` | `/favorites/:productId` | Remove (idempotent) |
-| `GET` | `/me/questions` | My product questions |
+| `GET` | `/me/questions` | My product comments/questions; query `kind=COMMENT\|QUESTION` |
 | `GET` | `/me/question-replies` | `{ items, newRepliesCount }` |
-| `POST` | `/products/:productId/questions` | Body `{ body }` |
+| `POST` | `/products/:productId/questions` | Body `{ body, kind?: COMMENT\|QUESTION }` (default `QUESTION`); starts as `NOT_CONFIRMED` |
+| `POST` | `/products/:productId/ratings` | Body `{ rating: 1..5 }`; one rating per buyer per product (upsert) |
+| `GET` | `/products/:productId/ratings/me` | `{ rating: number \| null }` |
+| `GET` | `/products/:productId/ratings/summary` | `{ average, count }` |
 | `POST` | `/seller/product-questions/:questionId/answers` | Seller (owner of product) answers; body `{ body }` |
+| `POST` | `/seller/product-questions/:questionId/confirm` | Seller sets status to `CONFIRMED` |
+
+List cards include `kind` (`COMMENT`\|`QUESTION`) and `status` (`NOT_CONFIRMED`\|`CONFIRMED`).
 
 `PATCH /profile` body (all optional): `{ firstName, lastName, nationalId, dateOfBirth, gender: MALE|FEMALE, avatarKey, businessName, businessPhone, postalCode, province, city, address, identityType: KIOSK|SUPERMARKET|STORE, documentKey1, documentKey2 }`.
 
 `GET /profile` returns the same fields plus account `phone`.
+
+Favorites and notifications are also available to `WHOLESALE_SELLER` and `RETAIL_SELLER`.
+
+Seller dashboard, orders, and Q&A (`/seller/dashboard`, `/seller/orders`, `/seller/product-questions`) accept both `WHOLESALE_SELLER` and `RETAIL_SELLER`. Wholesale booth profile stays on `/seller/profile`. Retail personal profile is a separate table and route.
+
+### Retail seller profile
+
+| Method | Path | Notes |
+| ------ | ---- | ----- |
+| `GET` | `/retail-seller/profile` | Personal fields only. Creates an empty row on first read. |
+| `PATCH` | `/retail-seller/profile` | Partial update. Does not change `/seller/profile`. |
+
+`PATCH` body (all optional): `{ firstName, lastName, email, nationalId, dateOfBirth (YYYY-MM-DD), gender: MALE|FEMALE, province, city, occupation, address, postalCode, latitude, longitude, avatarKey }`.
+
+### Wholesale seller dashboard
+
+| Method | Path | Notes |
+| ------ | ---- | ----- |
+| `GET` | `/seller/dashboard` | Per-status counts (`paid` / `processing` / `preparing` / `shipped` / `delivered` / `returned` / `cancelled` / `failed`), banner, unread, recent orders |
+| `GET` | `/seller/orders` | Figma list + `fromDate` / `toDate` / `status` / pagination |
+| `GET` | `/seller/orders/:id` | Detail (same shape as buyer detail) |
+| `POST` | `/seller/orders/:id/status` | Body `{ status }`; transitions: `PAID\|PROCESSING→PREPARING\|CANCELLED`, `PREPARING→SHIPPED\|CANCELLED`, `SHIPPED→DELIVERED\|RETURNED\|CANCELLED`, `DELIVERED→RETURNED` |
+| `GET` | `/seller/profile` | Personal + booth + `warehouses[]` (no separate view mapper) |
+| `PATCH` | `/seller/profile` | Partial personal/booth update |
+| `POST` | `/seller/warehouses` | Add warehouse (`phone`, `postalCode`, `city`, `address`) |
+| `PATCH` | `/seller/warehouses/:id` | Update warehouse |
+| `DELETE` | `/seller/warehouses/:id` | Soft-delete warehouse |
+| `GET` | `/seller/product-questions` | Comments/questions on my products; query `kind`, `status`; each item has `question` + `answers` |
+| `POST` | `/seller/product-questions/:questionId/confirm` | Confirm (`NOT_CONFIRMED` → `CONFIRMED`) |
+| `POST` | `/seller/product-questions/:questionId/answers` | Answer (owner only) |
+
+`PATCH /seller/profile` body (all optional): `{ firstName, lastName, nationalId, dateOfBirth (YYYY-MM-DD), gender: MALE|FEMALE, avatarKey, shopName, workplacePhone, province, city, postalCode, salesType: SUPERMARKET|STORE, address, industryType, category, activityType, documentType, documentKey }`.
+
+`POST|PATCH /seller/warehouses` body (all optional): `{ phone, postalCode, city, address }`.
+
+Seller dashboard / orders / Q&A list require **ACTIVE** seller (`SellerActiveGuard`). Wholesale profile, retail profile, and warehouses do not.
 
 Flow (online): cart → checkout → `POST /payments/initiate` → `POST /payments/:id/mark-paid` → `GET /orders/:id`.
 
@@ -582,6 +624,9 @@ Docker contract checks:
 | Shipping | `shipping-api-check` |
 | Checkout + orders | `orders-api-check` |
 | Cheque verification | `cheque-api-check` |
+| Customer dashboard | `customer-dashboard-api-check` |
+| Seller dashboard | `seller-dashboard-api-check` |
+| Retail seller dashboard | `retail-seller-dashboard-api-check` |
 
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm commerce-api-check
@@ -590,6 +635,9 @@ docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm carts-a
 docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm shipping-api-check
 docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm orders-api-check
 docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm cheque-api-check
+docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm customer-dashboard-api-check
+docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm seller-dashboard-api-check
+docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm retail-seller-dashboard-api-check
 ```
 
 See [API-CHECK.md](./API-CHECK.md) §11.

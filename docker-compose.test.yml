@@ -227,3 +227,45 @@ services:
       - /app/node_modules
       - ./test-results:/app/test-results
     command: ['npm', 'run', 'customer-dashboard-api-check']
+
+  seller-dashboard-api-check:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: test
+    image: virashops-back:test
+    depends_on:
+      api:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      BASE_URL: http://api:3000
+      OTP_DEV_CODE: '123456'
+      SELLER_DASHBOARD_API_CHECK_OUTPUT: /app/test-results/seller-dashboard-api-check.json
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - ./test-results:/app/test-results
+    command: ['npm', 'run', 'seller-dashboard-api-check']
+
+  retail-seller-dashboard-api-check:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: test
+    image: virashops-back:test
+    depends_on:
+      api:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      BASE_URL: http://api:3000
+      OTP_DEV_CODE: '123456'
+      RETAIL_SELLER_DASHBOARD_API_CHECK_OUTPUT: /app/test-results/retail-seller-dashboard-api-check.json
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - ./test-results:/app/test-results
+    command: ['npm', 'run', 'retail-seller-dashboard-api-check']

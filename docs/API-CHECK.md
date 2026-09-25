@@ -502,7 +502,9 @@ This service uses **npm**. The API Compose service is **`api`**. There is **no**
 | `shipping-api-check` | `scripts/shipping-api-check.ts` | Covers `/shipping/methods` + `/shipping/quote` (express + post), bad method / missing address. |
 | `orders-api-check` | `scripts/orders-api-check.ts` | Covers checkout → payment initiate/`mark-paid` → `/orders` list/get, plus `CART_EMPTY` / `ADDRESS_NOT_FOUND` / `ORDER_NOT_FOUND`. |
 | `cheque-api-check` | `scripts/cheque-api-check.ts` | Covers CHEQUE payee on methods, bank-account validation (gate without validation → `BANK_VALIDATION_REQUIRED`, validate + latest, then initiate `kind: manual`), `AWAITING_DOCUMENTS`, buyer `mark-paid` blocked (`PAYMENT_NOT_PAYABLE`), photo upload + submit (invalid national id / plan mismatch), admin list/reject/resubmit/approve → order `PAID`, `CHEQUE_NOT_REVIEWABLE` after approve. Requires migrations `0006_cheque_submissions` + `0008_bank_account_validations`. |
-| `customer-dashboard-api-check` | `scripts/customer-dashboard-api-check.ts` | Covers customer dashboard in UX order: `GET /dashboard` → orders list (date filter) + detail → favorites add/list/remove → product Q&A (ask + seller answer + my questions/replies) → `GET`/`PATCH /profile` → notifications list/unread/read/read-all. Setup: wholesale buyer signup → checkout → `mark-paid` (order + order-paid notification). Catalog seller `09000000999` answers Q&A. |
+| `customer-dashboard-api-check` | `scripts/customer-dashboard-api-check.ts` | Covers customer dashboard in UX order: `GET /dashboard` → orders list (date filter) + detail → favorites add/list/remove → product Q&A (`COMMENT`/`QUESTION`, ratings 1–5, seller confirm + answer, my questions/replies) → `GET`/`PATCH /profile` → notifications list/unread/read/read-all. Setup: wholesale buyer signup → checkout → `mark-paid` (order + order-paid notification). Catalog seller `09000000999` confirms/answers Q&A. |
+| `seller-dashboard-api-check` | `scripts/seller-dashboard-api-check.ts` | Covers wholesale seller dashboard: `GET /seller/dashboard` → `/seller/orders` list/detail/status → favorites → `/seller/product-questions` list/confirm/answer → `/seller/profile` → notifications. Setup: buyer order on catalog seller product, then seller OTP `09000000999`. |
+| `retail-seller-dashboard-api-check` | `scripts/retail-seller-dashboard-api-check.ts` | Covers shared seller routes as `RETAIL_SELLER` plus separate `GET`/`PATCH /retail-seller/profile`. Asserts a retail profile patch does not change `GET /seller/profile`. Catalog seller `09000000999`. |
 
 Bring-up and run (needs a gitignored `.env` copied from `.env.example`):
 
@@ -518,6 +520,7 @@ docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm shippin
 docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm orders-api-check
 docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm cheque-api-check
 docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm customer-dashboard-api-check
+docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm seller-dashboard-api-check
 ```
 
 The overlay sets `OTP_DEV_CODE=123456`, `OTP_RESEND_SECONDS=1`, and `ADMIN_PHONE=09000000001` on `api` so admin seed and OTP steps work. Commerce also sets `PLATFORM_COMMISSION_PERCENT=5`, `FREE_SHIPPING_THRESHOLD=20000000`, and `PAYMENT_STUB_REDIRECT_URL`. After API code changes, rebuild `api` so that overlay env is actually used:
@@ -531,7 +534,7 @@ docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm auth-ap
 Rebuild the check image after `package.json` / lockfile changes:
 
 ```bash
-docker compose -f docker-compose.yml -f docker-compose.test.yml build auth-api-check catalog-api-check files-api-check commerce-api-check addresses-api-check carts-api-check shipping-api-check orders-api-check cheque-api-check customer-dashboard-api-check
+docker compose -f docker-compose.yml -f docker-compose.test.yml build auth-api-check catalog-api-check files-api-check commerce-api-check addresses-api-check carts-api-check shipping-api-check orders-api-check cheque-api-check customer-dashboard-api-check seller-dashboard-api-check
 docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm auth-api-check
 docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm catalog-api-check
 docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm files-api-check
@@ -542,6 +545,7 @@ docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm shippin
 docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm orders-api-check
 docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm cheque-api-check
 docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm customer-dashboard-api-check
+docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm seller-dashboard-api-check
 ```
 
 Host fallback (API already on `http://localhost:3000`, with `OTP_DEV_CODE` and `ADMIN_PHONE` set on that process; use `OTP_RESEND_SECONDS=1` so the signup-resend step is not rate-limited):
@@ -557,9 +561,10 @@ npm run shipping-api-check
 npm run orders-api-check
 npm run cheque-api-check
 npm run customer-dashboard-api-check
+npm run seller-dashboard-api-check
 ```
 
-Reports: `test-results/auth-api-check.json`, `test-results/catalog-api-check.json`, `test-results/files-api-check.json`, `test-results/commerce-api-check.json`, `test-results/addresses-api-check.json`, `test-results/carts-api-check.json`, `test-results/shipping-api-check.json`, `test-results/orders-api-check.json`, `test-results/cheque-api-check.json`, `test-results/customer-dashboard-api-check.json`. Auth uses unique `09xxxxxxxxx` phones per run so reruns do not collide. Catalog relies on seeded categories/products from migrations. Files check uses seeded catalog seller `09000000999`. Commerce / module checks create a fresh wholesale buyer each run; orders pays the seeded product seller invoice via stub `mark-paid`. Cheque check covers admin approve/reject of cheque submissions (migration `0006`). Customer dashboard check also uses catalog seller OTP for Q&A answers and asserts order-paid in-app notifications.
+Reports: `test-results/auth-api-check.json`, `test-results/catalog-api-check.json`, `test-results/files-api-check.json`, `test-results/commerce-api-check.json`, `test-results/addresses-api-check.json`, `test-results/carts-api-check.json`, `test-results/shipping-api-check.json`, `test-results/orders-api-check.json`, `test-results/cheque-api-check.json`, `test-results/customer-dashboard-api-check.json`, `test-results/seller-dashboard-api-check.json`. Auth uses unique `09xxxxxxxxx` phones per run so reruns do not collide. Catalog relies on seeded categories/products from migrations. Files check uses seeded catalog seller `09000000999`. Commerce / module checks create a fresh wholesale buyer each run; orders pays the seeded product seller invoice via stub `mark-paid`. Cheque check covers admin approve/reject of cheque submissions (migration `0006`). Customer dashboard check also uses catalog seller OTP for Q&A answers and asserts order-paid in-app notifications. Seller dashboard check logs in as the same catalog seller after a buyer order and covers status transitions plus booth profile.
 
 ---
 

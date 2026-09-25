@@ -139,6 +139,30 @@ async function main(): Promise<void> {
         },
         {
           method: 'POST',
+          path: '/products/:productId/ratings',
+          auth: true,
+          covered: false,
+        },
+        {
+          method: 'GET',
+          path: '/products/:productId/ratings/me',
+          auth: true,
+          covered: false,
+        },
+        {
+          method: 'GET',
+          path: '/products/:productId/ratings/summary',
+          auth: true,
+          covered: false,
+        },
+        {
+          method: 'POST',
+          path: '/seller/product-questions/:questionId/confirm',
+          auth: true,
+          covered: false,
+        },
+        {
+          method: 'POST',
           path: '/seller/product-questions/:questionId/answers',
           auth: true,
           covered: false,
@@ -568,19 +592,26 @@ async function main(): Promise<void> {
     `/products/${PRODUCT_ID}/questions`,
     {
       token,
-      body: { body: `آیا این محصول موجود است؟ (${RUN_ID})` },
+      body: {
+        body: `آیا این محصول موجود است؟ (${RUN_ID})`,
+        kind: 'QUESTION',
+      },
       checklistPath: '/products/:productId/questions',
       checks: (status, body) => {
         const data = unwrapApiData<{
           id?: number;
           productId?: number;
           body?: string;
+          kind?: string;
+          status?: string;
         }>(body);
         return {
           ...envelopeOk(status, body, 200),
           hasId: typeof data?.id === 'number',
           productId: data?.productId === PRODUCT_ID,
           hasBody: typeof data?.body === 'string' && data.body.length >= 2,
+          kindQuestion: data?.kind === 'QUESTION',
+          notConfirmed: data?.status === 'NOT_CONFIRMED',
         };
       },
     },
@@ -591,13 +622,97 @@ async function main(): Promise<void> {
     throw new Error('Question id missing');
   }
 
+  await api(
+    ++step.n,
+    'qa.ask-comment',
+    'POST',
+    `/products/${PRODUCT_ID}/questions`,
+    {
+      token,
+      body: {
+        body: `نظر خوب بود (${RUN_ID})`,
+        kind: 'COMMENT',
+      },
+      checks: (status, body) => {
+        const data = unwrapApiData<{ kind?: string; status?: string }>(body);
+        return {
+          ...envelopeOk(status, body, 200),
+          kindComment: data?.kind === 'COMMENT',
+          notConfirmed: data?.status === 'NOT_CONFIRMED',
+        };
+      },
+    },
+  );
+
+  await api(
+    ++step.n,
+    'ratings.upsert',
+    'POST',
+    `/products/${PRODUCT_ID}/ratings`,
+    {
+      token,
+      body: { rating: 5 },
+      checklistPath: '/products/:productId/ratings',
+      checks: (status, body) => {
+        const data = unwrapApiData<{ productId?: number; rating?: number }>(
+          body,
+        );
+        return {
+          ...envelopeOk(status, body, 200),
+          productId: data?.productId === PRODUCT_ID,
+          rating5: data?.rating === 5,
+        };
+      },
+    },
+  );
+  markCovered('POST', '/products/:productId/ratings');
+
+  await api(
+    ++step.n,
+    'ratings.me',
+    'GET',
+    `/products/${PRODUCT_ID}/ratings/me`,
+    {
+      token,
+      checklistPath: '/products/:productId/ratings/me',
+      checks: (status, body) => {
+        const data = unwrapApiData<{ rating?: number | null }>(body);
+        return {
+          ...envelopeOk(status, body, 200),
+          rating5: data?.rating === 5,
+        };
+      },
+    },
+  );
+  markCovered('GET', '/products/:productId/ratings/me');
+
+  await api(
+    ++step.n,
+    'ratings.summary',
+    'GET',
+    `/products/${PRODUCT_ID}/ratings/summary`,
+    {
+      token,
+      checklistPath: '/products/:productId/ratings/summary',
+      checks: (status, body) => {
+        const data = unwrapApiData<{ average?: number; count?: number }>(body);
+        return {
+          ...envelopeOk(status, body, 200),
+          countAtLeastOne: (data?.count ?? 0) >= 1,
+          averagePositive: (data?.average ?? 0) > 0,
+        };
+      },
+    },
+  );
+  markCovered('GET', '/products/:productId/ratings/summary');
+
   await api(++step.n, 'qa.my-questions', 'GET', '/me/questions', {
     token,
     checklistPath: '/me/questions',
     checks: (status, body) => {
-      const data = unwrapApiData<Array<{ id?: number; questionId?: number }>>(
-        body,
-      );
+      const data = unwrapApiData<
+        Array<{ id?: number; questionId?: number; kind?: string }>
+      >(body);
       return {
         ...envelopeOk(status, body, 200),
         includesQuestion:
@@ -634,6 +749,26 @@ async function main(): Promise<void> {
     otp: OTP,
     label: 'catalog-seller',
   });
+
+  await api(
+    ++step.n,
+    'qa.seller-confirm',
+    'POST',
+    `/seller/product-questions/${questionId}/confirm`,
+    {
+      token: sellerToken,
+      checklistPath: '/seller/product-questions/:questionId/confirm',
+      checks: (status, body) => {
+        const data = unwrapApiData<{ id?: number; status?: string }>(body);
+        return {
+          ...envelopeOk(status, body, 200),
+          idMatch: data?.id === questionId,
+          confirmed: data?.status === 'CONFIRMED',
+        };
+      },
+    },
+  );
+  markCovered('POST', '/seller/product-questions/:questionId/confirm');
 
   await api(
     ++step.n,

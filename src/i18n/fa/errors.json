@@ -43,5 +43,8 @@
   "BANK_ACCOUNT_VALIDATION_NOT_FOUND": "نتیجه اعتبارسنجی حساب بانکی پیدا نشد",
   "NOTIFICATION_NOT_FOUND": "اعلان پیدا نشد",
   "FAVORITE_NOT_FOUND": "علاقه‌مندی پیدا نشد",
-  "PRODUCT_QUESTION_NOT_FOUND": "پرسش محصول پیدا نشد"
+  "PRODUCT_QUESTION_NOT_FOUND": "پرسش محصول پیدا نشد",
+  "INVALID_PRODUCT_RATING": "امتیاز باید عدد صحیح بین ۱ تا ۵ باشد",
+  "INVALID_ORDER_STATUS_TRANSITION": "تغییر وضعیت این سفارش مجاز نیست",
+  "SELLER_WAREHOUSE_NOT_FOUND": "انبار فروشنده پیدا نشد"
 }

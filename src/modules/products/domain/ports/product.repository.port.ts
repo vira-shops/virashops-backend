@@ -24,6 +24,7 @@ export default interface ProductRepositoryPort {
   ): Promise<PublishedProductPage>;
   findPublishedBySlug(slug: string): Promise<Product | null>;
   findById(id: number): Promise<Product | null>;
+  listIdsBySellerId(sellerId: number): Promise<number[]>;
   findPublishedRelated(product: Product, limit: number): Promise<Product[]>;
   countPublishedByCategoryIds(
     categoryIds: number[],

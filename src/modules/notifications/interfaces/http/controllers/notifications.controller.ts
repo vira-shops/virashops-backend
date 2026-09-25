@@ -31,7 +31,12 @@ import NotificationHttpMapper from '../mappers/notification-http.mapper';
 @ApiTags('notifications')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(Role.RETAIL_BUYER, Role.WHOLESALE_BUYER)
+@Roles(
+  Role.RETAIL_BUYER,
+  Role.WHOLESALE_BUYER,
+  Role.WHOLESALE_SELLER,
+  Role.RETAIL_SELLER,
+)
 @Controller('notifications')
 export default class NotificationsController {
   constructor(

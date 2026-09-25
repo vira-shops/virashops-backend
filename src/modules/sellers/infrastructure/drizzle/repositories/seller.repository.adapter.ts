@@ -40,6 +40,10 @@ export default class DrizzleSellerRepositoryAdapter implements SellerRepositoryP
       activityType: seller.getActivityType(),
       documentType: seller.getDocumentType(),
       documentKey: seller.getDocumentKey(),
+      nationalId: seller.getNationalId(),
+      dateOfBirth: seller.getDateOfBirth(),
+      gender: seller.getGender(),
+      avatarKey: seller.getAvatarKey(),
       status: seller.getStatus(),
     };
 

@@ -65,6 +65,7 @@ describe('MarkPaymentPaidUseCase', () => {
     materializeOrder.execute.mockResolvedValue({
       getId: () => 55,
       getOrderNumber: () => 'ORD-55',
+      getSellerId: () => 900001,
     });
 
     const result = await useCase.execute(new MarkPaymentPaidCommand(2, 1));

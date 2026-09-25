@@ -65,6 +65,10 @@ export default class SignupSellerUseCase implements CreatePendingSellerPort {
         activityType: input.activityType,
         documentType,
         documentKey: input.documentKey,
+        nationalId: null,
+        dateOfBirth: null,
+        gender: null,
+        avatarKey: null,
       }),
     );
 

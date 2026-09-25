@@ -27,6 +27,10 @@ describe('UpdateSellerStatusUseCase', () => {
     activityType: 'STORE',
     documentType: SellerDocumentType.NATIONAL_ID,
     documentKey: 'key',
+    nationalId: null,
+    dateOfBirth: null,
+    gender: null,
+    avatarKey: null,
     status: SellerStatus.PENDING,
   };
 

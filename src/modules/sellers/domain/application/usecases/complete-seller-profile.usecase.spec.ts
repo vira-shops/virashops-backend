@@ -24,6 +24,10 @@ describe('CompleteSellerProfileUseCase', () => {
     activityType: 'STORE',
     documentType: SellerDocumentType.BUSINESS_LICENSE,
     documentKey: 'key',
+    nationalId: null,
+    dateOfBirth: null,
+    gender: null,
+    avatarKey: null,
     status: SellerStatus.PENDING,
   });
 
@@ -54,6 +58,10 @@ describe('CompleteSellerProfileUseCase', () => {
         activityType: pending.getActivityType(),
         documentType: pending.getDocumentType(),
         documentKey: pending.getDocumentKey(),
+        nationalId: pending.getNationalId(),
+        dateOfBirth: pending.getDateOfBirth(),
+        gender: pending.getGender(),
+        avatarKey: pending.getAvatarKey(),
         status: pending.getStatus(),
       }),
     );

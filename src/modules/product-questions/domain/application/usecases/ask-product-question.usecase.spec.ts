@@ -22,5 +22,7 @@ describe('AskProductQuestionUseCase', () => {
     );
     expect(result.getId()).toBe(9);
     expect(result.getBody()).toBe('Where is it produced?');
+    expect(result.getKind()).toBe('QUESTION');
+    expect(result.getStatus()).toBe('NOT_CONFIRMED');
   });
 });

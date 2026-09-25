@@ -1,3 +1,4 @@
+import InvalidOrderStatusTransitionError from '../errors/invalid-order-status-transition.error';
 import type {
   CheckoutAddressSnapshot,
   CheckoutLineSnapshot,
@@ -52,6 +53,21 @@ export type OrderProps = {
   grandTotal: number;
   items: OrderItemProps[];
   createdAt: Date | null;
+};
+
+const ALLOWED_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
+  [OrderStatus.PAID]: [OrderStatus.PREPARING, OrderStatus.CANCELLED],
+  [OrderStatus.PROCESSING]: [OrderStatus.PREPARING, OrderStatus.CANCELLED],
+  [OrderStatus.PREPARING]: [OrderStatus.SHIPPED, OrderStatus.CANCELLED],
+  [OrderStatus.SHIPPED]: [
+    OrderStatus.DELIVERED,
+    OrderStatus.RETURNED,
+    OrderStatus.CANCELLED,
+  ],
+  [OrderStatus.DELIVERED]: [OrderStatus.RETURNED],
+  [OrderStatus.RETURNED]: [],
+  [OrderStatus.CANCELLED]: [],
+  [OrderStatus.FAILED]: [],
 };
 
 export default class Order {
@@ -200,6 +216,14 @@ export default class Order {
 
   getItems(): OrderItemProps[] {
     return this.props.items.map((item) => ({ ...item }));
+  }
+
+  transitionTo(next: OrderStatus): void {
+    const allowed = ALLOWED_TRANSITIONS[this.props.status];
+    if (!allowed.includes(next)) {
+      throw new InvalidOrderStatusTransitionError();
+    }
+    this.props.status = next;
   }
 
   toSnapshot(): OrderProps {
