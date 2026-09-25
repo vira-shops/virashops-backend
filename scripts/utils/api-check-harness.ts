@@ -279,3 +279,70 @@ export async function signupWholesaleBuyer(opts: {
   }
   return token;
 }
+
+/** Shipping address body matching Figma receiver fields (required). */
+export function sampleAddressBody(
+  overrides: Record<string, unknown> = {},
+): Record<string, unknown> {
+  return {
+    label: 'آدرس ارسال',
+    line1: 'خیابان ۱۷ شهریور',
+    line2: 'کوچه ۲',
+    city: 'یزد',
+    province: 'یزد',
+    postalCode: '1234567890',
+    recipientFullName: 'حسین حیدری',
+    recipientPhone: '09121234567',
+    nationalId: '0012345678',
+    houseNumber: '1',
+    isDefault: true,
+    ...overrides,
+  };
+}
+
+export async function loginWithOtp(opts: {
+  api: ApiFn;
+  step: { n: number };
+  phone: string;
+  otp: string;
+  label?: string;
+}): Promise<string> {
+  const label = opts.label ?? opts.phone;
+  await opts.api(
+    ++opts.step.n,
+    `auth.otp-request.${label}`,
+    'POST',
+    '/auth/otp/request',
+    {
+      body: { phone: opts.phone },
+      checks: (status, body) => {
+        const data = unwrapApiData<{ otpSent?: boolean }>(body);
+        return {
+          httpStatus: status === 200,
+          otpSent: data?.otpSent === true,
+        };
+      },
+    },
+  );
+  const verified = await opts.api(
+    ++opts.step.n,
+    `auth.otp-verify.${label}`,
+    'POST',
+    '/auth/otp/verify',
+    {
+      body: { phone: opts.phone, code: opts.otp },
+      checks: (status, body) => {
+        const tokens = authLoginTokens(body);
+        return {
+          httpStatus: status === 200,
+          hasToken: Boolean(tokens.accessToken),
+        };
+      },
+    },
+  );
+  const token = authLoginTokens(verified.body).accessToken;
+  if (!token) {
+    throw new Error(`Token missing for ${opts.phone}`);
+  }
+  return token;
+}

@@ -1,4 +1,5 @@
 export * from '../modules/users/infrastructure/drizzle/schema/users';
+export * from '../modules/users/infrastructure/drizzle/schema/buyer-profiles';
 export * from '../modules/sellers/infrastructure/drizzle/schema/sellers';
 export * from '../modules/categories/infrastructure/drizzle/schema/categories';
 export * from '../modules/products/infrastructure/drizzle/schema/products';
@@ -9,3 +10,6 @@ export * from '../modules/orders/infrastructure/drizzle/schema/orders';
 export * from '../modules/payments/infrastructure/drizzle/schema/payments';
 export * from '../modules/payments/infrastructure/drizzle/schema/cheque-submissions';
 export * from '../modules/payments/infrastructure/drizzle/schema/bank-account-validations';
+export * from '../modules/notifications/infrastructure/drizzle/schema/notifications';
+export * from '../modules/favorites/infrastructure/drizzle/schema/favorites';
+export * from '../modules/product-questions/infrastructure/drizzle/schema/product-questions';

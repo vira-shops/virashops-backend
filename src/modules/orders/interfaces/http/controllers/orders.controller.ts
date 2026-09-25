@@ -3,9 +3,15 @@ import {
   Get,
   Param,
   ParseIntPipe,
+  Query,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiQuery,
+  ApiTags,
+} from '@nestjs/swagger';
 import ApiResponse from '../../../../../common/http/api-response';
 import Role from '../../../../users/domain/model/enums/role.enum';
 import User from '../../../../users/domain/model/user.model';
@@ -31,14 +37,41 @@ export default class OrdersController {
   ) {}
 
   @Get()
-  @ApiOperation({ summary: 'List my orders' })
-  async list(@CurrentUser() user: User) {
-    const orders = await this.listOrders.execute(
-      new ListOrdersQuery(user.getId()),
+  @ApiOperation({
+    summary:
+      'List my orders (Figma table: tracking, amount, items, payment status, date)',
+  })
+  @ApiQuery({ name: 'fromDate', required: false, description: 'YYYY-MM-DD' })
+  @ApiQuery({ name: 'toDate', required: false, description: 'YYYY-MM-DD' })
+  @ApiQuery({ name: 'page', required: false })
+  @ApiQuery({ name: 'limit', required: false })
+  async list(
+    @CurrentUser() user: User,
+    @Query('fromDate') fromDate?: string,
+    @Query('toDate') toDate?: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    const pageNum = page ? Number(page) : 1;
+    const limitNum = limit ? Number(limit) : 20;
+    const result = await this.listOrders.execute(
+      new ListOrdersQuery(
+        user.getId(),
+        fromDate ?? null,
+        toDate ?? null,
+        null,
+        pageNum,
+        limitNum,
+      ),
     );
-    return ApiResponse.of(
-      orders.map((order) => CheckoutHttpMapper.orderToResponse(order)),
-    );
+    return ApiResponse.of({
+      items: result.items.map((order) =>
+        CheckoutHttpMapper.orderListToResponse(order),
+      ),
+      total: result.total,
+      page: pageNum,
+      limit: limitNum,
+    });
   }
 
   @Get(':id')

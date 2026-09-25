@@ -151,12 +151,14 @@ describe('ApproveChequePaymentUseCase', () => {
     execute: jest.fn(),
   };
   const presenter = mockPresenter();
+  const events = { emit: jest.fn() };
 
   const useCase = new ApproveChequePaymentUseCase(
     payments,
     submissions,
     materializeOrder as never,
     presenter as never,
+    events as never,
   );
 
   beforeEach(() => {

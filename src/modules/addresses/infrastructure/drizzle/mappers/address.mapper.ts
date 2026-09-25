@@ -12,6 +12,10 @@ export default class AddressMapper {
       city: row.city,
       province: row.province,
       postalCode: row.postalCode,
+      recipientFullName: row.recipientFullName,
+      recipientPhone: row.recipientPhone,
+      nationalId: row.nationalId,
+      houseNumber: row.houseNumber,
       isDefault: row.isDefault,
     });
   }

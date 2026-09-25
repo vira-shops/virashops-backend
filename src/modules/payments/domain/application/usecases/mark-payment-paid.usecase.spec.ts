@@ -14,10 +14,14 @@ describe('MarkPaymentPaidUseCase', () => {
   const materializeOrder = {
     execute: jest.fn(),
   };
+  const events = {
+    emit: jest.fn(),
+  };
 
   const useCase = new MarkPaymentPaidUseCase(
     payments,
     materializeOrder as never,
+    events as never,
   );
 
   beforeEach(() => {

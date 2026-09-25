@@ -14,6 +14,7 @@ import * as dotenv from 'dotenv';
 import { unwrapApiData, unwrapError, envelopeStatus } from './utils/unwrap-api-data';
 import {
   createApiCheckHarness,
+  sampleAddressBody,
   signupWholesaleBuyer,
 } from './utils/api-check-harness';
 
@@ -101,13 +102,7 @@ async function main(): Promise<void> {
 
   const address = await api(++step.n, 'setup.address', 'POST', '/addresses', {
     token,
-    body: {
-      label: 'آدرس ارسال',
-      line1: 'خیابان کریمخان',
-      city: 'تهران',
-      province: 'تهران',
-      isDefault: true,
-    },
+    body: sampleAddressBody({ label: 'آدرس ارسال' }),
     expectStatus: 201,
     checks: (status, body) => {
       const data = unwrapApiData<{ id?: number }>(body);

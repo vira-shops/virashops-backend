@@ -1,5 +1,11 @@
 import { Inject, Injectable } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import MaterializeOrderFromCheckoutUseCase from '../../../../orders/domain/application/usecases/materialize-order-from-checkout.usecase';
+import OrderPaymentMethod from '../../../../orders/domain/model/enums/order-payment-method.enum';
+import {
+  ORDER_PAID_EVENT,
+  type OrderPaidEvent,
+} from '../../../../notifications/shared/events/order-paid.event';
 import PaymentMethodName from '../../model/enums/payment-method.enum';
 import PaymentStatus from '../../model/enums/payment-status.enum';
 import PaymentNotFoundError from '../../errors/payment-not-found.error';
@@ -14,12 +20,28 @@ const MANUAL_METHODS = new Set<PaymentMethodName>([
   PaymentMethodName.CREDIT_LC,
 ]);
 
+function toOrderPaymentMethod(method: PaymentMethodName): OrderPaymentMethod {
+  switch (method) {
+    case PaymentMethodName.ONLINE:
+      return OrderPaymentMethod.ONLINE;
+    case PaymentMethodName.CHEQUE:
+      return OrderPaymentMethod.CHEQUE;
+    case PaymentMethodName.PAYROLL:
+      return OrderPaymentMethod.PAYROLL;
+    case PaymentMethodName.CREDIT_LC:
+      return OrderPaymentMethod.CREDIT_LC;
+    default:
+      return OrderPaymentMethod.ONLINE;
+  }
+}
+
 @Injectable()
 export default class MarkPaymentPaidUseCase {
   constructor(
     @Inject(PAYMENT_REPOSITORY)
     private readonly payments: PaymentRepositoryPort,
     private readonly materializeOrder: MaterializeOrderFromCheckoutUseCase,
+    private readonly events: EventEmitter2,
   ) {}
 
   async execute(command: MarkPaymentPaidCommand) {
@@ -48,9 +70,16 @@ export default class MarkPaymentPaidUseCase {
     const order = await this.materializeOrder.execute(
       payment.getCheckoutSessionId(),
       command.userId,
+      toOrderPaymentMethod(payment.getMethod()),
     );
     payment.markPaid(order.getId());
     const saved = await this.payments.save(payment);
+    const payload: OrderPaidEvent = {
+      userId: command.userId,
+      orderId: order.getId(),
+      orderNumber: order.getOrderNumber(),
+    };
+    this.events.emit(ORDER_PAID_EVENT, payload);
     return {
       paymentId: saved.getId(),
       orderId: order.getId(),

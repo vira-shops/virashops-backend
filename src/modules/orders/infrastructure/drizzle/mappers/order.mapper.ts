@@ -1,6 +1,7 @@
 import ShippingMethodName from '../../../../shipping/domain/model/enums/shipping-method.enum';
 import type { CheckoutAddressSnapshot } from '../../../domain/model/checkout-line.snapshot';
 import Order from '../../../domain/model/order.model';
+import OrderPaymentMethod from '../../../domain/model/enums/order-payment-method.enum';
 import OrderPaymentStatus from '../../../domain/model/enums/order-payment-status.enum';
 import OrderStatus from '../../../domain/model/enums/order-status.enum';
 import type { OrderItemRow, OrderRow } from '../schema/orders';
@@ -16,6 +17,7 @@ export default class OrderMapper {
       checkoutSessionId: order.checkoutSessionId,
       status: order.status as OrderStatus,
       paymentStatus: order.paymentStatus as OrderPaymentStatus,
+      paymentMethod: order.paymentMethod as OrderPaymentMethod,
       address: order.address as CheckoutAddressSnapshot,
       shippingMethod: order.shippingMethod as ShippingMethodName,
       shippingFee: order.shippingFee,
@@ -26,7 +28,11 @@ export default class OrderMapper {
       goodsTotal: order.goodsTotal,
       commissionTotal: order.commissionTotal,
       prepaymentTotal: order.prepaymentTotal,
+      priceTotal: order.priceTotal,
+      discountTotal: order.discountTotal,
+      priceAfterDiscount: order.priceAfterDiscount,
       grandTotal: order.grandTotal,
+      createdAt: order.createdAt,
       items: items.map((item) => ({
         id: item.id,
         productId: item.productId,

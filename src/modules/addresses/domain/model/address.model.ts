@@ -9,6 +9,10 @@ export type AddressProps = {
   city: string;
   province: string;
   postalCode: string | null;
+  recipientFullName: string;
+  recipientPhone: string;
+  nationalId: string;
+  houseNumber: string;
   isDefault: boolean;
 };
 
@@ -69,6 +73,22 @@ export default class Address {
     return this.props.postalCode;
   }
 
+  getRecipientFullName(): string {
+    return this.props.recipientFullName;
+  }
+
+  getRecipientPhone(): string {
+    return this.props.recipientPhone;
+  }
+
+  getNationalId(): string {
+    return this.props.nationalId;
+  }
+
+  getHouseNumber(): string {
+    return this.props.houseNumber;
+  }
+
   isDefault(): boolean {
     return this.props.isDefault;
   }
@@ -80,6 +100,10 @@ export default class Address {
     city: string;
     province: string;
     postalCode: string | null;
+    recipientFullName: string;
+    recipientPhone: string;
+    nationalId: string;
+    houseNumber: string;
     isDefault: boolean;
   }): void {
     const next = Address.validated({
@@ -102,6 +126,10 @@ export default class Address {
     const line1 = props.line1.trim();
     const city = props.city.trim();
     const province = props.province.trim();
+    const recipientFullName = props.recipientFullName.trim();
+    const recipientPhone = props.recipientPhone.trim();
+    const nationalId = props.nationalId.trim();
+    const houseNumber = props.houseNumber.trim();
     if (!label) {
       throw new InvalidAddressFieldError('Label is required');
     }
@@ -114,6 +142,24 @@ export default class Address {
     if (!province) {
       throw new InvalidAddressFieldError('Province is required');
     }
+    if (!recipientFullName) {
+      throw new InvalidAddressFieldError('Recipient full name is required');
+    }
+    if (!recipientPhone) {
+      throw new InvalidAddressFieldError('Recipient phone is required');
+    }
+    if (!/^\d{11}$/.test(recipientPhone)) {
+      throw new InvalidAddressFieldError('Recipient phone must be 11 digits');
+    }
+    if (!nationalId) {
+      throw new InvalidAddressFieldError('National ID is required');
+    }
+    if (!/^\d{10}$/.test(nationalId)) {
+      throw new InvalidAddressFieldError('National ID must be 10 digits');
+    }
+    if (!houseNumber) {
+      throw new InvalidAddressFieldError('House number is required');
+    }
     return {
       ...props,
       label,
@@ -122,6 +168,10 @@ export default class Address {
       city,
       province,
       postalCode: props.postalCode?.trim() || null,
+      recipientFullName,
+      recipientPhone,
+      nationalId,
+      houseNumber,
     };
   }
 }

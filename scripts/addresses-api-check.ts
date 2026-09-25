@@ -13,6 +13,7 @@ import * as dotenv from 'dotenv';
 import { unwrapApiData } from './utils/unwrap-api-data';
 import {
   createApiCheckHarness,
+  sampleAddressBody,
   signupWholesaleBuyer,
 } from './utils/api-check-harness';
 
@@ -34,6 +35,10 @@ type AddressView = {
   city: string;
   province: string;
   postalCode: string | null;
+  recipientFullName: string;
+  recipientPhone: string;
+  nationalId: string;
+  houseNumber: string;
   isDefault: boolean;
 };
 
@@ -79,7 +84,7 @@ async function main(): Promise<void> {
 
   const created = await api(++step.n, 'addresses.create', 'POST', '/addresses', {
     token,
-    body: {
+    body: sampleAddressBody({
       label: 'انبار اصلی',
       line1: 'خیابان ولیعصر',
       line2: 'پلاک ۱۰',
@@ -87,7 +92,7 @@ async function main(): Promise<void> {
       province: 'تهران',
       postalCode: '1234567890',
       isDefault: true,
-    },
+    }),
     expectStatus: 201,
     checklistPath: '/addresses',
     checks: (status, body) => {
@@ -97,6 +102,7 @@ async function main(): Promise<void> {
         hasId: typeof data?.id === 'number',
         label: data?.label === 'انبار اصلی',
         isDefault: data?.isDefault === true,
+        hasReceiver: data?.recipientFullName === 'حسین حیدری',
       };
     },
   });
@@ -121,7 +127,7 @@ async function main(): Promise<void> {
 
   await api(++step.n, 'addresses.update', 'PUT', `/addresses/${addressId}`, {
     token,
-    body: {
+    body: sampleAddressBody({
       label: 'انبار به‌روز',
       line1: 'خیابان انقلاب',
       line2: null,
@@ -129,7 +135,7 @@ async function main(): Promise<void> {
       province: 'تهران',
       postalCode: '0987654321',
       isDefault: true,
-    },
+    }),
     checklistPath: '/addresses/:id',
     checks: (status, body) => {
       const data = unwrapApiData<AddressView>(body);
@@ -144,12 +150,12 @@ async function main(): Promise<void> {
 
   await api(++step.n, 'addresses.not-found', 'PUT', '/addresses/99999999', {
     token,
-    body: {
+    body: sampleAddressBody({
       label: 'x',
       line1: 'y',
       city: 'تهران',
       province: 'تهران',
-    },
+    }),
     expectStatus: 404,
     checks: (status, body) => errorOk(status, body, 404, 'ADDRESS_NOT_FOUND'),
   });
@@ -161,13 +167,13 @@ async function main(): Promise<void> {
     '/addresses',
     {
       token,
-      body: {
+      body: sampleAddressBody({
         label: 'انبار دوم',
         line1: 'خیابان آزادی',
         city: 'تهران',
         province: 'تهران',
         isDefault: false,
-      },
+      }),
       expectStatus: 201,
       checks: (status, body) => {
         const data = unwrapApiData<AddressView>(body);
