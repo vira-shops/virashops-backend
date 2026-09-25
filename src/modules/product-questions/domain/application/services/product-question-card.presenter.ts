@@ -8,6 +8,8 @@ export type ProductQuestionCardView = {
   productId: number;
   productNameFa: string;
   productImageKey: string | null;
+  kind: string;
+  status: string;
   question: string;
   answers: Array<{ id: number; body: string; createdAt: string | null }>;
   createdAt: string | null;
@@ -36,6 +38,8 @@ export default class ProductQuestionCardPresenter {
         productId: question.getProductId(),
         productNameFa,
         productImageKey,
+        kind: question.getKind(),
+        status: question.getStatus(),
         question: question.getBody(),
         answers: question.getAnswers().map((answer) => ({
           id: answer.id as number,

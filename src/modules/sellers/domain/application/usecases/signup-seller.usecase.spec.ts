@@ -26,6 +26,10 @@ describe('SignupSellerUseCase', () => {
           activityType: seller.getActivityType(),
           documentType: seller.getDocumentType(),
           documentKey: seller.getDocumentKey(),
+          nationalId: seller.getNationalId(),
+          dateOfBirth: seller.getDateOfBirth(),
+          gender: seller.getGender(),
+          avatarKey: seller.getAvatarKey(),
           status: seller.getStatus(),
         });
       }
@@ -73,6 +77,10 @@ describe('SignupSellerUseCase', () => {
         activityType: 'STORE',
         documentType: 'NATIONAL_ID' as never,
         documentKey: 'key',
+        nationalId: null,
+        dateOfBirth: null,
+        gender: null,
+        avatarKey: null,
         status: SellerStatus.PENDING,
       }),
     );

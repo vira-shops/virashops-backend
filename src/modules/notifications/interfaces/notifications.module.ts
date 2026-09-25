@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import CoreInfrastructureModule from '../../shared/infrastructure/infrastructure.module';
+import SellersInfrastructureModule from '../../sellers/infrastructure/infrastructure.module';
 import UsersModule from '../../users/interfaces/users.module';
 import CreateNotificationUseCase from '../domain/application/usecases/create-notification.usecase';
 import CountUnreadNotificationsUseCase from '../domain/application/usecases/count-unread-notifications.usecase';
@@ -15,6 +16,7 @@ import OrderPaidNotificationListener from './listeners/order-paid.notification.l
 @Module({
   imports: [
     NotificationsInfrastructureModule,
+    SellersInfrastructureModule,
     CoreInfrastructureModule,
     UsersModule,
   ],

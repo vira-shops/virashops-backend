@@ -92,6 +92,27 @@
       "when": 1790090000000,
       "tag": "0012_buyer_profile_figma_fields",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1790170000000,
+      "tag": "0013_product_qa_kind_status_ratings",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1790250000000,
+      "tag": "0014_seller_profile_figma_fields",
+      "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1790330000000,
+      "tag": "0015_retail_seller_profile",
+      "breakpoints": true
     }
   ]
 }

@@ -1,6 +1,7 @@
 import InvalidSellerStatusTransitionError from '../errors/invalid-seller-status-transition.error';
 import SalesType from './enums/sales-type.enum';
 import SellerDocumentType from './enums/seller-document-type.enum';
+import SellerGender from './enums/seller-gender.enum';
 import SellerKind from './enums/seller-kind.enum';
 import SellerStatus from './enums/seller-status.enum';
 
@@ -20,6 +21,10 @@ export type SellerProps = {
   activityType: string;
   documentType: SellerDocumentType;
   documentKey: string;
+  nationalId: string | null;
+  dateOfBirth: string | null;
+  gender: SellerGender | null;
+  avatarKey: string | null;
   status: SellerStatus;
 };
 
@@ -46,6 +51,10 @@ export default class Seller {
       industryType: input.industryType.trim(),
       category: input.category.trim(),
       activityType: input.activityType.trim(),
+      nationalId: input.nationalId?.trim() || null,
+      dateOfBirth: input.dateOfBirth?.trim() || null,
+      gender: input.gender ?? null,
+      avatarKey: input.avatarKey?.trim() || null,
       status: SellerStatus.PENDING,
     });
   }
@@ -121,6 +130,22 @@ export default class Seller {
     return this.props.documentKey;
   }
 
+  getNationalId(): string | null {
+    return this.props.nationalId;
+  }
+
+  getDateOfBirth(): string | null {
+    return this.props.dateOfBirth;
+  }
+
+  getGender(): SellerGender | null {
+    return this.props.gender;
+  }
+
+  getAvatarKey(): string | null {
+    return this.props.avatarKey;
+  }
+
   getStatus(): SellerStatus {
     return this.props.status;
   }
@@ -155,6 +180,74 @@ export default class Seller {
     this.props.postalCode = input.postalCode?.trim() || null;
     this.props.salesType = input.salesType;
     this.props.address = input.address.trim();
+  }
+
+  patchProfile(input: {
+    shopName?: string;
+    workplacePhone?: string | null;
+    province?: string;
+    city?: string;
+    postalCode?: string | null;
+    salesType?: SalesType | null;
+    address?: string;
+    industryType?: string;
+    category?: string;
+    activityType?: string;
+    documentType?: SellerDocumentType;
+    documentKey?: string;
+    nationalId?: string | null;
+    dateOfBirth?: string | null;
+    gender?: SellerGender | null;
+    avatarKey?: string | null;
+  }): void {
+    if (input.shopName !== undefined) {
+      this.props.shopName = input.shopName.trim() || null;
+    }
+    if (input.workplacePhone !== undefined) {
+      this.props.workplacePhone = input.workplacePhone?.trim() || null;
+    }
+    if (input.province !== undefined) {
+      this.props.province = input.province.trim() || null;
+    }
+    if (input.city !== undefined) {
+      this.props.city = input.city.trim() || null;
+    }
+    if (input.postalCode !== undefined) {
+      this.props.postalCode = input.postalCode?.trim() || null;
+    }
+    if (input.salesType !== undefined) {
+      this.props.salesType = input.salesType;
+    }
+    if (input.address !== undefined) {
+      this.props.address = input.address.trim() || null;
+    }
+    if (input.industryType !== undefined) {
+      this.props.industryType = input.industryType.trim();
+    }
+    if (input.category !== undefined) {
+      this.props.category = input.category.trim();
+    }
+    if (input.activityType !== undefined) {
+      this.props.activityType = input.activityType.trim();
+    }
+    if (input.documentType !== undefined) {
+      this.props.documentType = input.documentType;
+    }
+    if (input.documentKey !== undefined) {
+      this.props.documentKey = input.documentKey.trim();
+    }
+    if (input.nationalId !== undefined) {
+      this.props.nationalId = input.nationalId?.trim() || null;
+    }
+    if (input.dateOfBirth !== undefined) {
+      this.props.dateOfBirth = input.dateOfBirth?.trim() || null;
+    }
+    if (input.gender !== undefined) {
+      this.props.gender = input.gender;
+    }
+    if (input.avatarKey !== undefined) {
+      this.props.avatarKey = input.avatarKey?.trim() || null;
+    }
   }
 
   transitionTo(next: SellerStatus): void {

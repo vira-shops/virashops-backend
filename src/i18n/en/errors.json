@@ -43,5 +43,8 @@
   "BANK_ACCOUNT_VALIDATION_NOT_FOUND": "Bank account validation not found",
   "NOTIFICATION_NOT_FOUND": "Notification not found",
   "FAVORITE_NOT_FOUND": "Favorite not found",
-  "PRODUCT_QUESTION_NOT_FOUND": "Product question not found"
+  "PRODUCT_QUESTION_NOT_FOUND": "Product question not found",
+  "INVALID_PRODUCT_RATING": "Rating must be an integer from 1 to 5",
+  "INVALID_ORDER_STATUS_TRANSITION": "This order status change is not allowed",
+  "SELLER_WAREHOUSE_NOT_FOUND": "Seller warehouse not found"
 }

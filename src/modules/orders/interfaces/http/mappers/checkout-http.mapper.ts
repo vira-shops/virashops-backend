@@ -43,6 +43,7 @@ export default class CheckoutHttpMapper {
       id: order.getId(),
       orderNumber: order.getOrderNumber(),
       amount: order.getGrandTotal(),
+      status: order.getStatus(),
       paymentStatus: order.getPaymentStatus(),
       createdAt: order.getCreatedAt()?.toISOString() ?? null,
       items: {

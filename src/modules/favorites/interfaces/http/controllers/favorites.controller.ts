@@ -25,7 +25,12 @@ import RemoveFavoriteUseCase from '../../../domain/application/usecases/remove-f
 @ApiTags('favorites')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(Role.RETAIL_BUYER, Role.WHOLESALE_BUYER)
+@Roles(
+  Role.RETAIL_BUYER,
+  Role.WHOLESALE_BUYER,
+  Role.WHOLESALE_SELLER,
+  Role.RETAIL_SELLER,
+)
 @Controller('favorites')
 export default class FavoritesController {
   constructor(

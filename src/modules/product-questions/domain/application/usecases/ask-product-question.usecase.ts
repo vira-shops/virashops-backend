@@ -19,7 +19,12 @@ export default class AskProductQuestionUseCase {
       new GetProductByIdQuery(command.productId, true),
     );
     return this.questions.save(
-      ProductQuestion.create(command.userId, command.productId, command.body),
+      ProductQuestion.create(
+        command.userId,
+        command.productId,
+        command.body,
+        command.kind,
+      ),
     );
   }
 }

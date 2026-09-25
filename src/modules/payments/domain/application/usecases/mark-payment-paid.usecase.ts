@@ -76,6 +76,7 @@ export default class MarkPaymentPaidUseCase {
     const saved = await this.payments.save(payment);
     const payload: OrderPaidEvent = {
       userId: command.userId,
+      sellerId: order.getSellerId(),
       orderId: order.getId(),
       orderNumber: order.getOrderNumber(),
     };

@@ -1,3 +1,6 @@
+import ProductQuestionKind from './enums/product-question-kind.enum';
+import ProductQuestionStatus from './enums/product-question-status.enum';
+
 export type ProductAnswerProps = {
   id: number | null;
   questionId: number;
@@ -10,6 +13,8 @@ export type ProductQuestionProps = {
   id: number | null;
   userId: number;
   productId: number;
+  kind: ProductQuestionKind;
+  status: ProductQuestionStatus;
   body: string;
   createdAt: Date | null;
   answers: ProductAnswerProps[];
@@ -22,6 +27,7 @@ export default class ProductQuestion {
     userId: number,
     productId: number,
     body: string,
+    kind: ProductQuestionKind = ProductQuestionKind.QUESTION,
   ): ProductQuestion {
     const trimmed = body.trim();
     if (!trimmed) {
@@ -31,6 +37,8 @@ export default class ProductQuestion {
       id: null,
       userId,
       productId,
+      kind,
+      status: ProductQuestionStatus.NOT_CONFIRMED,
       body: trimmed,
       createdAt: null,
       answers: [],
@@ -63,6 +71,14 @@ export default class ProductQuestion {
     return this.props.productId;
   }
 
+  getKind(): ProductQuestionKind {
+    return this.props.kind;
+  }
+
+  getStatus(): ProductQuestionStatus {
+    return this.props.status;
+  }
+
   getBody(): string {
     return this.props.body;
   }
@@ -73,6 +89,10 @@ export default class ProductQuestion {
 
   getAnswers(): ProductAnswerProps[] {
     return this.props.answers.map((answer) => ({ ...answer }));
+  }
+
+  confirm(): void {
+    this.props.status = ProductQuestionStatus.CONFIRMED;
   }
 
   toSnapshot(): ProductQuestionProps {

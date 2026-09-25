@@ -1,6 +1,8 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { and, asc, count, desc, eq, inArray, isNull } from 'drizzle-orm';
+import { and, asc, count, desc, eq, inArray, isNull, SQL } from 'drizzle-orm';
 import { DRIZZLE, type DrizzleDB } from '../../../../../database/drizzle.token';
+import ProductQuestionKind from '../../../domain/model/enums/product-question-kind.enum';
+import ProductQuestionStatus from '../../../domain/model/enums/product-question-status.enum';
 import ProductQuestion from '../../../domain/model/product-question.model';
 import type { ProductAnswerProps } from '../../../domain/model/product-question.model';
 import type ProductQuestionRepositoryPort from '../../../domain/ports/product-question.repository.port';
@@ -27,27 +29,74 @@ export default class DrizzleProductQuestionRepositoryAdapter implements ProductQ
 
   async save(question: ProductQuestion): Promise<ProductQuestion> {
     const snap = question.toSnapshot();
+    if (snap.id === null) {
+      const [row] = await this.db
+        .insert(productQuestions)
+        .values({
+          userId: snap.userId,
+          productId: snap.productId,
+          kind: snap.kind,
+          status: snap.status,
+          body: snap.body,
+        })
+        .returning();
+      return ProductQuestionMapper.toDomain(row, []);
+    }
     const [row] = await this.db
-      .insert(productQuestions)
-      .values({
-        userId: snap.userId,
-        productId: snap.productId,
+      .update(productQuestions)
+      .set({
+        kind: snap.kind,
+        status: snap.status,
         body: snap.body,
+        updatedAt: new Date(),
       })
+      .where(eq(productQuestions.id, snap.id))
       .returning();
-    return ProductQuestionMapper.toDomain(row, []);
+    const [withAnswers] = await this.attachAnswers([row]);
+    return withAnswers ?? ProductQuestionMapper.toDomain(row, []);
   }
 
-  async listByUserId(userId: number): Promise<ProductQuestion[]> {
+  async listByUserId(
+    userId: number,
+    kind?: ProductQuestionKind | null,
+  ): Promise<ProductQuestion[]> {
+    const conditions: SQL[] = [
+      eq(productQuestions.userId, userId),
+      isNull(productQuestions.deletedAt),
+    ];
+    if (kind) {
+      conditions.push(eq(productQuestions.kind, kind));
+    }
     const rows = await this.db
       .select()
       .from(productQuestions)
-      .where(
-        and(
-          eq(productQuestions.userId, userId),
-          isNull(productQuestions.deletedAt),
-        ),
-      )
+      .where(and(...conditions))
+      .orderBy(desc(productQuestions.id));
+    return this.attachAnswers(rows);
+  }
+
+  async listByProductIds(
+    productIds: number[],
+    kind?: ProductQuestionKind | null,
+    status?: ProductQuestionStatus | null,
+  ): Promise<ProductQuestion[]> {
+    if (productIds.length === 0) {
+      return [];
+    }
+    const conditions: SQL[] = [
+      inArray(productQuestions.productId, productIds),
+      isNull(productQuestions.deletedAt),
+    ];
+    if (kind) {
+      conditions.push(eq(productQuestions.kind, kind));
+    }
+    if (status) {
+      conditions.push(eq(productQuestions.status, status));
+    }
+    const rows = await this.db
+      .select()
+      .from(productQuestions)
+      .where(and(...conditions))
       .orderBy(desc(productQuestions.id));
     return this.attachAnswers(rows);
   }
