@@ -3,6 +3,7 @@ import RemoveSellerCartItemsUseCase from '../../../../carts/domain/application/u
 import RemoveSellerItemsCommand from '../../../../carts/domain/application/commands/remove-seller-items.command';
 import CheckoutSessionNotFoundError from '../../errors/checkout-session-not-found.error';
 import Order from '../../model/order.model';
+import OrderPaymentMethod from '../../model/enums/order-payment-method.enum';
 import OrderPaymentStatus from '../../model/enums/order-payment-status.enum';
 import OrderStatus from '../../model/enums/order-status.enum';
 import type CheckoutSessionRepositoryPort from '../../ports/checkout-session.repository.port';
@@ -22,7 +23,11 @@ export default class MaterializeOrderFromCheckoutUseCase {
     private readonly removeSellerItems: RemoveSellerCartItemsUseCase,
   ) {}
 
-  async execute(checkoutSessionId: number, userId: number): Promise<Order> {
+  async execute(
+    checkoutSessionId: number,
+    userId: number,
+    paymentMethod: OrderPaymentMethod,
+  ): Promise<Order> {
     const existing =
       await this.orders.findByCheckoutSessionId(checkoutSessionId);
     if (existing) {
@@ -39,6 +44,9 @@ export default class MaterializeOrderFromCheckoutUseCase {
     session.assertPayable();
 
     const orderNumber = await this.orders.nextOrderNumber();
+    const priceTotal = session.getGoodsTotal();
+    const discountTotal = 0;
+    const priceAfterDiscount = priceTotal - discountTotal;
     const order = Order.create({
       orderNumber,
       userId: session.getUserId(),
@@ -47,6 +55,7 @@ export default class MaterializeOrderFromCheckoutUseCase {
       checkoutSessionId: session.getId(),
       status: OrderStatus.PAID,
       paymentStatus: OrderPaymentStatus.PAID,
+      paymentMethod,
       address: session.getAddress(),
       shippingMethod: session.getShippingMethod(),
       shippingFee: session.getShippingFee(),
@@ -57,6 +66,9 @@ export default class MaterializeOrderFromCheckoutUseCase {
       goodsTotal: session.getGoodsTotal(),
       commissionTotal: session.getCommissionTotal(),
       prepaymentTotal: session.getPrepaymentTotal(),
+      priceTotal,
+      discountTotal,
+      priceAfterDiscount,
       grandTotal: session.getPayableAmount(),
       items: Order.fromCheckoutLines(session.getLines()),
     });

@@ -1,10 +1,24 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { and, desc, eq, isNull } from 'drizzle-orm';
+import { and, count, desc, eq, gte, inArray, isNull, lte } from 'drizzle-orm';
 import { DRIZZLE, type DrizzleDB } from '../../../../../database/drizzle.token';
 import Order from '../../../domain/model/order.model';
+import OrderStatus from '../../../domain/model/enums/order-status.enum';
 import type OrderRepositoryPort from '../../../domain/ports/order.repository.port';
+import type {
+  ListOrdersFilter,
+  OrderPage,
+  OrderStatusCounts,
+} from '../../../domain/ports/order.repository.port';
 import OrderMapper from '../mappers/order.mapper';
 import { orderItems, orders } from '../schema/orders';
+
+const PROCESSING_STATUSES = [
+  OrderStatus.PAID,
+  OrderStatus.PROCESSING,
+  OrderStatus.PREPARING,
+  OrderStatus.SHIPPED,
+];
+const CANCELLED_STATUSES = [OrderStatus.CANCELLED, OrderStatus.FAILED];
 
 @Injectable()
 export default class DrizzleOrderRepositoryAdapter implements OrderRepositoryPort {
@@ -30,12 +44,36 @@ export default class DrizzleOrderRepositoryAdapter implements OrderRepositoryPor
     return OrderMapper.toDomain(order, items);
   }
 
-  async listByUserId(userId: number): Promise<Order[]> {
+  async listByUserId(filter: ListOrdersFilter): Promise<OrderPage> {
+    const conditions = [
+      eq(orders.userId, filter.userId),
+      isNull(orders.deletedAt),
+    ];
+    if (filter.status) {
+      conditions.push(eq(orders.status, filter.status));
+    }
+    if (filter.fromDate) {
+      conditions.push(
+        gte(orders.createdAt, new Date(`${filter.fromDate}T00:00:00.000Z`)),
+      );
+    }
+    if (filter.toDate) {
+      conditions.push(
+        lte(orders.createdAt, new Date(`${filter.toDate}T23:59:59.999Z`)),
+      );
+    }
+    const where = and(...conditions);
+    const [totalRow] = await this.db
+      .select({ value: count() })
+      .from(orders)
+      .where(where);
     const rows = await this.db
       .select()
       .from(orders)
-      .where(and(eq(orders.userId, userId), isNull(orders.deletedAt)))
-      .orderBy(desc(orders.id));
+      .where(where)
+      .orderBy(desc(orders.id))
+      .limit(filter.limit)
+      .offset((filter.page - 1) * filter.limit);
     const result: Order[] = [];
     for (const order of rows) {
       const items = await this.db
@@ -46,7 +84,31 @@ export default class DrizzleOrderRepositoryAdapter implements OrderRepositoryPor
         );
       result.push(OrderMapper.toDomain(order, items));
     }
-    return result;
+    return {
+      items: result,
+      total: Number(totalRow?.value ?? 0),
+    };
+  }
+
+  async countByStatusGroups(userId: number): Promise<OrderStatusCounts> {
+    const base = and(eq(orders.userId, userId), isNull(orders.deletedAt));
+    const [delivered] = await this.db
+      .select({ value: count() })
+      .from(orders)
+      .where(and(base, eq(orders.status, OrderStatus.DELIVERED)));
+    const [processing] = await this.db
+      .select({ value: count() })
+      .from(orders)
+      .where(and(base, inArray(orders.status, PROCESSING_STATUSES)));
+    const [cancelled] = await this.db
+      .select({ value: count() })
+      .from(orders)
+      .where(and(base, inArray(orders.status, CANCELLED_STATUSES)));
+    return {
+      delivered: Number(delivered?.value ?? 0),
+      processing: Number(processing?.value ?? 0),
+      cancelled: Number(cancelled?.value ?? 0),
+    };
   }
 
   async findByCheckoutSessionId(
@@ -85,6 +147,7 @@ export default class DrizzleOrderRepositoryAdapter implements OrderRepositoryPor
             checkoutSessionId: snap.checkoutSessionId,
             status: snap.status,
             paymentStatus: snap.paymentStatus,
+            paymentMethod: snap.paymentMethod,
             address: snap.address,
             shippingMethod: snap.shippingMethod,
             shippingFee: snap.shippingFee,
@@ -95,6 +158,9 @@ export default class DrizzleOrderRepositoryAdapter implements OrderRepositoryPor
             goodsTotal: snap.goodsTotal,
             commissionTotal: snap.commissionTotal,
             prepaymentTotal: snap.prepaymentTotal,
+            priceTotal: snap.priceTotal,
+            discountTotal: snap.discountTotal,
+            priceAfterDiscount: snap.priceAfterDiscount,
             grandTotal: snap.grandTotal,
           })
           .returning();

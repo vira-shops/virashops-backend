@@ -36,6 +36,8 @@ import OrdersController from './http/controllers/orders.controller';
     GetPayableCheckoutUseCase,
     MaterializeOrderFromCheckoutUseCase,
     GetCheckoutSessionUseCase,
+    ListOrdersUseCase,
+    OrdersInfrastructureModule,
   ],
 })
 export default class OrdersModule {}

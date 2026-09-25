@@ -11,6 +11,15 @@ export default class ListOrdersUseCase {
   ) {}
 
   async execute(query: ListOrdersQuery) {
-    return this.orders.listByUserId(query.userId);
+    const page = Math.max(1, query.page);
+    const limit = Math.min(100, Math.max(1, query.limit));
+    return this.orders.listByUserId({
+      userId: query.userId,
+      fromDate: query.fromDate,
+      toDate: query.toDate,
+      status: query.status,
+      page,
+      limit,
+    });
   }
 }

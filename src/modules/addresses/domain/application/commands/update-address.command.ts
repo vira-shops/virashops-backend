@@ -8,6 +8,10 @@ export default class UpdateAddressCommand {
     readonly city: string,
     readonly province: string,
     readonly postalCode: string | null,
+    readonly recipientFullName: string,
+    readonly recipientPhone: string,
+    readonly nationalId: string,
+    readonly houseNumber: string,
     readonly isDefault: boolean,
   ) {}
 }

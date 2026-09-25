@@ -24,4 +24,8 @@ export type CheckoutAddressSnapshot = {
   city: string;
   province: string;
   postalCode: string | null;
+  recipientFullName: string;
+  recipientPhone: string;
+  nationalId: string;
+  houseNumber: string;
 };

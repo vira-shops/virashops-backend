@@ -43,6 +43,10 @@ export default class DrizzleAddressRepositoryAdapter implements AddressRepositor
           city: snap.city,
           province: snap.province,
           postalCode: snap.postalCode,
+          recipientFullName: snap.recipientFullName,
+          recipientPhone: snap.recipientPhone,
+          nationalId: snap.nationalId,
+          houseNumber: snap.houseNumber,
           isDefault: snap.isDefault,
         })
         .returning();
@@ -57,6 +61,10 @@ export default class DrizzleAddressRepositoryAdapter implements AddressRepositor
         city: snap.city,
         province: snap.province,
         postalCode: snap.postalCode,
+        recipientFullName: snap.recipientFullName,
+        recipientPhone: snap.recipientPhone,
+        nationalId: snap.nationalId,
+        houseNumber: snap.houseNumber,
         isDefault: snap.isDefault,
       })
       .where(and(eq(addresses.id, snap.id), eq(addresses.userId, snap.userId)))

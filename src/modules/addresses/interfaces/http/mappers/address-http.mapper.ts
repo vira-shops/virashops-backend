@@ -13,6 +13,10 @@ export default class AddressHttpMapper {
       dto.city,
       dto.province,
       dto.postalCode ?? null,
+      dto.recipientFullName,
+      dto.recipientPhone,
+      dto.nationalId,
+      dto.houseNumber,
       dto.isDefault ?? false,
     );
   }
@@ -31,6 +35,10 @@ export default class AddressHttpMapper {
       dto.city,
       dto.province,
       dto.postalCode ?? null,
+      dto.recipientFullName,
+      dto.recipientPhone,
+      dto.nationalId,
+      dto.houseNumber,
       dto.isDefault ?? false,
     );
   }
@@ -44,6 +52,10 @@ export default class AddressHttpMapper {
       city: address.getCity(),
       province: address.getProvince(),
       postalCode: address.getPostalCode(),
+      recipientFullName: address.getRecipientFullName(),
+      recipientPhone: address.getRecipientPhone(),
+      nationalId: address.getNationalId(),
+      houseNumber: address.getHouseNumber(),
       isDefault: address.isDefault(),
     };
   }

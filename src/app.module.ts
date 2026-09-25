@@ -10,9 +10,13 @@ import HealthModule from './modules/health/health.module';
 import AddressesModule from './modules/addresses/interfaces/addresses.module';
 import CartsModule from './modules/carts/interfaces/carts.module';
 import CategoriesModule from './modules/categories/interfaces/categories.module';
+import DashboardModule from './modules/dashboard/interfaces/dashboard.module';
+import FavoritesModule from './modules/favorites/interfaces/favorites.module';
 import FilesModule from './modules/files/interfaces/files.module';
+import NotificationsModule from './modules/notifications/interfaces/notifications.module';
 import OrdersModule from './modules/orders/interfaces/orders.module';
 import PaymentsModule from './modules/payments/interfaces/payments.module';
+import ProductQuestionsModule from './modules/product-questions/interfaces/product-questions.module';
 import ProductsModule from './modules/products/interfaces/products.module';
 import SearchModule from './modules/search/interfaces/search.module';
 import SellersModule from './modules/sellers/interfaces/sellers.module';
@@ -46,6 +50,10 @@ import UsersModule from './modules/users/interfaces/users.module';
     ShippingModule,
     OrdersModule,
     PaymentsModule,
+    NotificationsModule,
+    FavoritesModule,
+    ProductQuestionsModule,
+    DashboardModule,
   ],
   providers: [
     {

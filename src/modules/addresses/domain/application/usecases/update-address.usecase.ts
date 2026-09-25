@@ -29,6 +29,10 @@ export default class UpdateAddressUseCase {
       city: command.city,
       province: command.province,
       postalCode: command.postalCode,
+      recipientFullName: command.recipientFullName,
+      recipientPhone: command.recipientPhone,
+      nationalId: command.nationalId,
+      houseNumber: command.houseNumber,
       isDefault: command.isDefault,
     });
     return this.addresses.save(address);

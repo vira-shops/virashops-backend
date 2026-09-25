@@ -27,6 +27,7 @@
     "shipping-api-check": "ts-node --transpile-only --project scripts/tsconfig.json scripts/shipping-api-check.ts",
     "orders-api-check": "ts-node --transpile-only --project scripts/tsconfig.json scripts/orders-api-check.ts",
     "cheque-api-check": "ts-node --transpile-only --project scripts/tsconfig.json scripts/cheque-api-check.ts",
+    "customer-dashboard-api-check": "ts-node --transpile-only --project scripts/tsconfig.json scripts/customer-dashboard-api-check.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",

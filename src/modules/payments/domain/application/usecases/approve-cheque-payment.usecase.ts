@@ -1,5 +1,11 @@
 import { Inject, Injectable } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import MaterializeOrderFromCheckoutUseCase from '../../../../orders/domain/application/usecases/materialize-order-from-checkout.usecase';
+import OrderPaymentMethod from '../../../../orders/domain/model/enums/order-payment-method.enum';
+import {
+  ORDER_PAID_EVENT,
+  type OrderPaidEvent,
+} from '../../../../notifications/shared/events/order-paid.event';
 import ForbiddenError from '../../../../users/domain/errors/forbidden.error';
 import Role from '../../../../users/domain/model/enums/role.enum';
 import ChequeSubmissionNotFoundError from '../../errors/cheque-submission-not-found.error';
@@ -35,6 +41,7 @@ export default class ApproveChequePaymentUseCase {
     private readonly submissions: ChequeSubmissionRepositoryPort,
     private readonly materializeOrder: MaterializeOrderFromCheckoutUseCase,
     private readonly presenter: ChequeSubmissionPresenter,
+    private readonly events: EventEmitter2,
   ) {}
 
   async execute(
@@ -87,9 +94,17 @@ export default class ApproveChequePaymentUseCase {
     const order = await this.materializeOrder.execute(
       payment.getCheckoutSessionId(),
       payment.getUserId(),
+      OrderPaymentMethod.CHEQUE,
     );
     payment.markPaid(order.getId());
     const savedPayment = await this.payments.save(payment);
+
+    const payload: OrderPaidEvent = {
+      userId: payment.getUserId(),
+      orderId: order.getId(),
+      orderNumber: order.getOrderNumber(),
+    };
+    this.events.emit(ORDER_PAID_EVENT, payload);
 
     const view = await this.presenter.present({
       paymentId: savedPayment.getId(),

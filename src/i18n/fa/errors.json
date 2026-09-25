@@ -40,5 +40,8 @@
   "INVALID_BANK_ACCOUNT_FIELD": "فیلد اعتبارسنجی حساب بانکی نامعتبر است",
   "BANK_VALIDATION_REQUIRED": "قبل از پرداخت چکی، اعتبارسنجی حساب بانکی الزامی است",
   "BANK_CREDIT_INSUFFICIENT": "سقف اعتبار چکی برای این پرداخت کافی نیست",
-  "BANK_ACCOUNT_VALIDATION_NOT_FOUND": "نتیجه اعتبارسنجی حساب بانکی پیدا نشد"
+  "BANK_ACCOUNT_VALIDATION_NOT_FOUND": "نتیجه اعتبارسنجی حساب بانکی پیدا نشد",
+  "NOTIFICATION_NOT_FOUND": "اعلان پیدا نشد",
+  "FAVORITE_NOT_FOUND": "علاقه‌مندی پیدا نشد",
+  "PRODUCT_QUESTION_NOT_FOUND": "پرسش محصول پیدا نشد"
 }

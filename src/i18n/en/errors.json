@@ -40,5 +40,8 @@
   "INVALID_BANK_ACCOUNT_FIELD": "Invalid bank account validation field",
   "BANK_VALIDATION_REQUIRED": "Bank account validation is required before cheque payment",
   "BANK_CREDIT_INSUFFICIENT": "Cheque credit ceiling is insufficient for this payment",
-  "BANK_ACCOUNT_VALIDATION_NOT_FOUND": "Bank account validation not found"
+  "BANK_ACCOUNT_VALIDATION_NOT_FOUND": "Bank account validation not found",
+  "NOTIFICATION_NOT_FOUND": "Notification not found",
+  "FAVORITE_NOT_FOUND": "Favorite not found",
+  "PRODUCT_QUESTION_NOT_FOUND": "Product question not found"
 }

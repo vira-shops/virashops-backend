@@ -416,7 +416,9 @@ Line money is server-authoritative. Commission % comes from `PLATFORM_COMMISSION
 | `PUT` | `/addresses/:id` |
 | `DELETE` | `/addresses/:id` |
 
-Body: `{ label, line1, line2?, city, province, postalCode?, isDefault? }`.
+Body: `{ label, line1, line2?, city, province, postalCode?, recipientFullName, recipientPhone, nationalId, houseNumber, isDefault? }`.
+
+Receiver fields are snapshotted onto checkout/orders.
 
 ### Shipping (transmission)
 
@@ -494,10 +496,77 @@ Idempotency (see [IDEMPOTENCY.md](./IDEMPOTENCY.md)):
 
 ### Orders (after paid)
 
-| Method | Path |
-| ------ | ---- |
-| `GET` | `/orders` |
-| `GET` | `/orders/:id` |
+| Method | Path | Notes |
+| ------ | ---- | ----- |
+| `GET` | `/orders` | Buyer orders table. Query: `fromDate`, `toDate` (`YYYY-MM-DD`), `page`, `limit` → `{ items, total, page, limit }` |
+| `GET` | `/orders/:id` | Full order detail |
+
+**List item** (Figma سفارش‌ها table only):
+
+```ts
+{
+  id: number;              // open detail
+  orderNumber: string;     // کد پیگیری
+  amount: number;          // مبلغ (grand total, Tomans)
+  paymentStatus: string;   // عملیات پرداخت — PAID | PENDING | FAILED | REFUNDED
+  createdAt: string | null; // تاریخ (ISO; UI maps to Jalali)
+  items: {
+    imageKeys: string[];   // up to 3 thumbnails (کالا)
+    extraCount: number;    // +N overflow
+    totalCount: number;
+  };
+}
+```
+
+Order **detail** (`GET /orders/:id`) — Figma جزئیات سفارش:
+
+| Figma | Field |
+| --- | --- |
+| کد پیگیری | `orderNumber` |
+| نوع پرداخت | `paymentMethod` (`ONLINE` / `CHEQUE` / …) |
+| ارسال با | `shippingMethod` |
+| هزینه ارسال | `shippingFee` (`0` = رایگان) |
+| قیمت | `priceTotal` |
+| قیمت با تخفیف | `priceAfterDiscount` |
+| وضعیت سفارش | `status` |
+| وضعیت پرداخت | `paymentStatus` |
+| تاریخ | `createdAt` (ISO) |
+| نام و نام خانوادگی | `receiver.fullName` |
+| شماره موبایل | `receiver.phone` |
+| کد ملی | `receiver.nationalId` |
+| کد پستی | `receiver.postalCode` |
+| پلاک | `receiver.houseNumber` |
+| آدرس | `receiver.address` |
+| محصول / تصویر | `items[].productNameFa`, `items[].imageKey` |
+| مبلغ واحد | `items[].unitPrice` |
+| تعداد | `items[].quantity` |
+| جمع کل | `items[].lineTotal` |
+
+Extra fields (`summary`, raw `address`, seller, delivery window, …) are also returned.
+
+### Customer dashboard
+
+| Method | Path | Notes |
+| ------ | ---- | ----- |
+| `GET` | `/dashboard` | Counts (`delivered` / `processing` / `cancelled`), banner notification, unread count, recent orders |
+| `GET` | `/profile` | Buyer personal + business profile |
+| `PATCH` | `/profile` | Partial update; document/avatar keys from `POST /files/upload` |
+| `GET` | `/notifications` | Paginated inbox |
+| `GET` | `/notifications/unread-count` | `{ count }` |
+| `GET` | `/notifications/:id` | Detail |
+| `POST` | `/notifications/:id/read` | Mark one read |
+| `POST` | `/notifications/read-all` | Mark all read |
+| `GET` | `/favorites` | Product cards |
+| `POST` | `/favorites/:productId` | Add (idempotent) |
+| `DELETE` | `/favorites/:productId` | Remove (idempotent) |
+| `GET` | `/me/questions` | My product questions |
+| `GET` | `/me/question-replies` | `{ items, newRepliesCount }` |
+| `POST` | `/products/:productId/questions` | Body `{ body }` |
+| `POST` | `/seller/product-questions/:questionId/answers` | Seller (owner of product) answers; body `{ body }` |
+
+`PATCH /profile` body (all optional): `{ firstName, lastName, nationalId, dateOfBirth, gender: MALE|FEMALE, avatarKey, businessName, businessPhone, postalCode, province, city, address, identityType: KIOSK|SUPERMARKET|STORE, documentKey1, documentKey2 }`.
+
+`GET /profile` returns the same fields plus account `phone`.
 
 Flow (online): cart → checkout → `POST /payments/initiate` → `POST /payments/:id/mark-paid` → `GET /orders/:id`.
 

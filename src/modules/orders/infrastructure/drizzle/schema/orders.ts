@@ -51,6 +51,7 @@ export const orders = pgTable(
     paymentStatus: varchar('payment_status', { length: 30 })
       .notNull()
       .default(OrderPaymentStatus.PAID),
+    paymentMethod: varchar('payment_method', { length: 30 }).notNull(),
     address: jsonb('address').notNull(),
     shippingMethod: varchar('shipping_method', { length: 40 }).notNull(),
     shippingFee: integer('shipping_fee').notNull(),
@@ -61,6 +62,9 @@ export const orders = pgTable(
     goodsTotal: integer('goods_total').notNull(),
     commissionTotal: integer('commission_total').notNull(),
     prepaymentTotal: integer('prepayment_total').notNull(),
+    priceTotal: integer('price_total').notNull(),
+    discountTotal: integer('discount_total').notNull().default(0),
+    priceAfterDiscount: integer('price_after_discount').notNull(),
     grandTotal: integer('grand_total').notNull(),
   },
   (table) => [

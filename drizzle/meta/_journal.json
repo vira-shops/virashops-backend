@@ -64,6 +64,34 @@
       "when": 1789770000000,
       "tag": "0008_bank_account_validations",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1789850000000,
+      "tag": "0009_customer_dashboard_order_fields",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1789930000000,
+      "tag": "0010_buyer_profiles",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1790010000000,
+      "tag": "0011_customer_dashboard_modules",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1790090000000,
+      "tag": "0012_buyer_profile_figma_fields",
+      "breakpoints": true
     }
   ]
 }

@@ -2,6 +2,7 @@ import type {
   CheckoutAddressSnapshot,
   CheckoutLineSnapshot,
 } from './checkout-line.snapshot';
+import OrderPaymentMethod from './enums/order-payment-method.enum';
 import OrderPaymentStatus from './enums/order-payment-status.enum';
 import OrderStatus from './enums/order-status.enum';
 import ShippingMethodName from '../../../shipping/domain/model/enums/shipping-method.enum';
@@ -34,6 +35,7 @@ export type OrderProps = {
   checkoutSessionId: number;
   status: OrderStatus;
   paymentStatus: OrderPaymentStatus;
+  paymentMethod: OrderPaymentMethod;
   address: CheckoutAddressSnapshot;
   shippingMethod: ShippingMethodName;
   shippingFee: number;
@@ -44,15 +46,28 @@ export type OrderProps = {
   goodsTotal: number;
   commissionTotal: number;
   prepaymentTotal: number;
+  priceTotal: number;
+  discountTotal: number;
+  priceAfterDiscount: number;
   grandTotal: number;
   items: OrderItemProps[];
+  createdAt: Date | null;
 };
 
 export default class Order {
   private constructor(private props: OrderProps) {}
 
-  static create(input: Omit<OrderProps, 'id'> & { id?: number | null }): Order {
-    return new Order({ ...input, id: input.id ?? null });
+  static create(
+    input: Omit<OrderProps, 'id' | 'createdAt'> & {
+      id?: number | null;
+      createdAt?: Date | null;
+    },
+  ): Order {
+    return new Order({
+      ...input,
+      id: input.id ?? null,
+      createdAt: input.createdAt ?? null,
+    });
   }
 
   static restore(props: OrderProps): Order {
@@ -119,6 +134,10 @@ export default class Order {
     return this.props.paymentStatus;
   }
 
+  getPaymentMethod(): OrderPaymentMethod {
+    return this.props.paymentMethod;
+  }
+
   getAddress(): CheckoutAddressSnapshot {
     return this.props.address;
   }
@@ -159,8 +178,24 @@ export default class Order {
     return this.props.prepaymentTotal;
   }
 
+  getPriceTotal(): number {
+    return this.props.priceTotal;
+  }
+
+  getDiscountTotal(): number {
+    return this.props.discountTotal;
+  }
+
+  getPriceAfterDiscount(): number {
+    return this.props.priceAfterDiscount;
+  }
+
   getGrandTotal(): number {
     return this.props.grandTotal;
+  }
+
+  getCreatedAt(): Date | null {
+    return this.props.createdAt;
   }
 
   getItems(): OrderItemProps[] {

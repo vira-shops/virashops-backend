@@ -16,6 +16,7 @@ import * as dotenv from 'dotenv';
 import { unwrapApiData } from './utils/unwrap-api-data';
 import {
   createApiCheckHarness,
+  sampleAddressBody,
   signupWholesaleBuyer,
 } from './utils/api-check-harness';
 
@@ -40,11 +41,25 @@ type CheckoutView = {
   };
 };
 
-type OrderView = {
+type OrderListPage = {
+  items: Array<{
+    id: number;
+    orderNumber: string;
+    amount: number;
+    paymentStatus: string;
+    createdAt: string | null;
+    items: { imageKeys: string[]; extraCount: number; totalCount: number };
+  }>;
+  total: number;
+};
+
+type OrderDetailView = {
   id: number;
   orderNumber: string;
   status: string;
   paymentStatus: string;
+  paymentMethod: string;
+  receiver?: { fullName?: string; phone?: string };
   items: unknown[];
 };
 
@@ -135,13 +150,7 @@ async function main(): Promise<void> {
 
   const address = await api(++step.n, 'setup.address', 'POST', '/addresses', {
     token,
-    body: {
-      label: 'آدرس سفارش',
-      line1: 'خیابان ولیعصر',
-      city: 'تهران',
-      province: 'تهران',
-      isDefault: true,
-    },
+    body: sampleAddressBody({ label: 'آدرس سفارش' }),
     expectStatus: 201,
     checks: (status, body) => {
       const data = unwrapApiData<{ id?: number }>(body);
@@ -399,11 +408,16 @@ async function main(): Promise<void> {
     token,
     checklistPath: '/orders',
     checks: (status, body) => {
-      const data = unwrapApiData<OrderView[]>(body);
+      const data = unwrapApiData<OrderListPage>(body);
+      const row = data?.items?.find((item) => item.id === orderId);
       return {
         ...envelopeOk(status, body, 200),
-        includesNew:
-          Array.isArray(data) && data.some((row) => row.id === orderId),
+        includesNew: Boolean(row),
+        listShape:
+          typeof row?.orderNumber === 'string' &&
+          typeof row?.amount === 'number' &&
+          typeof row?.paymentStatus === 'string' &&
+          typeof row?.items?.totalCount === 'number',
       };
     },
   });
@@ -413,13 +427,14 @@ async function main(): Promise<void> {
     token,
     checklistPath: '/orders/:id',
     checks: (status, body) => {
-      const data = unwrapApiData<OrderView>(body);
+      const data = unwrapApiData<OrderDetailView>(body);
       return {
         ...envelopeOk(status, body, 200),
         sameId: data?.id === orderId,
         paid: data?.paymentStatus === 'PAID',
         statusPaid: data?.status === 'PAID',
         hasItems: Array.isArray(data?.items) && data.items.length > 0,
+        hasReceiver: Boolean(data?.receiver?.fullName),
       };
     },
   });
